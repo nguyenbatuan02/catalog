@@ -287,7 +287,83 @@ def soi(duong_dan):
     if not CAU_HINH["model_code"]:
         print('\n  ⚠  model_code = None → sẽ lấy TÊN xe làm mã.')
         print('     Các xe khác nhau nhưng trùng tên sẽ bị gộp làm một.')
+
+    kiem_trung_model(ds)
     print("")
+
+
+def kiem_trung_model(ds):
+    """Xem file sắp nạp có mã xe nào trùng NHAU trong file, hoặc đã CÓ SẴN trong DB."""
+    cfg = CAU_HINH
+    dem = {}          # "MAKE|MA" → [nhãn từng dòng]
+    for b in ds:
+        make = b.get(cfg["make"]) if cfg["make"] else None
+        if rong(make):
+            continue
+        make = str(make).strip()
+        for c in b.get("car_types") or []:
+            for m in c.get("models") or []:
+                ten = m.get(cfg["model_name"]) if cfg["model_name"] else None
+                ma = m.get(cfg["model_code"]) if cfg["model_code"] else None
+                if rong(ma):
+                    if rong(ten):
+                        continue
+                    ma = str(ten).strip()
+                ma = str(ma).strip().upper()
+                nhan = str(m.get(cfg["year_from_to"]) or "").strip() if cfg["year_from_to"] else ""
+                dem.setdefault(f"{make}|{ma}", []).append(nhan or "(không có năm)")
+
+    print("\n" + "-" * 68)
+    print("KIỂM TRA TRÙNG MÃ XE")
+    print("-" * 68)
+
+    # 1) Trùng ngay trong file
+    trung = {k: v for k, v in dem.items() if len(v) > 1}
+    tong_dong = sum(len(v) for v in dem.values())
+    if trung:
+        thua = sum(len(v) - 1 for v in trung.values())
+        print(f"  ⚠  TRONG FILE: {so_dep(len(trung))} mã lặp lại "
+              f"→ {so_dep(tong_dong)} dòng chỉ ra {so_dep(len(dem))} xe "
+              f"({so_dep(thua)} dòng dồn lại)")
+        print("     Không mất phụ tùng — tất cả gắn vào cùng xe, khoảng năm nới rộng.")
+        for k, v in list(trung.items())[:5]:
+            print(f"       {k}  ×{len(v)}   {' | '.join(v[:3])}")
+        if len(trung) > 5:
+            print(f"       ... và {so_dep(len(trung) - 5)} mã nữa")
+    else:
+        print(f"  ✓ TRONG FILE: {so_dep(len(dem))} mã, không mã nào lặp lại")
+
+    # 2) Đã có sẵn trong DB chưa
+    try:
+        import psycopg2
+        tt = cau_hinh_db()
+        conn = psycopg2.connect(**tt)
+        cur = conn.cursor()
+        cap = [tuple(k.split("|", 1)) for k in dem]
+        cur.execute("""
+            SELECT v.make, v.model_code, v.model_name, v.year_from, v.year_to
+            FROM catalog_vehicles v
+            JOIN (SELECT * FROM unnest(%s::text[], %s::text[]) AS t(mk, mc)) t
+              ON t.mk = v.make AND t.mc = v.model_code
+            ORDER BY v.model_code
+        """, ([c[0] for c in cap], [c[1] for c in cap]))
+        co_roi = cur.fetchall()
+        conn.close()
+
+        if co_roi:
+            print(f"\n  ⚠  TRONG DB '{tt['dbname']}': {so_dep(len(co_roi))}/{so_dep(len(dem))} "
+                  f"mã ĐÃ CÓ SẴN → nạp vào sẽ gộp vào dòng cũ, không tạo dòng mới")
+            for r in co_roi[:5]:
+                print(f"       {r[0]}|{r[1]}   đang là {r[3]}-{r[4]}   {r[2] or ''}")
+            if len(co_roi) > 5:
+                print(f"       ... và {so_dep(len(co_roi) - 5)} mã nữa")
+        else:
+            print(f"\n  ✓ TRONG DB '{tt['dbname']}': chưa có mã nào — nạp vào là {so_dep(len(dem))} xe mới")
+    except SystemExit:
+        raise
+    except Exception as e:
+        print(f"\n  ○ Không kiểm tra được DB ({type(e).__name__}: {str(e).strip()[:60]})")
+        print("     Phần kiểm tra trùng trong file ở trên vẫn dùng được.")
 
 
 # ── BÓC TÁCH ──────────────────────────────────────────────────────────
@@ -297,8 +373,9 @@ def boc_tach(goc):
     ds = goc if isinstance(goc, list) else [goc]
 
     xe, phu_tung, cap_noi = {}, {}, set()
-    cb = {"model_thieu_ma": 0, "part_thieu_ma": 0, "part_thieu_ten": 0}
-    ten_theo_ma = {}
+    cb = {"model_thieu_ma": 0, "part_thieu_ma": 0, "part_thieu_ten": 0,
+          "tong_model_trong_file": 0}
+    gop = {}   # khoa_xe → danh sách các model gốc đã dồn vào đó
 
     for b in ds:
         make = b.get(cfg["make"]) if cfg["make"] else None
@@ -310,6 +387,7 @@ def boc_tach(goc):
             thi_truong = c.get(cfg["description"]) if cfg["description"] else None
 
             for m in c.get("models") or []:
+                cb["tong_model_trong_file"] += 1
                 ten_xe = m.get(cfg["model_name"]) if cfg["model_name"] else None
                 ma_xe = m.get(cfg["model_code"]) if cfg["model_code"] else None
 
@@ -335,8 +413,29 @@ def boc_tach(goc):
                         "year_to": nam_den,
                         "description": cat(None if rong(thi_truong) else str(thi_truong).strip(), 255),
                     }
-                if dung_tam and not rong(ten_xe):
-                    ten_theo_ma.setdefault(khoa_xe, set()).add(str(ten_xe).strip())
+                else:
+                    # Đã gặp mã này rồi → NỚI RỘNG khoảng năm thay vì vứt bản sau.
+                    # File hay có cùng một mã xe lặp lại theo từng đời:
+                    #   KUN40L-GKMDYM  01.2005 - 02.2012
+                    #   KUN40L-GKMDYM  02.2012 - 03.2016
+                    # Gộp lại thành 2005 - 2016 mới đúng, giữ bản đầu là mất đời sau.
+                    cu = xe[khoa_xe]
+                    if nam_tu is not None:
+                        cu["year_from"] = (nam_tu if cu["year_from"] is None
+                                           else min(cu["year_from"], nam_tu))
+                    if nam_den is not None:
+                        cu["year_to"] = (nam_den if cu["year_to"] is None
+                                         else max(cu["year_to"], nam_den))
+                    if rong(cu["model_name"]) and not rong(ten_xe):
+                        cu["model_name"] = cat(str(ten_xe).strip(), 200)
+
+                # Ghi nhận MỌI lần gộp để báo lại — kể cả khi file có sẵn mã.
+                # (trước đây chỉ báo khi model thiếu mã nên gộp diễn ra im lặng)
+                gop.setdefault(khoa_xe, []).append({
+                    "ten": None if rong(ten_xe) else str(ten_xe).strip(),
+                    "nam": m.get(cfg["year_from_to"]) if cfg["year_from_to"] else None,
+                    "tu_ten": dung_tam,
+                })
 
                 for cg in m.get("categories") or []:
                     danh_muc = cg.get("category")
@@ -358,8 +457,12 @@ def boc_tach(goc):
                             hien_thi = (str(ten_vi).strip() if not rong(ten_vi)
                                         else str(ten).strip() if not rong(ten) else None)
                             if not hien_thi:
+                                # Không có tên nào cả — hay gặp với bu lông, ốc vít
+                                # tiêu chuẩn (PartSouq không kèm mô tả).
+                                # VẪN NẠP, lấy mã làm tên: tra theo mã vẫn cần chúng,
+                                # bỏ đi là mất tới ~20% catalog.
                                 cb["part_thieu_ten"] += 1
-                                continue
+                                hien_thi = str(so).strip()
                             ten_goc = None if rong(ten) else str(ten).strip()
 
                             if ref not in phu_tung:
@@ -383,7 +486,7 @@ def boc_tach(goc):
 
                             cap_noi.add((ref, khoa_xe))
 
-    cb["ma_dung_chung"] = {k: v for k, v in ten_theo_ma.items() if len(v) > 1}
+    cb["gop"] = {k: v for k, v in gop.items() if len(v) > 1}
     return xe, phu_tung, cap_noi, cb
 
 
@@ -397,12 +500,16 @@ def nap(duong_dan, chay_thu):
     print("Bóc tách ...")
     xe, phu_tung, cap_noi, cb = boc_tach(goc)
 
+    tong_file = cb["tong_model_trong_file"]
     print("\n" + "=" * 68)
     print(f"KẾT QUẢ: {os.path.basename(duong_dan)}")
     print("=" * 68)
-    print(f"  Xe        : {so_dep(len(xe))}")
-    print(f"  Phụ tùng  : {so_dep(len(phu_tung))}   (đã gộp trùng theo mã)")
-    print(f"  Fitment   : {so_dep(len(cap_noi))}")
+    print(f"  Model trong file : {so_dep(tong_file)}")
+    print(f"  Xe vào DB        : {so_dep(len(xe))}"
+          + (f"   ({so_dep(tong_file - len(xe))} dòng gộp vào dòng khác)"
+             if tong_file > len(xe) else ""))
+    print(f"  Phụ tùng         : {so_dep(len(phu_tung))}   (đã gộp trùng theo mã)")
+    print(f"  Fitment          : {so_dep(len(cap_noi))}")
 
     if cb["model_thieu_ma"] or cb["part_thieu_ma"] or cb["part_thieu_ten"]:
         print("\n  -- Cảnh báo --")
@@ -411,12 +518,27 @@ def nap(duong_dan, chay_thu):
         if cb["part_thieu_ma"]:
             print(f"  {so_dep(cb['part_thieu_ma'])} phụ tùng không có mã → BỎ QUA")
         if cb["part_thieu_ten"]:
-            print(f"  {so_dep(cb['part_thieu_ten'])} phụ tùng không có tên → BỎ QUA")
+            print(f"  {so_dep(cb['part_thieu_ten'])} phụ tùng không có tên → VẪN NẠP, "
+                  f"lấy mã làm tên (thường là bu lông, ốc vít)")
 
-    if cb["ma_dung_chung"]:
-        print(f"\n  ⚠  {so_dep(len(cb['ma_dung_chung']))} mã xe bị NHIỀU XE dùng chung → sẽ gộp:")
-        for k, v in list(cb["ma_dung_chung"].items())[:3]:
-            print(f"       {k}  ←  {' / '.join(list(v)[:3])}")
+    if cb["gop"]:
+        thua = sum(len(v) - 1 for v in cb["gop"].values())
+        tu_ten = any(x["tu_ten"] for v in cb["gop"].values() for x in v)
+        print(f"\n  -- {so_dep(len(cb['gop']))} mã xe xuất hiện nhiều lần trong file "
+              f"→ {so_dep(thua)} dòng dồn lại --")
+        print("     Phụ tùng của TẤT CẢ các dòng đó đều được giữ, gắn vào cùng một xe.")
+        print("     Khoảng năm được NỚI RỘNG để phủ hết các đời.")
+        if tu_ten:
+            print("     ⚠ Có dòng gộp do xe KHÔNG CÓ MÃ (lấy tên làm mã) — dễ gộp nhầm,")
+            print("       kiểm tra lại cấu hình model_code.")
+        print("")
+        for k, v in list(cb["gop"].items())[:5]:
+            x = xe[k]
+            print(f"       {k}   {len(v)} dòng → năm {x['year_from']}-{x['year_to']}")
+            for it in v[:3]:
+                print(f"           {it['nam'] or '(không có năm)'}")
+        if len(cb["gop"]) > 5:
+            print(f"       ... và {so_dep(len(cb['gop']) - 5)} mã nữa")
 
     print("\n  -- Mẫu 3 xe --")
     for v in list(xe.values())[:3]:
@@ -451,8 +573,12 @@ def nap(duong_dan, chay_thu):
                 VALUES %s
                 ON CONFLICT (make, model_code) DO UPDATE SET
                     model_name = COALESCE(EXCLUDED.model_name, catalog_vehicles.model_name),
-                    year_from  = COALESCE(EXCLUDED.year_from,  catalog_vehicles.year_from),
-                    year_to    = COALESCE(EXCLUDED.year_to,    catalog_vehicles.year_to),
+                    -- Nới rộng khoảng năm thay vì đè. LEAST/GREATEST của Postgres
+                    -- tự bỏ qua NULL nên xe chưa có năm cũng an toàn.
+                    -- Nhờ vậy nạp lại file, hay nạp thêm file khác cùng mã xe,
+                    -- khoảng năm chỉ rộng ra chứ không mất.
+                    year_from  = LEAST(catalog_vehicles.year_from,  EXCLUDED.year_from),
+                    year_to    = GREATEST(catalog_vehicles.year_to, EXCLUDED.year_to),
                     updated_at = now()
                 RETURNING id, make, model_code
             """, hang_xe[i:i + 500], fetch=True)
