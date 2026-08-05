@@ -110,21 +110,11 @@ CAU_HINH = {
 }
 
 
-# ╔══════════════════════════════════════════════════════════════════════╗
-# ║   KẾT NỐI DB — tự đọc .env ở thư mục gốc project.                    ║
-# ║   Muốn ghi đè thì điền thẳng vào đây.                                ║
-# ╚══════════════════════════════════════════════════════════════════════╝
-DB = {
-    "host":     None,   # None = lấy DB_HOST trong .env
-    "port":     None,
-    "dbname":   None,
-    "user":     None,
-    "password": None,
-}
-
-
 # ══════════════════════════════════════════════════════════════════════
-# Từ đây trở xuống không cần sửa
+# Từ đây trở xuống KHÔNG CẦN SỬA GÌ.
+#
+# Thông tin kết nối DB script tự đọc từ file .env ở thư mục gốc project
+# (DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD) — không khai báo ở đây.
 # ══════════════════════════════════════════════════════════════════════
 
 try:
@@ -153,12 +143,21 @@ def doc_env():
 
 def cau_hinh_db():
     env = doc_env()
+    dd = os.path.join(GOC_PROJECT, ".env")
+    if not env:
+        print(f"✗ Không đọc được file .env tại:\n    {dd}")
+        print("  Tạo file đó với DB_HOST / DB_PORT / DB_NAME / DB_USER / DB_PASSWORD")
+        sys.exit(1)
+    thieu = [k for k in ("DB_NAME", "DB_USER", "DB_PASSWORD") if not env.get(k)]
+    if thieu:
+        print(f"✗ File .env thiếu: {', '.join(thieu)}\n    {dd}")
+        sys.exit(1)
     return {
-        "host":     DB["host"]     or env.get("DB_HOST", "localhost"),
-        "port":     int(DB["port"] or env.get("DB_PORT", 5432)),
-        "dbname":   DB["dbname"]   or env.get("DB_NAME", "catalog"),
-        "user":     DB["user"]     or env.get("DB_USER", "catalog_user"),
-        "password": DB["password"] or env.get("DB_PASSWORD", ""),
+        "host":     env.get("DB_HOST", "localhost"),
+        "port":     int(env.get("DB_PORT", 5432)),
+        "dbname":   env["DB_NAME"],
+        "user":     env["DB_USER"],
+        "password": env["DB_PASSWORD"],
     }
 
 
