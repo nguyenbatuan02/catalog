@@ -1,3 +1,8 @@
+SET client_encoding = 'UTF8';
+-- ↑ PHẢI là dòng đầu tiên. psql trên Windows mặc định đọc file theo WIN1252,
+--   gặp tiếng Việt trong chú thích sẽ báo:
+--   "character with byte sequence 0x.. in encoding WIN1252 has no equivalent in UTF8"
+
 -- ============================================================
 -- 02_schema.sql — Bảng + ràng buộc + view
 -- Chạy bằng user ứng dụng, SAU 01_init.sql

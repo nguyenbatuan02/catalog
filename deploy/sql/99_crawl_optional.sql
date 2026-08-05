@@ -1,3 +1,6 @@
+SET client_encoding = 'UTF8';
+-- ↑ PHẢI là dòng đầu tiên (psql trên Windows mặc định đọc file theo WIN1252)
+
 -- ============================================================
 -- 99_crawl_optional.sql — BẢNG CỦA HỆ THỐNG CÀO (TUỲ CHỌN)
 -- ============================================================
