@@ -51,14 +51,14 @@ CAU_HINH = {
 
     # tầng 3 → cột  model_code    MÃ XE.          VD "ACV40L-BEAGKC"
     #   ★ TRƯỜNG HAY PHẢI SỬA NHẤT — mỗi file đặt tên một kiểu:
-    #       file Suzuki  →  "model_code"
-    #       file Lexus   →  "model"
-    #       file Toyota  →  "model"
-    #       file Ford    →  None   (file đó KHÔNG có mã;
-    #                               nó có trường "model" nhưng giá trị là
-    #                               "LIGHT TRUCK" = loại xe, KHÔNG phải mã.
-    #                               Để nhầm là hỏng toàn bộ dữ liệu xe)
+    #       file Lexus / Toyota  →  "model"
+    #       file Suzuki          →  "model_code"
+    #       file Ford            →  None   (file đó KHÔNG có mã; nó có
+    #                                       trường "model" nhưng giá trị là
+    #                                       "LIGHT TRUCK" = loại xe.
+    #                                       Để nhầm là hỏng dữ liệu xe)
     #   Để None thì script lấy TÊN xe làm mã thay thế.
+    #   Không chắc thì chạy --soi, nó liệt kê trường có sẵn trong file.
     "model_code":   "model",
 
     # tầng 3 → HAI cột  year_from  VÀ  year_to
