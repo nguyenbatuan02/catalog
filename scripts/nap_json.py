@@ -18,60 +18,42 @@ Chỉ có TÊN TRƯỜNG Ở TẦNG MODEL là mỗi file một kiểu → sửa 
 import sys, os, json, re, argparse
 
 # ╔══════════════════════════════════════════════════════════════════╗
-# ║  CẤU HÌNH — SỬA Ở ĐÂY                                            ║
-# ║  Bên trái = cột trong DB. Bên phải = tên trường trong file JSON.  ║
-# ║  Không có trường đó trong file thì để None.                      ║
+# ║  CẤU HÌNH — CHỈ SỬA 3 DÒNG TRONG NÀY                             ║
+# ║                                                                  ║
+# ║  Chỉ tầng MODEL là mỗi file một kiểu nên chỉ cần khai báo 3 thứ:  ║
+# ║      ten   → catalog_vehicles.model_name                         ║
+# ║      ma    → catalog_vehicles.model_code                         ║
+# ║      nam   → catalog_vehicles.year_from / year_to                ║
+# ║  File không có trường nào thì để None.                           ║
+# ║                                                                  ║
+# ║  Gặp file lạ: chạy --soi để xem tên trường, rồi thêm 1 mục ở đây. ║
 # ╚══════════════════════════════════════════════════════════════════╝
 
 CAU_HINH = {
+    #  tên cấu hình      tên model     mã model        năm sản xuất
+    "suzuki": {"ten": "name",   "ma": "model_code", "nam": None},
+    "toyota": {"ten": "name",   "ma": "model",      "nam": "prod_period"},
 
-    # ── Dạng Suzuki: mã model ở trường "model_code", không có năm ──
-    "suzuki": {
-        "make":          "brand",        # → catalog_vehicles.make        (hãng xe)
-        "car_type":      "car_type",     # → catalog_vehicles.description (thị trường)
-        "model_name":    "name",         # → catalog_vehicles.model_name
-        "model_code":    "model_code",   # → catalog_vehicles.model_code
-        "year":          None,           # → year_from / year_to
-        "part_number":   "number",       # → internal_ref VÀ oem_code
-        "part_name":     "name",         # → catalog_products.name
-        "part_name_vi":  "name_vi",      # → catalog_products.name_vi
-        "product_type":  "genuine",      # giá trị cố định
-        "brand_tu_make": True,           # brand phụ tùng = tên hãng xe
-    },
-
-    # ── Dạng Toyota: mã model ở trường "model", năm ở "prod_period" ──
-    "toyota": {
-        "make":          "brand",
-        "car_type":      "car_type",
-        "model_name":    "name",
-        "model_code":    "model",        # "GUN142L-MDMLYV"
-        "year":          "prod_period",  # "11.2015 - 07.2018"
-        "part_number":   "number",
-        "part_name":     "name",
-        "part_name_vi":  "name_vi",
-        "product_type":  "genuine",
-        "brand_tu_make": True,
-    },
-
-    # ── Dạng Ford: KHÔNG có mã model ──
-    #    Chú ý: file này cũng có trường "model" nhưng giá trị là "LIGHT TRUCK"
-    #    (loại xe), KHÔNG phải mã → bắt buộc để None, nếu không sẽ hỏng dữ liệu.
-    "ford": {
-        "make":          "brand",
-        "car_type":      "car_type",
-        "model_name":    "name",
-        "model_code":    None,           # không có → script lấy tên model làm mã
-        "year":          "manufactured", # "1996"
-        "part_number":   "number",
-        "part_name":     "name",
-        "part_name_vi":  "name_vi",
-        "product_type":  "genuine",
-        "brand_tu_make": True,
-    },
+    # Ford KHÔNG có mã model. Nó cũng có trường tên "model" nhưng giá trị là
+    # "LIGHT TRUCK" (loại xe) chứ không phải mã → bắt buộc để None,
+    # để nhầm là hỏng toàn bộ dữ liệu xe.
+    "ford":   {"ten": "name",   "ma": None,         "nam": "manufactured"},
 }
 
 # Dùng cấu hình nào khi không truyền tên ở dòng lệnh
 MAC_DINH = "suzuki"
+
+
+# ── Các trường dưới đây GIỐNG NHAU ở mọi file nên để cố định ────────
+# Đã đối chiếu 3 file Suzuki / Toyota / Ford: đều trùng.
+TRUONG_HANG     = "brand"      # tầng 1  → catalog_vehicles.make
+TRUONG_THI_TRUONG = "car_type" # tầng 2  → catalog_vehicles.description
+TRUONG_PART_MA  = "number"     # parts   → internal_ref VÀ oem_code
+TRUONG_PART_TEN = "name"       # parts   → catalog_products.name
+TRUONG_PART_VI  = "name_vi"    # parts   → catalog_products.name_vi (file Toyota KHÔNG có)
+
+LOAI_HANG = "genuine"          # → catalog_products.product_type
+BRAND_LA_TEN_HANG = True       # brand phụ tùng = tên hãng xe (hàng chính hãng)
 
 # ╔══════════════════════════════════════════════════════════════════╗
 # ║  KẾT NỐI DB — tự đọc từ file .env ở thư mục gốc project.          ║
@@ -204,15 +186,20 @@ def soi(duong_dan):
         print(f"    {k:<24} {pc:>3}%  ({so_dep(v)}/{so_dep(tong)})")
 
     print("\n" + "-" * 64)
-    if "model_code" in md:
-        print('  → Nhiều khả năng dùng cấu hình "suzuki"  (model_code)')
-    elif "prod_period" in md:
-        print('  → Nhiều khả năng dùng cấu hình "toyota"  (model + prod_period)')
-    else:
-        print('  → Không thấy mã model rõ ràng. Xem cấu hình "ford" (model_code = None)')
-    if "model" in md:
-        print(f'  ⚠  Trường "model" ở file này = {json.dumps(md.get("model"), ensure_ascii=False)}')
-        print('     Nếu đó là LOẠI XE chứ không phải mã → phải để "model_code": None')
+    ma = "model_code" if "model_code" in md else ("model" if "model" in md else None)
+    nam = next((k for k in ("prod_period", "manufactured", "year", "nam") if k in md), None)
+    print("  Dòng cấu hình gợi ý — dán vào CAU_HINH ở đầu file này:\n")
+    print(f'    "ten-cau-hinh": {{"ten": "name", '
+          f'"ma": {json.dumps(ma)}, "nam": {json.dumps(nam)}}},')
+    if "model" in md and ma == "model":
+        print(f'\n  ⚠  Trường "model" ở file này = {json.dumps(md.get("model"), ensure_ascii=False)}')
+        print('     Nếu đó là LOẠI XE chứ không phải mã model → phải sửa thành "ma": null')
+    if not ma:
+        print('\n  ⚠  File không có mã model → script sẽ lấy TÊN model làm mã.')
+        print('     Các bản xe khác nhau nhưng trùng tên sẽ bị gộp làm một.')
+    if TRUONG_PART_VI not in pt:
+        print(f'\n  ⚠  Phụ tùng file này KHÔNG có trường "{TRUONG_PART_VI}"')
+        print('     → sẽ không có tên tiếng Việt, chỉ có tên gốc.')
     print("")
 
 
@@ -228,17 +215,17 @@ def boc_tach(goc, cfg):
     ten_theo_ma = {}
 
     for b in ds:
-        make = b.get(cfg["make"]) if cfg["make"] else None
+        make = b.get(TRUONG_HANG)
         if rong(make):
             continue
         make = str(make).strip()
 
         for c in b.get("car_types") or []:
-            car_type = c.get(cfg["car_type"]) if cfg["car_type"] else None
+            car_type = c.get(TRUONG_THI_TRUONG)
 
             for m in c.get("models") or []:
-                ten_model = m.get(cfg["model_name"]) if cfg["model_name"] else None
-                ma_model = m.get(cfg["model_code"]) if cfg["model_code"] else None
+                ten_model = m.get(cfg["ten"]) if cfg["ten"] else None
+                ma_model = m.get(cfg["ma"]) if cfg["ma"] else None
 
                 dung_tam = False
                 if rong(ma_model):
@@ -250,7 +237,7 @@ def boc_tach(goc, cfg):
 
                 ma_model = str(ma_model).strip().upper()
                 khoa_xe = f"{make}|{ma_model}"
-                nam_tu, nam_den = tach_nam(m.get(cfg["year"]) if cfg["year"] else None)
+                nam_tu, nam_den = tach_nam(m.get(cfg["nam"]) if cfg["nam"] else None)
 
                 if khoa_xe not in xe:
                     xe[khoa_xe] = {
@@ -269,36 +256,46 @@ def boc_tach(goc, cfg):
                     for tt in cg.get("titles") or []:
                         tieu_de = tt.get("title")
                         for p in tt.get("parts") or []:
-                            so = p.get(cfg["part_number"]) if cfg["part_number"] else None
+                            so = p.get(TRUONG_PART_MA)
+                            # Không có mã thì BỎ QUA — không có gì để định danh phụ tùng
                             ref = chuan_hoa_ma(so)
                             if not ref:
                                 cb["part_thieu_ma"] += 1
                                 continue
 
-                            ten = p.get(cfg["part_name"]) if cfg["part_name"] else None
-                            ten_vi = p.get(cfg["part_name_vi"]) if cfg["part_name_vi"] else None
+                            ten = p.get(TRUONG_PART_TEN)
+                            ten_vi = p.get(TRUONG_PART_VI)
 
-                            # Tên ưu tiên name_vi, trống mới dùng name
+                            # TÊN SẢN PHẨM: ưu tiên name_vi, rỗng mới dùng name.
+                            # Quan trọng: cột `name` chính là cột mà app dùng để
+                            # tìm kiếm, nên để tiếng Việt ở đây thì khách gõ
+                            # tiếng Việt mới ra kết quả.
                             hien_thi = (str(ten_vi).strip() if not rong(ten_vi)
                                         else str(ten).strip() if not rong(ten) else None)
                             if not hien_thi:
                                 cb["part_thieu_ten"] += 1
                                 continue
+                            ten_goc = None if rong(ten) else str(ten).strip()
 
                             if ref not in phu_tung:
                                 ma_goc = str(so).strip()
                                 phu_tung[ref] = {
                                     "internal_ref": cat(ma_goc, 100),
                                     "oem_code": cat(ma_goc, 100),
-                                    "name": cat(hien_thi if rong(ten) else str(ten).strip(), 500),
+                                    "name": cat(hien_thi, 500),          # ← VI trước, EN sau
                                     "name_vi": None if rong(ten_vi) else str(ten_vi).strip(),
-                                    "brand": cat(make, 100) if cfg["brand_tu_make"] else None,
+                                    "ten_goc": ten_goc,                  # giữ bản tiếng Anh để tìm được cả 2 thứ tiếng
+                                    "brand": cat(make, 100) if BRAND_LA_TEN_HANG else None,
                                     "notes": cat(" | ".join(x for x in (danh_muc, tieu_de) if x) or None, 1000),
                                 }
                             else:
+                                # Lần trước chưa có tên tiếng Việt, giờ có → cập nhật cả `name`
                                 cu = phu_tung[ref]
                                 if rong(cu["name_vi"]) and not rong(ten_vi):
                                     cu["name_vi"] = str(ten_vi).strip()
+                                    cu["name"] = cat(str(ten_vi).strip(), 500)
+                                if rong(cu["ten_goc"]) and ten_goc:
+                                    cu["ten_goc"] = ten_goc
 
                             cap_noi.add((ref, khoa_xe))
 
@@ -388,10 +385,12 @@ def nap(duong_dan, ten_cau_hinh, chay_thu):
 
         # 2) PHỤ TÙNG
         print("  [2/3] Phụ tùng")
-        loai = cfg["product_type"] or "genuine"
+        # search_text gộp cả tên Việt lẫn tên gốc tiếng Anh + mã
+        # → tìm bằng thứ tiếng nào cũng ra, không mất bản tiếng Anh
         hang_pt = [(p["name"], p["name_vi"], p["internal_ref"], p["oem_code"],
-                    p["brand"], loai, p["notes"],
-                    " ".join(x for x in (p["name"], p["name_vi"], p["internal_ref"]) if x))
+                    p["brand"], LOAI_HANG, p["notes"],
+                    " ".join(dict.fromkeys(
+                        x for x in (p["name"], p["name_vi"], p["ten_goc"], p["internal_ref"]) if x)))
                    for p in phu_tung.values()]
         id_pt = {}
         for i in range(0, len(hang_pt), 500):
@@ -400,6 +399,7 @@ def nap(duong_dan, ten_cau_hinh, chay_thu):
                     (name, name_vi, internal_ref, oem_code, brand, product_type, notes, search_text)
                 VALUES %s
                 ON CONFLICT (ref_norm) WHERE ref_norm IS NOT NULL DO UPDATE SET
+                    name        = COALESCE(NULLIF(EXCLUDED.name,''),    catalog_products.name),
                     name_vi     = COALESCE(NULLIF(EXCLUDED.name_vi,''), catalog_products.name_vi),
                     brand       = COALESCE(EXCLUDED.brand, catalog_products.brand),
                     search_text = EXCLUDED.search_text,
