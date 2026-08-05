@@ -28,6 +28,10 @@ import sys, os, json, re, argparse
 # ║   Bên PHẢI  = tên trường trong file JSON  ← SỬA CÁI NÀY              ║
 # ║   File không có trường đó thì để  None                               ║
 # ║                                                                      ║
+# ║   Hai khoá KHÔNG phải tên cột vì chúng ghi vào 2 cột cùng lúc:       ║
+# ║     year_from_to  → year_from + year_to                              ║
+# ║     ma_phu_tung   → internal_ref + oem_code                          ║
+# ║                                                                      ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 
 CAU_HINH = {
@@ -57,20 +61,28 @@ CAU_HINH = {
     #   Để None thì script lấy TÊN xe làm mã thay thế.
     "model_code":   "model",
 
-    # tầng 3 → cột  year_from + year_to   năm sản xuất
-    #   ★ TRƯỜNG HAY PHẢI SỬA — script tự bóc số năm ra khỏi chuỗi:
-    #       "prod_period" : "08.2009 - 06.2012"  → 2009 và 2012
-    #       "manufactured": "1996"               → 1996 và 1996
-    #       None                                 → để trống (khớp mọi năm)
-    "year":         "prod_period",
+    # tầng 3 → HAI cột  year_from  VÀ  year_to
+    #   Đây là ánh xạ 1 → 2: một trường JSON, script bóc số năm ra rồi
+    #   điền vào cả hai cột. DB không có cột nào tên "year".
+    #   ★ TRƯỜNG HAY PHẢI SỬA:
+    #       "prod_period" : "08.2009 - 06.2012"  → year_from=2009, year_to=2012
+    #       "manufactured": "1996"               → year_from=1996, year_to=1996
+    #       None                                 → cả hai để trống
+    #   Để trống thì xe khớp MỌI năm — an toàn hơn điền sai (điền sai
+    #   là xe bị loại oan, khách hỏi không ra hàng).
+    "year_from_to": "prod_period",
 
     # ─────────────────────────────────────────────────────────────────
     #  BẢNG PHỤ TÙNG  →  catalog_products
     # ─────────────────────────────────────────────────────────────────
 
-    # tầng 6 → cột  internal_ref  VÀ  oem_code   (ghi vào cả hai)
-    #   Không có mã thì phụ tùng đó BỊ BỎ QUA, script sẽ đếm và báo lại.
-    "oem_code":     "number",
+    # tầng 6 → HAI cột  internal_ref  VÀ  oem_code
+    #   Cũng là ánh xạ 1 → 2: cùng một mã ghi vào cả hai cột.
+    #     internal_ref = mã sản phẩm, KHÔNG được trùng (khoá chống trùng)
+    #     oem_code     = mã hãng xe, được phép trùng (hàng tương đương)
+    #   File cào chỉ có một mã nên hai cột bằng nhau — bình thường.
+    #   Phụ tùng không có mã thì BỊ BỎ QUA, script đếm và báo lại.
+    "ma_phu_tung":  "number",
 
     # tầng 6 → cột  name_vi   tên tiếng Việt
     #   Đây là tên ĐƯỢC ƯU TIÊN làm tên chính của sản phẩm.
@@ -237,14 +249,14 @@ def soi(duong_dan):
     print("-" * 68)
 
     kiem = [
-        ("make",        b0, "tầng 1"),
-        ("description", ct, "tầng 2"),
-        ("model_name",  md, "tầng 3"),
-        ("model_code",  md, "tầng 3"),
-        ("year",        md, "tầng 3"),
-        ("oem_code",    pt, "tầng 6"),
-        ("name_vi",     pt, "tầng 6"),
-        ("name",        pt, "tầng 6"),
+        ("make",         b0, "tầng 1"),
+        ("description",  ct, "tầng 2"),
+        ("model_name",   md, "tầng 3"),
+        ("model_code",   md, "tầng 3"),
+        ("year_from_to", md, "tầng 3"),
+        ("ma_phu_tung",  pt, "tầng 6"),
+        ("name_vi",      pt, "tầng 6"),
+        ("name",         pt, "tầng 6"),
     ]
     loi = 0
     for cot, obj, tang in kiem:
@@ -312,7 +324,8 @@ def boc_tach(goc):
 
                 ma_xe = str(ma_xe).strip().upper()
                 khoa_xe = f"{make}|{ma_xe}"
-                nam_tu, nam_den = tach_nam(m.get(cfg["year"]) if cfg["year"] else None)
+                nam_tu, nam_den = tach_nam(
+                    m.get(cfg["year_from_to"]) if cfg["year_from_to"] else None)
 
                 if khoa_xe not in xe:
                     xe[khoa_xe] = {
@@ -331,7 +344,7 @@ def boc_tach(goc):
                     for tt in cg.get("titles") or []:
                         tieu_de = tt.get("title")
                         for p in tt.get("parts") or []:
-                            so = p.get(cfg["oem_code"]) if cfg["oem_code"] else None
+                            so = p.get(cfg["ma_phu_tung"]) if cfg["ma_phu_tung"] else None
                             ref = chuan_hoa_ma(so)
                             if not ref:                      # không có mã → bỏ qua
                                 cb["part_thieu_ma"] += 1
