@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fitment Matrix — Phủ sóng phụ tùng</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f5f5;color:#1a1a1a;font-size:13px}
+.top{background:#fff;border-bottom:1px solid #e0e0e0;padding:12px 16px;display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;position:sticky;top:0;z-index:10}
+.top h1{font-size:15px;font-weight:600;margin-right:8px;white-space:nowrap;align-self:center}
+.field{display:flex;flex-direction:column;gap:3px}
+.field label{font-size:11px;color:#666}
+select,input{height:32px;padding:0 8px;border:1px solid #d0d0d0;border-radius:6px;background:#fff;font-size:13px;color:#1a1a1a}
+input{width:160px}
+button{height:32px;padding:0 14px;border-radius:6px;border:1px solid #d0d0d0;background:#fff;cursor:pointer;font-size:13px;white-space:nowrap}
+button:hover{background:#f0f0f0}
+button.pri{background:#1a73e8;color:#fff;border-color:#1a73e8}
+button.pri:hover{background:#1558b0}
+.stats{display:flex;gap:8px;padding:10px 16px;background:#fff;border-bottom:1px solid #e0e0e0;flex-wrap:wrap}
+.stat{background:#f8f8f8;border:1px solid #e8e8e8;border-radius:8px;padding:8px 14px;min-width:140px}
+.stat .lbl{font-size:11px;color:#666;margin-bottom:2px}
+.stat .val{font-size:20px;font-weight:600}
+.fbar{display:flex;gap:12px;align-items:center;padding:8px 16px;background:#fff;border-bottom:1px solid #e0e0e0;flex-wrap:wrap}
+.fbar label{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px}
+.fbar select{height:28px;font-size:12px}
+.legend{display:flex;gap:12px;align-items:center;margin-left:auto;font-size:11px}
+.dot{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:3px;font-size:10px;font-weight:600}
+.dot.y{background:#c8e6c9;color:#2e7d32}
+.dot.n{background:#ffcdd2;color:#c62828}
+.dot.na{background:#eeeeee;color:#999}
+.tbl-wrap{overflow:auto;height:calc(100vh - 220px)}
+table{border-collapse:collapse;table-layout:fixed;min-width:100%}
+th{background:#f0f0f0;padding:5px 3px;border:1px solid #ddd;font-weight:500;color:#444;font-size:11px;text-align:center;position:sticky;top:0;z-index:2;white-space:nowrap}
+th.fix{position:sticky;left:0;z-index:3;background:#e8e8e8;text-align:left;padding:5px 8px;min-width:160px;max-width:160px}
+th.fix2{left:160px;min-width:55px;max-width:55px}
+th.fix3{left:215px;min-width:52px;max-width:52px}
+th.pt{writing-mode:vertical-lr;transform:rotate(180deg);height:100px;vertical-align:bottom;padding:4px 2px;min-width:26px;max-width:26px;font-size:10px;cursor:help}
+th.grp{font-size:10px;color:#888;background:#e8e8e8;border-bottom:2px solid #ccc}
+td{padding:4px 3px;border:1px solid #e0e0e0;text-align:center;vertical-align:middle}
+td.fix{position:sticky;left:0;background:#fff;text-align:left;padding:4px 8px;z-index:1;min-width:160px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+td.fix2{position:sticky;left:160px;background:#fff;min-width:55px;max-width:55px;font-size:11px;color:#666;z-index:1}
+td.fix3{position:sticky;left:215px;background:#fff;min-width:52px;max-width:52px;font-weight:600;z-index:1}
+tr:hover td{background:#fafafa}
+tr:hover td.fix,tr:hover td.fix2,tr:hover td.fix3{background:#f0f4ff}
+.row-full td{background:#f1f8e9}
+.row-full td.fix,.row-full td.fix2,.row-full td.fix3{background:#f1f8e9}
+.row-full:hover td{background:#e8f5e9}
+.row-empty td{background:#fafafa;opacity:0.6}
+.row-poor td{background:#fff8f8}
+.pg{display:flex;gap:8px;align-items:center;padding:10px 16px;background:#fff;border-top:1px solid #e0e0e0;position:sticky;bottom:0}
+.pg button{height:30px;padding:0 12px;font-size:12px}
+.msg{text-align:center;padding:60px;color:#888;font-size:14px}
+.loading{display:inline-block;width:16px;height:16px;border:2px solid #ddd;border-top-color:#1a73e8;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <h1>Fitment Matrix</h1>
+  <div class="field">
+    <label>Hãng xe</label>
+    <select id="mk">
+      <option>Toyota</option><option>Hyundai</option><option>Kia</option>
+      <option>Infiniti</option><option>Mazda</option><option>Mitsubishi</option>
+      <option>Nissan</option><option>Audi</option><option>Lexus</option>
+    </select>
+  </div>
+  <div class="field">
+    <label>Tên model (bỏ trống = tất cả)</label>
+    <input id="mn" placeholder="INNOVA, VIOS, FORTUNER..."/>
+  </div>
+  <div class="field">
+    <label>Số dòng/trang</label>
+    <select id="lim">
+      <option value="50">50</option>
+      <option value="100" selected>100</option>
+      <option value="200">200</option>
+      <option value="500">500</option>
+    </select>
+  </div>
+  <button class="pri" onclick="load(1)">🔍 Tìm kiếm</button>
+  <button onclick="reset()">✕ Xóa</button>
+  <button onclick="exportCsv()">⬇ Xuất CSV</button>
+</div>
+
+<div class="stats" id="stats" style="display:none">
+  <div class="stat"><div class="lbl">Tổng model code</div><div class="val" id="s1">—</div></div>
+  <div class="stat"><div class="lbl">Đủ hết (&gt;40 loại)</div><div class="val" id="s2" style="color:#2e7d32">—</div></div>
+  <div class="stat"><div class="lbl">Thiếu nhiều (&lt;10)</div><div class="val" id="s3" style="color:#c62828">—</div></div>
+  <div class="stat"><div class="lbl">Chưa có dữ liệu</div><div class="val" id="s4" style="color:#999">—</div></div>
+</div>
+
+<div class="fbar" id="fbar" style="display:none">
+  <label><input type="checkbox" id="f-miss" onchange="applyFilter()"> Chỉ xe thiếu phụ tùng</label>
+  <label><input type="checkbox" id="f-empty" onchange="applyFilter()"> Ẩn xe chưa có dữ liệu</label>
+  <label>Sắp xếp:
+    <select id="sortby" onchange="applyFilter()">
+      <option value="name">Tên model</option>
+      <option value="total_desc">Nhiều PT nhất</option>
+      <option value="total_asc">Ít PT nhất</option>
+      <option value="missing">Thiếu nhiều nhất</option>
+      <option value="score_asc">Score thấp nhất</option>
+      <option value="score_desc">Score cao nhất</option>
+    </select>
+  </label>
+  <div class="legend">
+    <span><span class="dot y">✓</span> Có</span>
+    <span><span class="dot n">✗</span> Thiếu</span>
+    <span><span class="dot na">—</span> Chưa có dữ liệu</span>
+  </div>
+</div>
+
+<div id="out"><div class="msg">Chọn hãng xe và bấm tìm kiếm</div></div>
+
+<div class="pg" id="pg" style="display:none">
+  <button onclick="load(curPage-1)" id="btn-prev">← Trước</button>
+  <span id="pg-info" style="color:#666"></span>
+  <button onclick="load(curPage+1)" id="btn-next">Tiếp →</button>
+</div>
+
+<script>
+const API = '/api/v1/catalog/fitment-matrix';
+let allRows = [], curPage = 1, totalRows = 0, totalPages = 0;
+
+const COLS = [
+  {k:'piston',l:'Piston',g:'Động cơ'},
+  {k:'sec_mang',l:'Séc măng',g:'Động cơ'},
+  {k:'bien_balie',l:'Biên/Balie',g:'Động cơ'},
+  {k:'gioang_dai_tu',l:'Gioăng đại tu',g:'Động cơ'},
+  {k:'loc_dau',l:'Lọc dầu',g:'Động cơ'},
+  {k:'loc_nhien_lieu',l:'Lọc nhiên liệu',g:'Động cơ'},
+  {k:'loc_gio',l:'Lọc gió',g:'Động cơ'},
+  {k:'bom_dau',l:'Bơm dầu',g:'Động cơ'},
+  {k:'bom_nuoc',l:'Bơm nước',g:'Động cơ'},
+  {k:'bugi',l:'Bugi',g:'Động cơ'},
+  {k:'mobin',l:'Môbin',g:'Động cơ'},
+  {k:'kim_phun',l:'Kim phun',g:'Động cơ'},
+  {k:'bom_nhien_lieu',l:'Bơm nhiên liệu',g:'Động cơ'},
+  {k:'turbo',l:'Turbo',g:'Động cơ'},
+  {k:'curoa_cam',l:'Curoa cam',g:'Động cơ'},
+  {k:'curoa_tong',l:'Curoa tổng',g:'Động cơ'},
+  {k:'curoa_phu',l:'Curoa phụ',g:'Động cơ'},
+  {k:'bi_tang_cam',l:'Bi tăng cam',g:'Động cơ'},
+  {k:'ket_nuoc',l:'Két nước',g:'Động cơ'},
+  {k:'ket_mat_dau',l:'Két mát dầu',g:'Động cơ'},
+  {k:'mo_to_quat',l:'Mô tơ quạt',g:'Động cơ'},
+  {k:'may_phat',l:'Máy phát',g:'Động cơ'},
+  {k:'may_de',l:'Máy đề',g:'Động cơ'},
+  {k:'hop_so',l:'Hộp số',g:'Truyền động'},
+  {k:'cay_lap',l:'Cây láp',g:'Truyền động'},
+  {k:'bi_lap_moay_o',l:'Bi láp/moay ơ',g:'Truyền động'},
+  {k:'dia_con_ban_ep',l:'Đĩa côn/bàn ép',g:'Truyền động'},
+  {k:'tong_con',l:'Tổng côn',g:'Truyền động'},
+  {k:'loc_dau_hop_so',l:'Lọc dầu hộp số',g:'Truyền động'},
+  {k:'truc_cac_dang',l:'Trục các đăng',g:'Truyền động'},
+  {k:'cau_sau',l:'Cầu sau',g:'Truyền động'},
+  {k:'giam_soc',l:'Giảm sóc',g:'Treo'},
+  {k:'lo_xo',l:'Lò xo',g:'Treo'},
+  {k:'cang_a',l:'Càng A',g:'Treo'},
+  {k:'ro_tuyn_can_bang',l:'Rô tuyn cân bằng',g:'Treo'},
+  {k:'ma_phanh',l:'Má phanh',g:'Phanh'},
+  {k:'dia_phanh',l:'Đĩa phanh',g:'Phanh'},
+  {k:'guoc_phanh',l:'Guốc phanh',g:'Phanh'},
+  {k:'tong_phanh',l:'Tổng phanh',g:'Phanh'},
+  {k:'abs',l:'ABS',g:'Phanh'},
+  {k:'thuoc_lai',l:'Thước lái',g:'Lái'},
+  {k:'ro_tuyn_lai',l:'Rô tuyn lái',g:'Lái'},
+  {k:'bom_tro_luc',l:'Bơm trợ lực',g:'Lái'},
+  {k:'loc_lanh',l:'Lốc lạnh',g:'Điều hòa'},
+  {k:'dan_nong',l:'Dàn nóng',g:'Điều hòa'},
+  {k:'dan_lanh',l:'Dàn lạnh',g:'Điều hòa'},
+  {k:'ac_quy',l:'Ắc quy',g:'Điện'},
+  {k:'den_chieu_sang',l:'Đèn chiếu sáng',g:'Điện'},
+  {k:'cam_bien',l:'Cảm biến',g:'Điện'},
+  {k:'tui_khi',l:'Túi khí',g:'Điện'},
+];
+
+async function load(page) {
+  const make = document.getElementById('mk').value;
+  const mn = document.getElementById('mn').value.trim();
+  const lim = document.getElementById('lim').value;
+  curPage = page;
+
+  document.getElementById('out').innerHTML = '<div class="msg"><span class="loading"></span> Đang tải dữ liệu...</div>';
+  document.getElementById('stats').style.display = 'none';
+  document.getElementById('pg').style.display = 'none';
+  document.getElementById('fbar').style.display = 'none';
+
+  try {
+    const params = new URLSearchParams({ make, limit: lim, page });
+    if (mn) params.set('model_name', mn);
+    const r = await fetch(`${API}?${params}`);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    allRows = d.data || [];
+    totalRows = d.total || 0;
+    totalPages = d.totalPages || 1;
+    renderStats();
+    applyFilter();
+    document.getElementById('fbar').style.display = 'flex';
+    if (totalPages > 1) {
+      document.getElementById('pg').style.display = 'flex';
+      document.getElementById('pg-info').textContent = `Trang ${page} / ${totalPages} — ${totalRows.toLocaleString()} model code`;
+      document.getElementById('btn-prev').disabled = page <= 1;
+      document.getElementById('btn-next').disabled = page >= totalPages;
+    }
+  } catch(e) {
+    document.getElementById('out').innerHTML = `<div class="msg">Lỗi: ${e.message}</div>`;
+  }
+}
+
+function renderStats() {
+  const full = allRows.filter(r => COLS.filter(c => r[c.k]).length >= 40).length;
+  const poor = allRows.filter(r => r.total_parts > 0 && COLS.filter(c => r[c.k]).length < 10).length;
+  const empty = allRows.filter(r => !r.total_parts || r.total_parts == 0).length;
+  document.getElementById('s1').textContent = totalRows.toLocaleString();
+  document.getElementById('s2').textContent = full;
+  document.getElementById('s3').textContent = poor;
+  document.getElementById('s4').textContent = empty;
+  document.getElementById('stats').style.display = 'flex';
+}
+
+function applyFilter() {
+  let rows = [...allRows];
+  if (document.getElementById('f-miss').checked) rows = rows.filter(r => COLS.some(c => !r[c.k]));
+  if (document.getElementById('f-empty').checked) rows = rows.filter(r => r.total_parts > 0);
+  const sort = document.getElementById('sortby').value;
+  if (sort === 'total_desc') rows.sort((a,b) => b.total_parts - a.total_parts);
+  else if (sort === 'total_asc') rows.sort((a,b) => a.total_parts - b.total_parts);
+  else if (sort === 'missing') rows.sort((a,b) => COLS.filter(c=>!b[c.k]).length - COLS.filter(c=>!a[c.k]).length);
+  else if (sort === 'score_asc')  rows.sort((a,b) => (a.coverage_score ?? -1) - (b.coverage_score ?? -1));
+  else if (sort === 'score_desc') rows.sort((a,b) => (b.coverage_score ?? -1) - (a.coverage_score ?? -1));
+  else rows.sort((a,b) => (a.model_name||'').localeCompare(b.model_name||''));
+  renderTable(rows);
+}
+
+function renderTable(rows) {
+  if (!rows.length) {
+    document.getElementById('out').innerHTML = '<div class="msg">Không có dữ liệu phù hợp với bộ lọc</div>';
+    return;
+  }
+  const groups = [...new Set(COLS.map(c => c.g))];
+  let h = '<div class="tbl-wrap"><table>';
+  // Header row 1: group spans
+  h += '<thead><tr>';
+  h += '<th class="fix" rowspan="2">Model code</th>';
+  h += '<th class="fix fix2" rowspan="2">Năm</th>';
+  h += '<th class="fix fix3" rowspan="2">Tổng PT</th>';
+  h += '<th style="left:267px;z-index:3;min-width:60px;max-width:60px;background:#e8e8e8;text-align:center" rowspan="2" title="coverage_score: độ phủ 50 loại PT của model (tín hiệu tham khảo)">Score</th>';
+  groups.forEach(g => {
+    const cnt = COLS.filter(c => c.g === g).length;
+    h += `<th colspan="${cnt}" class="grp">${g}</th>`;
+  });
+  h += '</tr><tr>';
+  COLS.forEach(c => { h += `<th class="pt" title="${c.l}">${c.l}</th>`; });
+  h += '</tr></thead><tbody>';
+
+  rows.forEach(r => {
+    const total = r.total_parts || 0;
+    const found = COLS.filter(c => r[c.k]).length;
+    let cls = '';
+    if (total === 0) cls = 'row-empty';
+    else if (found >= 40) cls = 'row-full';
+    else if (found < 10) cls = 'row-poor';
+    const yr = r.year_from && r.year_to ? `${r.year_from}–${r.year_to}` : (r.year_from || '—');
+    h += `<tr class="${cls}">`;
+    h += `<td class="fix" title="${r.model_code}\n${r.model_name||''}">${r.model_code}</td>`;
+    h += `<td class="fix fix2">${yr}</td>`;
+    h += `<td class="fix fix3">${total.toLocaleString()}</td>`;
+    const score = r.coverage_score;
+    const scColor = score == null ? '#999' : score >= 40 ? '#2e7d32' : score >= 30 ? '#e65100' : '#c62828';
+    const scBg    = score == null ? '#fff' : score >= 40 ? '#f1f8e9' : score >= 30 ? '#fff8e1' : '#ffebee';
+    h += `<td style="position:sticky;left:267px;min-width:60px;max-width:60px;z-index:1;background:${scBg};text-align:center;font-weight:600;color:${scColor};font-size:12px;border:1px solid #e0e0e0">${score == null ? '—' : score + '/50'}</td>`;
+    COLS.forEach(c => {
+      if (total === 0) h += `<td><span class="dot na">—</span></td>`;
+      else if (r[c.k]) h += `<td><span class="dot y">✓</span></td>`;
+      else h += `<td><span class="dot n">✗</span></td>`;
+    });
+    h += '</tr>';
+  });
+  h += '</tbody></table></div>';
+  document.getElementById('out').innerHTML = h;
+}
+
+function reset() {
+  document.getElementById('mn').value = '';
+  document.getElementById('out').innerHTML = '<div class="msg">Chọn hãng xe và bấm tìm kiếm</div>';
+  document.getElementById('stats').style.display = 'none';
+  document.getElementById('pg').style.display = 'none';
+  document.getElementById('fbar').style.display = 'none';
+  allRows = [];
+}
+
+function exportCsv() {
+  if (!allRows.length) return;
+  const header = ['model_code','model_name','make','year_from','year_to','total_parts',...COLS.map(c=>c.k)].join(',');
+  const rows = allRows.map(r => [
+    r.model_code, r.model_name||'', r.make, r.year_from||'', r.year_to||'', r.total_parts||0,
+    ...COLS.map(c => r[c.k] ? 1 : 0)
+  ].join(','));
+  const csv = '﻿' + header + '\n' + rows.join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = `fitment_matrix_${document.getElementById('mk').value}_p${curPage}.csv`;
+  a.click();
+}
+
+document.getElementById('mn').addEventListener('keydown', e => {
+  if (e.key === 'Enter') load(1);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>OEM Crawler Dashboard</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; padding: 20px; min-height: 100vh; }
+  h1 { font-size: 18px; color: #38bdf8; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+  .card { background: #1e293b; border-radius: 8px; padding: 14px; border: 1px solid #334155; }
+  .card .label { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+  .card .value { font-size: 26px; font-weight: 700; margin-top: 4px; }
+  .blue .value { color: #38bdf8; }
+  .green .value { color: #4ade80; }
+  .yellow .value { color: #fbbf24; }
+  .red .value { color: #f87171; }
+  .purple .value { color: #a78bfa; }
+  .gray .value { color: #94a3b8; }
+  .sub { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+  .section { background: #1e293b; border-radius: 8px; padding: 14px; margin-bottom: 12px; border: 1px solid #334155; }
+  .section-title { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+
+  .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: #94a3b8; margin-bottom: 6px; }
+  .progress-bar { background: #334155; border-radius: 999px; height: 8px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #38bdf8, #818cf8); transition: width 0.5s; }
+
+  .status-row { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-top: 10px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-run { background: #38bdf8; animation: pulse 1s infinite; }
+  .dot-stop { background: #4ade80; }
+  .dot-off { background: #475569; }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+  .oem-current { font-family: monospace; color: #fbbf24; font-size: 13px; }
+
+  .log-box { background: #0f172a; border-radius: 6px; padding: 10px; font-family: monospace; font-size: 11px; height: 160px; overflow-y: auto; border: 1px solid #1e293b; }
+  .log-line { color: #94a3b8; line-height: 1.6; white-space: pre-wrap; word-break: break-all; }
+  .log-line.ok { color: #4ade80; }
+  .log-line.err { color: #f87171; }
+  .log-line.info { color: #38bdf8; }
+
+  .btn { padding: 6px 14px; border-radius: 6px; border: none; cursor: pointer; font-size: 12px; font-weight: 600; }
+  .btn-refresh { background: #334155; color: #e2e8f0; }
+  .btn-refresh:hover { background: #475569; }
+</style>
+</head>
+<body>
+
+<h1>🔩 OEM Crawler Dashboard
+  <button class="btn btn-refresh" id="btnRefresh" style="margin-left:auto">↻ Refresh</button>
+</h1>
+
+<div class="grid">
+  <div class="card blue">
+    <div class="label">Tổng mã</div>
+    <div class="value" id="total">--</div>
+  </div>
+  <div class="card green">
+    <div class="label">Có xe (fitment)</div>
+    <div class="value" id="done">0</div>
+  </div>
+  <div class="card yellow">
+    <div class="label">Không tìm thấy</div>
+    <div class="value" id="no_result">0</div>
+  </div>
+  <div class="card red">
+    <div class="label">Lỗi / Timeout</div>
+    <div class="value" id="errors">0</div>
+  </div>
+  <div class="card purple">
+    <div class="label">Fitment import</div>
+    <div class="value" id="fitments">0</div>
+  </div>
+  <div class="card gray">
+    <div class="label">CF Bị chặn</div>
+    <div class="value" id="cf_blocked">0</div>
+  </div>
+  <div class="card green">
+    <div class="label">Tốc độ</div>
+    <div class="value" id="speed">--</div>
+    <div class="sub">mã/giờ</div>
+  </div>
+  <div class="card yellow">
+    <div class="label">Còn lại (ước tính)</div>
+    <div class="value" id="eta">--</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Tiến độ</div>
+  <div class="progress-label">
+    <span id="progress_text">0 / 0</span>
+    <span id="pct">0%</span>
+  </div>
+  <div class="progress-bar">
+    <div class="progress-fill" id="bar" style="width:0%"></div>
+  </div>
+  <div class="status-row">
+    <div class="dot dot-off" id="dot"></div>
+    <span id="status_text" style="color:#94a3b8">Chưa kết nối</span>
+  </div>
+  <div style="margin-top:8px; font-size:12px; color:#64748b">
+    Đang tra: <span class="oem-current" id="current_oem">--</span>
+    &nbsp;·&nbsp; Mã <span id="idx">0</span> / <span id="total2">0</span>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Log gần nhất</div>
+  <div class="log-box" id="log_box">
+    <div class="log-line">Đang kết nối background...</div>
+  </div>
+</div>
+
+<script src="dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+# ============================================================
+# Catalog API — .gitignore
+# Mục tiêu: repo chỉ chứa CODE. Data thô và script chạy một lần
+# ở thư mục gốc thì để lại máy, đừng đẩy lên.
+# ============================================================
+
+# ─── Bắt buộc ───────────────────────────────────────────────
+node_modules/
+.env
+dist/
+*.log
+
+# ─── Data thô (nặng, không phải code) ───────────────────────
+# products_merged.csv một mình đã 114 MB
+*.csv
+*.xlsx
+*.xls
+data/
+json-files/
+__pycache__/
+*.pyc
+
+# File JSON data lớn ở thư mục gốc.
+# Dấu / ở đầu = CHỈ tính thư mục gốc, không đụng file trong src/ hay public/
+/*.json
+# Trừ mấy file cấu hình bắt buộc phải có
+!/package.json
+!/package-lock.json
+!/tsconfig.json
+
+# ─── Bản backup ─────────────────────────────────────────────
+*.bak
+index.html.bak*
+*.bak-*
+*.bak[0-9]
+
+# ─── Script chạy một lần còn sót ở thư mục gốc ──────────────
+# Vẫn giữ scripts/ và migrations/ vì nằm trong thư mục con
+/*.cjs
+/*.mjs
+/*.py
+/*.sql
+/*.sh
+/*.txt
+/*.bat
+
+# ─── File rác do gõ nhầm lệnh shell ─────────────────────────
+/{
+/(1
+/node
+/curl
+/dir
+/timeout)
+/console.log(x.name
+
+# ─── Thư mục rỗng tạo nhầm ──────────────────────────────────
+srcmkdir/
+scriptsmove/
+
+# ─── Bản trùng đã cũ ────────────────────────────────────────
+# Bản server thật sự phục vụ là public/fitment-matrix.html.
+# Bản ở thư mục gốc cũ hơn, giữ lại chỉ gây nhầm lẫn.
+/fitment-matrix.html
+
+# File output chẩn đoán
+scripts/diagnose-output.txt
+
+# ─── ⚠️ File có MẬT KHẨU GHI THẲNG TRONG CODE ───────────────
+# Không đẩy lên git. File vẫn nằm nguyên trên máy, chỉ là không
+# vào repo. Nếu sau này cần dùng trên VPS thì sửa lại cho đọc
+# mật khẩu từ .env rồi mới đưa vào repo.
+#   bravo-export/lay_ma_bravo.py       → mật khẩu SQL Server Bravo
+#   scripts/bao_cao_chi_tiet_phu_tung.py → mật khẩu PostgreSQL
+#   scripts/export_fitment_report.py     → mật khẩu PostgreSQL
+bravo-export/
+scripts/bao_cao_chi_tiet_phu_tung.py
+scripts/export_fitment_report.py

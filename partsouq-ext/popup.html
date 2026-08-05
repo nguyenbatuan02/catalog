@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>PartSouq Scraper</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Arial,sans-serif}
+body{width:400px;background:#f0f4f8;color:#1a1a2e}
+.hdr{background:#1a6b3c;color:#fff;padding:12px 14px;display:flex;align-items:center;gap:10px}
+.hdr-ico{width:32px;height:32px;background:rgba(255,255,255,.15);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.hdr h1{font-size:14px;font-weight:700}
+.hdr small{font-size:11px;opacity:.75;display:block}
+.body{padding:10px;display:flex;flex-direction:column;gap:8px}
+.card{background:#fff;border-radius:8px;border:0.5px solid #ddd;padding:11px 13px}
+.ct{font-size:11px;font-weight:700;color:#777;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+label{font-size:12px;color:#555;display:block;margin-bottom:3px;margin-top:6px}
+label:first-of-type{margin-top:0}
+input{width:100%;padding:7px 10px;border:0.5px solid #ccc;border-radius:6px;font-size:13px;outline:none;background:#fff;color:#1a1a2e}
+input:focus{border-color:#1a6b3c}
+.row{display:flex;gap:7px}
+.row>*{flex:1}
+.btn{padding:8px 12px;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:opacity .15s}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.g{background:#1a6b3c;color:#fff;width:100%}
+.r{background:#993c1d;color:#fff}
+.b{background:#185fa5;color:#fff;width:100%}
+.gray{background:#888;color:#fff}
+.sm{padding:6px 10px;font-size:12px}
+
+/* Steps */
+.steps{display:flex;align-items:center;gap:0;margin-bottom:10px}
+.step-item{display:flex;flex-direction:column;align-items:center;flex:1;position:relative}
+.step-item:not(:last-child)::after{content:'';position:absolute;top:12px;left:50%;width:100%;height:2px;background:#e0e0e0;z-index:0}
+.step-item.done::after{background:#1a6b3c}
+.step-dot{width:24px;height:24px;border-radius:50%;border:2px solid #ddd;background:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;color:#aaa}
+.step-item.done .step-dot{background:#1a6b3c;border-color:#1a6b3c;color:#fff}
+.step-item.active .step-dot{background:#fff;border-color:#1a6b3c;color:#1a6b3c;box-shadow:0 0 0 3px rgba(26,107,60,.15)}
+.step-lbl{font-size:9px;color:#aaa;margin-top:3px;text-align:center}
+.step-item.done .step-lbl{color:#1a6b3c}
+.step-item.active .step-lbl{color:#1a6b3c;font-weight:700}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px}
+.stat{background:#f0f4f8;border-radius:6px;padding:7px 4px;text-align:center}
+.stat .n{font-size:17px;font-weight:700;color:#1a6b3c;line-height:1}
+.stat .l{font-size:9px;color:#888;margin-top:2px}
+
+/* Progress */
+.prog-wrap{background:#e8ecef;border-radius:99px;height:7px;overflow:hidden}
+.prog-bar{height:100%;background:#1a6b3c;border-radius:99px;transition:width .5s}
+.prog-row{display:flex;justify-content:space-between;font-size:11px;color:#777;margin-top:4px}
+
+/* ETA */
+.eta-box{background:#e1f5ee;border-radius:6px;padding:8px 10px;margin-top:8px;display:flex;justify-content:space-between;align-items:center}
+.eta-box .label{font-size:11px;color:#085041}
+.eta-box .time{font-size:15px;font-weight:700;color:#1a6b3c;font-variant-numeric:tabular-nums}
+.eta-box .speed{font-size:10px;color:#0f6e56}
+
+/* Badge */
+.badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px}
+.bd-run{background:#e1f5ee;color:#085041}
+.bd-done{background:#e6f1fb;color:#0c447c}
+.bd-idle{background:#eee;color:#555}
+.bd-err{background:#fcebeb;color:#a32d2d}
+.bd-stop{background:#faeeda;color:#633806}
+
+/* Log */
+.log{background:#1a1a2e;border-radius:6px;padding:8px 10px;height:115px;overflow-y:auto;font-size:11px;font-family:Consolas,monospace;line-height:1.65}
+.log p{color:#a8d8a8;margin:0}
+.log .e{color:#f09595}
+.log .w{color:#fac775}
+.log .i{color:#85b7eb}
+
+/* Export */
+.exp-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}
+.hist-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:0.5px solid #eee}
+.hist-row:last-child{border-bottom:none}
+.hist-name{font-size:12px;font-weight:600}
+.hist-meta{font-size:10px;color:#888}
+.hist-cnt{font-size:12px;font-weight:700;color:#1a6b3c}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="hdr-ico">📊</div>
+  <div><h1>PartSouq Scraper v3</h1><small>Tra phụ tùng đa hãng → xuất Excel</small></div>
+</div>
+
+<div class="body">
+
+  <!-- Input -->
+  <div class="card" id="cardInput">
+    <div class="ct">Thông tin tra cứu</div>
+    <label>Hãng xe *</label>
+    <input id="inMake" list="makeList" placeholder="Toyota / Honda / Hyundai...">
+    <datalist id="makeList">
+      <option value="Toyota"><option value="Honda"><option value="Hyundai">
+      <option value="Kia"><option value="Mitsubishi"><option value="Mazda">
+      <option value="Nissan"><option value="Suzuki"><option value="Isuzu">
+      <option value="Subaru"><option value="Lexus"><option value="Mercedes-Benz">
+      <option value="BMW"><option value="Renault"><option value="Infiniti">
+    </datalist>
+    <label>Dòng xe (để trống = tất cả)</label>
+    <input id="inModel" placeholder="VIOS, FORTUNER, CAMRY...">
+    <div class="row" style="margin-top:10px">
+      <button class="btn g" id="btnStart">▶ Bắt đầu tra</button>
+      <button class="btn r sm" id="btnStop" disabled>⏹ Dừng</button>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="card" id="cardProg" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="ct" style="margin:0">Tiến trình</div>
+      <span class="badge bd-idle" id="phBadge">Chờ</span>
+    </div>
+
+    <!-- 5 steps -->
+    <div class="steps">
+      <div class="step-item" id="s1"><div class="step-dot">1</div><div class="step-lbl">Locate</div></div>
+      <div class="step-item" id="s2"><div class="step-dot">2</div><div class="step-lbl">Pick</div></div>
+      <div class="step-item" id="s3"><div class="step-dot">3</div><div class="step-lbl">Vehicle</div></div>
+      <div class="step-item" id="s4"><div class="step-dot">4</div><div class="step-lbl">Unit</div></div>
+      <div class="step-item" id="s5"><div class="step-dot">✓</div><div class="step-lbl">Xong</div></div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat"><div class="n" id="sDong">0</div><div class="l">Dòng xe</div></div>
+      <div class="stat"><div class="n" id="sModel">0</div><div class="l">Model code</div></div>
+      <div class="stat"><div class="n" id="sUnit">0</div><div class="l">Unit</div></div>
+      <div class="stat"><div class="n" id="sPart">0</div><div class="l">Phụ tùng</div></div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="prog-wrap"><div class="prog-bar" id="progBar" style="width:0%"></div></div>
+    <div class="prog-row">
+      <span id="progTxt">0 / 0</span>
+      <span id="progPct">0%</span>
+    </div>
+
+    <!-- ETA -->
+    <div class="eta-box" id="etaBox">
+      <div>
+        <div class="label">⏱ Thời gian còn lại (ước tính)</div>
+        <div class="speed" id="etaSpeed">Đang tính...</div>
+      </div>
+      <div class="time" id="etaTime">--:--:--</div>
+    </div>
+  </div>
+
+  <!-- Log -->
+  <div class="card" id="cardLog" style="display:none">
+    <div class="ct">Log hoạt động</div>
+    <div class="log" id="logBox"></div>
+  </div>
+
+  <!-- Export -->
+  <div class="card" id="cardExport" style="display:none">
+    <div class="ct">Xuất dữ liệu</div>
+    <div class="exp-grid">
+      <button class="btn sm" id="btnModels">📋 Models CSV</button>
+      <button class="btn sm" id="btnParts">🔧 Parts CSV</button>
+    </div>
+    <button class="btn b" id="btnExcel">📥 Xuất Excel (.xlsx) đầy đủ</button>
+    <div id="histWrap" style="margin-top:10px;display:none">
+      <div class="ct" style="margin-bottom:6px">Lịch sử đã scrape</div>
+      <div id="histList"></div>
+    </div>
+    <div style="margin-top:8px;text-align:right">
+      <button class="btn gray sm" id="btnClear">🗑 Xóa dữ liệu</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="popup.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard cào PartSouq</title>
+<style>
+  :root{
+    --bg:#0f1420; --card:#182031; --card2:#1e2739; --line:#2a3550;
+    --txt:#e6ebf5; --muted:#8b98b5; --accent:#4c8dff;
+    --pending:#8b98b5; --running:#4c8dff; --done:#2ecc71; --failed:#ff5c5c; --warn:#ffb020;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font-family:system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;font-size:14px;line-height:1.4}
+  header{position:sticky;top:0;z-index:10;background:rgba(15,20,32,.95);backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);padding:12px 18px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  header h1{font-size:17px;margin:0;font-weight:700}
+  .grow{flex:1}
+  .status-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle}
+  .ok{background:var(--done)} .err{background:var(--failed)}
+  button{background:var(--card2);color:var(--txt);border:1px solid var(--line);border-radius:8px;
+    padding:7px 13px;cursor:pointer;font-size:13px}
+  button:hover{border-color:var(--accent)}
+  button.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .meta{color:var(--muted);font-size:12px}
+  main{padding:16px 18px;max-width:1400px;margin:0 auto}
+  .grid{display:grid;gap:12px;margin-bottom:18px}
+  .cards5{grid-template-columns:repeat(5,1fr)}
+  .cards4{grid-template-columns:repeat(4,1fr)}
+  .cards3{grid-template-columns:repeat(3,1fr)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .card .label{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+  .card .num{font-size:30px;font-weight:800;margin-top:4px;font-variant-numeric:tabular-nums}
+  .card .sub{color:var(--muted);font-size:12px;margin-top:2px}
+  .num.pending{color:var(--pending)} .num.running{color:var(--running)}
+  .num.done{color:var(--done)} .num.failed{color:var(--failed)} .num.accent{color:var(--accent)}
+  h2{font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:22px 0 10px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:9px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;position:sticky;top:0;background:var(--card2)}
+  tbody tr:hover{background:var(--card2)}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .bar{position:relative;height:8px;border-radius:5px;background:var(--card2);min-width:80px;overflow:hidden}
+  .bar>span{position:absolute;left:0;top:0;bottom:0;background:var(--done);border-radius:5px}
+  .pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:12px;font-weight:600}
+  .pill.crawling{background:rgba(76,141,255,.16);color:var(--running)}
+  .pill.done{background:rgba(46,204,113,.16);color:var(--done)}
+  .pill.pending{background:rgba(139,152,181,.16);color:var(--pending)}
+  .pill.failed{background:rgba(255,92,92,.16);color:var(--failed)}
+  .alive{color:var(--done)} .dead{color:var(--failed);font-weight:600}
+  .stale-row{background:rgba(255,176,32,.08)}
+  .wrap-scroll{overflow-x:auto}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+  .muted{color:var(--muted)}
+  tfoot td{font-weight:700;border-top:2px solid var(--line);background:var(--card2)}
+  td.strong{font-weight:700;color:var(--txt)}
+  /* Biểu đồ cột ngang part theo VPS */
+  .worker-bars{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+  .wbar-row{display:grid;grid-template-columns:130px 1fr 130px;gap:10px;align-items:center;font-size:12px}
+  .wbar-name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .wbar-track{background:var(--card2);border-radius:5px;height:16px;overflow:hidden}
+  .wbar-fill{height:100%;background:linear-gradient(90deg,var(--running),var(--done));border-radius:5px;min-width:2px}
+  .wbar-val{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+  .banner{background:rgba(255,176,32,.1);border:1px solid rgba(255,176,32,.35);color:var(--warn);
+    padding:8px 12px;border-radius:8px;font-size:12px;margin-bottom:14px}
+  @media(max-width:1000px){.cards5,.cards4{grid-template-columns:repeat(2,1fr)}.cards3{grid-template-columns:1fr}.two-col{grid-template-columns:1fr}}
+  @media(max-width:560px){.cards5,.cards4{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🚗 Dashboard cào PartSouq</h1>
+  <span class="meta"><span id="conn-dot" class="status-dot err"></span><span id="conn-txt">Đang kết nối…</span></span>
+  <div class="grow"></div>
+  <span class="meta" id="last-upd">—</span>
+  <button id="btn-now">↻ Cập nhật ngay</button>
+  <button id="btn-auto" class="active">⏸ Tạm dừng tự động</button>
+</header>
+
+<main>
+  <div id="warn-banner" class="banner" style="display:none"></div>
+
+  <h2>Hàng đợi job</h2>
+  <div class="grid cards5">
+    <div class="card"><div class="label">Tổng job</div><div class="num accent" id="j-total">—</div></div>
+    <div class="card"><div class="label">Pending</div><div class="num pending" id="j-pending">—</div></div>
+    <div class="card"><div class="label">Running</div><div class="num running" id="j-running">—</div></div>
+    <div class="card"><div class="label">Done</div><div class="num done" id="j-done">—</div></div>
+    <div class="card"><div class="label">Failed</div><div class="num failed" id="j-failed">—</div></div>
+  </div>
+
+  <h2>Tốc độ cào</h2>
+  <div class="grid cards4">
+    <div class="card"><div class="label">Part / giờ</div><div class="num accent" id="s-fit-h">—</div><div class="sub">part submit trong 60 phút</div></div>
+    <div class="card"><div class="label">Part / 10 phút</div><div class="num accent" id="s-fit-10">—</div><div class="sub" id="s-fit-trend">≈ /giờ</div></div>
+    <div class="card"><div class="label">Unit / giờ</div><div class="num" id="s-units-h">—</div><div class="sub" id="s-units-10">— trong 10 phút</div></div>
+    <div class="card"><div class="label">Model xong / giờ</div><div class="num done" id="s-models-h">—</div></div>
+  </div>
+
+  <h2>Kho dữ liệu</h2>
+  <div class="grid cards4">
+    <div class="card"><div class="label">Tổng sản phẩm</div><div class="num" id="t-prod">—</div><div class="sub">ước lượng</div></div>
+    <div class="card"><div class="label">SP cào về (chưa bán)</div><div class="num done" id="t-crawled">—</div></div>
+    <div class="card"><div class="label">Tổng fitment</div><div class="num" id="t-fit">—</div><div class="sub">ước lượng</div></div>
+    <div class="card"><div class="label">Tổng xe</div><div class="num" id="t-veh">—</div><div class="sub">ước lượng</div></div>
+  </div>
+
+  <h2>Theo hãng</h2>
+  <div class="panel wrap-scroll">
+    <table>
+      <thead><tr><th>Hãng</th><th class="num">Pending</th><th class="num">Running</th><th class="num">Done</th><th style="width:180px">Tiến độ</th></tr></thead>
+      <tbody id="tbl-make"><tr><td colspan="5" class="muted">Đang tải…</td></tr></tbody>
+    </table>
+  </div>
+
+  <h2>Workers (VPS) — đóng góp theo máy</h2>
+  <p class="meta" style="margin:-6px 0 10px">
+    <b>Part cào được</b> = tổng part cào (gồm cả part đã có sẵn) — công sức cào ·
+    <b>Part mới</b> = part thực sự thêm mới vào kho ·
+    <b>Fitment mới</b> = quan hệ xe–part mới tạo (giá trị nhất, ít trùng)
+  </p>
+  <div id="worker-bars" class="worker-bars"></div>
+  <div class="panel wrap-scroll">
+    <table>
+      <thead><tr>
+        <th>Worker</th>
+        <th class="num">Đang cào</th>
+        <th class="num">Model xong</th>
+        <th class="num" title="Tổng part cào được, gồm cả part đã có sẵn">Part cào được</th>
+        <th class="num" title="Part thực sự INSERT mới vào kho">Part mới</th>
+        <th class="num" title="Fitment (quan hệ xe-part) mới tạo">Fitment mới</th>
+        <th class="num" title="Part cào được trong 1 giờ qua">Part/giờ</th>
+        <th>Last seen</th>
+      </tr></thead>
+      <tbody id="tbl-worker"><tr><td colspan="8" class="muted">Đang tải…</td></tr></tbody>
+      <tfoot id="tbl-worker-foot"></tfoot>
+    </table>
+  </div>
+  <p class="meta" id="worker-unassigned" style="margin-top:6px"></p>
+
+  <h2>🖥️ Điều khiển VPS (heartbeat) <span class="meta" id="wk-count"></span></h2>
+  <p class="meta" style="margin:-6px 0 10px">VPS gửi heartbeat mỗi ~60s · Online = heartbeat &lt; 2 phút · lệnh xuống VPS ở lần heartbeat kế tiếp.</p>
+  <div class="panel wrap-scroll">
+    <table>
+      <thead><tr>
+        <th>Worker</th><th>Kết nối</th><th>Status</th><th>Job hiện tại</th>
+        <th class="num">Part/giờ</th><th>Heartbeat</th><th>Lệnh chờ</th><th>Điều khiển</th>
+      </tr></thead>
+      <tbody id="workers_table"><tr><td colspan="8" class="muted">Đang tải…</td></tr></tbody>
+    </table>
+  </div>
+
+  <h2>Model gần đây</h2>
+  <div class="panel wrap-scroll">
+    <table>
+      <thead><tr><th>Hãng</th><th>Model</th><th>VPS</th><th>Trạng thái</th><th>Thời gian</th></tr></thead>
+      <tbody id="tbl-recent"><tr><td colspan="5" class="muted">Đang tải…</td></tr></tbody>
+    </table>
+  </div>
+
+  <p class="meta" style="margin-top:18px" id="foot-note"></p>
+</main>
+
+<script>
+const API = '/api/v1/catalog/crawl/dashboard';
+const REFRESH_MS = 5000;
+let autoOn = true, timer = null;
+
+const $ = id => document.getElementById(id);
+const nf = n => (n==null||isNaN(n)) ? '—' : Number(n).toLocaleString('en-US');
+
+function timeAgo(iso){
+  if(!iso) return {txt:'—', mins:Infinity};
+  const ms = Date.now() - new Date(iso).getTime();
+  const mins = ms/60000;
+  let txt;
+  if(mins < 1) txt = Math.max(0,Math.round(ms/1000))+'s trước';
+  else if(mins < 60) txt = Math.round(mins)+' phút trước';
+  else if(mins < 1440) txt = Math.round(mins/60)+' giờ trước';
+  else txt = Math.round(mins/1440)+' ngày trước';
+  return {txt, mins};
+}
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function setConn(ok, msg){
+  $('conn-dot').className = 'status-dot ' + (ok?'ok':'err');
+  $('conn-txt').textContent = ok ? 'Server OK' : ('Lỗi: '+(msg||'không kết nối'));
+}
+
+function render(d){
+  // Job cards
+  $('j-total').textContent   = nf(d.jobs.total);
+  $('j-pending').textContent = nf(d.jobs.pending);
+  $('j-running').textContent = nf(d.jobs.running);
+  $('j-done').textContent    = nf(d.jobs.done);
+  $('j-failed').textContent  = nf(d.jobs.failed);
+
+  // Speed
+  $('s-fit-h').textContent   = nf(d.speed.fitments_last_hour);
+  $('s-fit-10').textContent  = nf(d.speed.fitments_last_10min);
+  $('s-fit-trend').textContent = '≈ ' + nf(Math.round((d.speed.fitments_last_10min||0)*6)) + ' /giờ (nhịp hiện tại)';
+  $('s-units-h').textContent = nf(d.speed.units_last_hour);
+  $('s-units-10').textContent= nf(d.speed.units_last_10min) + ' trong 10 phút';
+  $('s-models-h').textContent= nf(d.speed.models_done_last_hour);
+
+  // Totals
+  $('t-prod').textContent    = nf(d.totals.products_total);
+  $('t-crawled').textContent = nf(d.totals.products_crawled);
+  $('t-fit').textContent     = nf(d.totals.fitments_total);
+  $('t-veh').textContent     = nf(d.totals.vehicles_total);
+
+  // By make
+  $('tbl-make').innerHTML = (d.jobs_by_make||[]).map(m=>{
+    const tot = (m.pending||0)+(m.running||0)+(m.done||0)+(m.failed||0);
+    const pct = tot ? Math.round((m.done/tot)*100) : 0;
+    return `<tr>
+      <td>${esc(m.make)}</td>
+      <td class="num">${nf(m.pending)}</td>
+      <td class="num">${m.running?('<span class="pill crawling">'+nf(m.running)+'</span>'):'0'}</td>
+      <td class="num">${nf(m.done)}</td>
+      <td><div class="bar" title="${pct}% (${nf(m.done)}/${nf(tot)})"><span style="width:${pct}%"></span></div></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="5" class="muted">Chưa có job</td></tr>';
+
+  // Workers — đã sắp theo PART ĐÃ GỬI giảm dần (backend). Bảng + dòng TỔNG + biểu đồ cột.
+  const ws = d.workers||[];
+  $('tbl-worker').innerHTML = ws.map(w=>{
+    const ago = timeAgo(w.last_seen);
+    const hasSeen = !!w.last_seen;
+    const alive = hasSeen && ago.mins < 2;
+    const dead  = hasSeen && ago.mins > 5;
+    const cls = alive ? 'alive' : (dead ? 'dead' : '');
+    const flag = dead ? ' ⚠️ có thể đã dừng' : '';
+    return `<tr class="${dead?'stale-row':''}">
+      <td>${esc(w.worker_id)}</td>
+      <td class="num">${w.crawling?('<span class="pill crawling">'+nf(w.crawling)+'</span>'):'0'}</td>
+      <td class="num">${nf(w.done_models)}</td>
+      <td class="num strong">${nf(w.parts_total)}</td>
+      <td class="num">${nf(w.parts_new)}</td>
+      <td class="num done">${nf(w.fitments_new)}</td>
+      <td class="num">${w.parts_total_last_hour?('<span class="pill crawling">'+nf(w.parts_total_last_hour)+'</span>'):'0'}</td>
+      <td class="${cls}">${ago.txt}${flag}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="8" class="muted">Chưa có VPS nào gửi dữ liệu</td></tr>';
+
+  // Dòng TỔNG (tất cả VPS)
+  if(ws.length){
+    const T = ws.reduce((a,w)=>({p:a.p+(w.parts_total||0),pn:a.pn+(w.parts_new||0),fn:a.fn+(w.fitments_new||0),
+      ph:a.ph+(w.parts_total_last_hour||0),c:a.c+(w.crawling||0),dm:a.dm+(w.done_models||0)}),
+      {p:0,pn:0,fn:0,ph:0,c:0,dm:0});
+    $('tbl-worker-foot').innerHTML = `<tr>
+      <td>TỔNG (${ws.length} VPS)</td>
+      <td class="num">${nf(T.c)}</td><td class="num">${nf(T.dm)}</td>
+      <td class="num strong">${nf(T.p)}</td><td class="num">${nf(T.pn)}</td>
+      <td class="num done">${nf(T.fn)}</td><td class="num">${nf(T.ph)}</td><td></td></tr>`;
+  } else $('tbl-worker-foot').innerHTML='';
+
+  // Biểu đồ cột ngang: PART CÀO ĐƯỢC theo VPS (độ dài theo % của VPS mạnh nhất)
+  const maxP = Math.max(1, ...ws.map(w=>w.parts_total||0));
+  $('worker-bars').innerHTML = ws.filter(w=>(w.parts_total||0)>0).map(w=>{
+    const pct = Math.round((w.parts_total/maxP)*100);
+    return `<div class="wbar-row">
+      <span class="wbar-name" title="${esc(w.worker_id)}">${esc(w.worker_id)}</span>
+      <span class="wbar-track"><span class="wbar-fill" style="width:${pct}%"></span></span>
+      <span class="wbar-val">${nf(w.parts_total)} part · ${nf(w.parts_new)} mới · ${nf(w.fitments_new)} fitment</span>
+    </div>`;
+  }).join('');
+
+  // Ghi chú dữ liệu cũ chưa gán VPS
+  const ua = d.workers_unassigned || {units:0,parts:0,fitments:0};
+  $('worker-unassigned').textContent = (ua.parts>0||ua.units>0)
+    ? `Chưa gán VPS (dữ liệu cũ trước khi thêm worker_id): ${nf(ua.parts)} part cào được · ${nf(ua.units)} unit (part mới/fitment cũ không tách được).`
+    : '';
+
+  // Recent models
+  $('tbl-recent').innerHTML = (d.recent_models||[]).map(r=>{
+    const when = r.finished_at || r.claimed_at;
+    return `<tr>
+      <td>${esc(r.make)}</td>
+      <td title="${esc(r.model_key)}">${esc(String(r.model_key).slice(0,52))}</td>
+      <td>${esc(r.claimed_by||'—')}</td>
+      <td><span class="pill ${r.status==='done'?'done':'crawling'}">${esc(r.status)}</span></td>
+      <td class="muted">${timeAgo(when).txt}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="5" class="muted">Chưa có model</td></tr>';
+
+  // Worker cảnh báo (chỉ VPS có last_seen thật và quá 5 phút)
+  const stale = ws.filter(w=>w.last_seen && timeAgo(w.last_seen).mins>5);
+  if(stale.length){
+    $('warn-banner').style.display='block';
+    $('warn-banner').textContent = '⚠️ '+stale.length+' worker không hoạt động >5 phút: '+stale.map(w=>w.worker_id).join(', ')+' — có thể đã dừng.';
+  } else $('warn-banner').style.display='none';
+
+  const gen = d.generated_at ? new Date(d.generated_at).toLocaleTimeString('vi-VN') : '';
+  $('last-upd').textContent = 'Cập nhật: '+gen+(d.cached?' (cache)':'')+' · '+(d.build_ms!=null?d.build_ms+'ms':'');
+  $('foot-note').textContent = d.speed_note || '';
+}
+
+async function refresh(){
+  try{
+    const res = await fetch(API, {cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const d = await res.json();
+    if(d.error) throw new Error(d.error);
+    setConn(true);
+    render(d);
+  }catch(e){
+    setConn(false, e.message);
+  }
+}
+function schedule(){
+  if(timer) clearInterval(timer);
+  if(autoOn) timer = setInterval(refresh, REFRESH_MS);
+}
+$('btn-now').onclick = refresh;
+$('btn-auto').onclick = ()=>{
+  autoOn = !autoOn;
+  $('btn-auto').textContent = autoOn ? '⏸ Tạm dừng tự động' : '▶ Bật tự động';
+  $('btn-auto').classList.toggle('active', autoOn);
+  schedule();
+};
+refresh();
+schedule();
+
+// ── Điều khiển VPS (heartbeat) — poll /crawl/workers mỗi 10s, gửi lệnh qua /crawl/worker-command ──
+const WK_API = '/api/v1/catalog/crawl';
+const escHtml = s => String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function loadWorkers(){
+  try{
+    const res = await fetch(WK_API + '/workers', {cache:'no-store'});
+    const workers = await res.json();
+    const tb = $('workers_table');
+    $('wk-count').textContent = workers.length ? '· ' + workers.length + ' VPS' : '';
+    if(!workers.length){ tb.innerHTML = '<tr><td colspan="8" class="muted">Chưa có VPS nào heartbeat</td></tr>'; return; }
+    const bs = 'border:none;padding:3px 10px;border-radius:4px;cursor:pointer;color:#fff;font-size:12px;margin-right:4px';
+    tb.innerHTML = workers.map(w => {
+      const secs = Math.round(w.seconds_ago || 0), alive = secs < 120;
+      const ago = secs < 60 ? secs + 's' : Math.round(secs/60) + 'p';
+      return '<tr>'
+        + '<td>' + escHtml(w.worker_id) + '</td>'
+        + '<td style="color:' + (alive ? '#4ade80' : '#f87171') + '">' + (alive ? '● Online' : '⚠ Offline') + '</td>'
+        + '<td>' + escHtml(w.status) + '</td>'
+        + '<td>' + (escHtml(w.current_job) || '—') + '</td>'
+        + '<td class="num">' + (w.parts_hour || 0) + '</td>'
+        + '<td>' + ago + ' trước</td>'
+        + '<td><b>' + escHtml(w.command) + '</b></td>'
+        + '<td>'
+          + '<button class="wk-cmd" data-w="' + escHtml(w.worker_id) + '" data-c="restart"  style="' + bs + ';background:#1d4ed8">Restart</button>'
+          + '<button class="wk-cmd" data-w="' + escHtml(w.worker_id) + '" data-c="stop"     style="' + bs + ';background:#dc2626">Stop</button>'
+          + '<button class="wk-cmd" data-w="' + escHtml(w.worker_id) + '" data-c="continue" style="' + bs + ';background:#16a34a">Continue</button>'
+        + '</td></tr>';
+    }).join('');
+  }catch(e){ $('workers_table').innerHTML = '<tr><td colspan="8" class="muted">Lỗi tải workers: ' + escHtml(e.message) + '</td></tr>'; }
+}
+async function sendWorkerCommand(worker_id, command){
+  try{
+    const res = await fetch(WK_API + '/worker-command', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({worker_id, command})});
+    const j = await res.json().catch(()=>({}));
+    if(!res.ok || !j.ok) throw new Error(j.error || ('HTTP ' + res.status));
+    loadWorkers();
+  }catch(e){ alert('Lỗi gửi lệnh: ' + e.message); }
+}
+// event delegation (KHÔNG dùng inline onclick — an toàn CSP)
+$('workers_table').addEventListener('click', e => {
+  const b = e.target.closest('.wk-cmd'); if(!b) return;
+  const w = b.dataset.w, c = b.dataset.c;
+  if(c === 'stop' && !confirm('Dừng VPS "' + w + '"?')) return;
+  sendWorkerCommand(w, c);
+});
+setInterval(loadWorkers, 10000);
+loadWorkers();
+</script>
+</body>
+</html>

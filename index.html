@@ -1,0 +1,1800 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catalog Admin — Phụ tùng ô tô</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+<style>
+:root{--navy:#1E3A8A;--navy1:#1E3A5F;--navy2:#1E40AF;--orange:#EA580C;--bg:#F0F2F5;--surface:#FFFFFF;--border:#E2E8F0;--border2:#CBD5E1;--text:#0F172A;--muted:#64748B;--green:#16A34A;--red:#DC2626;--amber:#D97706;--purple:#7C3AED;--sans:'Be Vietnam Pro',sans-serif;--mono:'IBM Plex Mono',monospace;--radius:8px;--radius-lg:12px;--header-bg:#F8FAFC;--hover:#EFF6FF}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;display:flex}
+.sidebar{width:220px;background:var(--navy);display:flex;flex-direction:column;flex-shrink:0;min-height:100vh}
+.sidebar-logo{padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,0.1)}
+.logo-mark{display:flex;align-items:center;gap:10px}
+.logo-icon{width:34px;height:34px;background:var(--orange);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-icon i{color:#fff;font-size:18px}
+.logo-text{color:#fff;font-size:15px;font-weight:600}
+.logo-sub{color:rgba(255,255,255,0.4);font-size:11px;font-family:var(--mono)}
+.sidebar-nav{padding:10px 8px;flex:1}
+.nav-section{font-size:10px;font-weight:600;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.1em;padding:10px 8px 5px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;cursor:pointer;color:rgba(255,255,255,0.65);font-size:13px;font-weight:500;margin-bottom:2px;border:none;background:none;width:100%;text-align:left;font-family:var(--sans)}
+.nav-item i{font-size:17px;width:20px;text-align:center}
+.nav-item:hover{background:rgba(255,255,255,0.08);color:#fff}
+.nav-item.active{background:rgba(255,255,255,0.15);color:#fff}
+.nav-badge{margin-left:auto;background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.8);font-size:10px;font-family:var(--mono);padding:2px 6px;border-radius:99px;min-width:24px;text-align:center}
+.sidebar-footer{padding:12px;border-top:1px solid rgba(255,255,255,0.1)}
+.api-status{display:flex;align-items:center;gap:7px;font-size:12px;color:rgba(255,255,255,0.5)}
+.api-dot{width:7px;height:7px;border-radius:50%;background:#94A3B8;flex-shrink:0;transition:background .3s}
+.api-dot.ok{background:#22C55E;box-shadow:0 0 0 3px rgba(34,197,94,0.2)}
+.api-dot.err{background:#EF4444}
+/* MAIN — FIX: min-width:0 prevents flexbox overflow */
+.main{flex:1;min-width:0;display:flex;flex-direction:column;min-height:100vh;overflow:hidden}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:52px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.breadcrumb .sep{font-size:16px;opacity:.4}
+.breadcrumb .cur{color:var(--text);font-weight:500}
+.breadcrumb a{color:var(--navy2);cursor:pointer;text-decoration:none}
+.breadcrumb a:hover{text-decoration:underline}
+.topbar-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.content{flex:1;padding:20px 24px;overflow-y:auto}
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px}
+.stat-card{background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);padding:14px 16px}
+.stat-val{font-size:22px;font-weight:600;margin-bottom:2px}
+.stat-lbl{font-size:12px;color:var(--muted);font-weight:500}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.btn{height:34px;padding:0 13px;border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:#fff;color:var(--text);display:inline-flex;align-items:center;gap:6px;font-family:var(--sans);white-space:nowrap;text-decoration:none}
+.btn:hover{background:#F8FAFC}
+.btn.primary{background:var(--navy2);color:#fff;border-color:var(--navy2)}
+.btn.primary:hover{background:var(--navy)}
+.btn.danger{color:var(--red);border-color:#FECACA}
+.btn.danger:hover{background:#FEF2F2}
+.btn.sm{height:28px;padding:0 10px;font-size:12px}
+.btn.icon{width:34px;padding:0;justify-content:center}
+.btn.back{color:var(--navy2);border-color:var(--navy2)}
+.ml-auto{margin-left:auto}
+.toolbar{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.search-box{position:relative;flex:0 0 260px}
+.search-box i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px;pointer-events:none}
+.search-box input{width:100%;height:34px;padding:0 10px 0 32px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;font-family:var(--sans);color:var(--text);background:#fff}
+.search-box input:focus{outline:none;border-color:var(--navy2);box-shadow:0 0 0 3px rgba(30,64,175,0.1)}
+select.filter{height:34px;padding:0 10px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;font-family:var(--sans);color:var(--text);background:#fff;cursor:pointer}
+/* TABLE — FIX: min-width:500px prevents collapse */
+.table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+table{width:100%;min-width:500px;border-collapse:collapse;font-size:13px}
+th{padding:8px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);background:#F8FAFC;border-bottom:1px solid var(--border);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em}
+td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr.clickable:hover td{background:#EFF6FF;cursor:pointer}
+tr.clickable:hover .td-main{color:var(--navy2)}
+.td-main{font-weight:500}
+.td-sub{font-size:11px;color:var(--muted);margin-top:1px}
+code{font-family:var(--mono);font-size:11px;background:#F1F5F9;color:#334155;padding:2px 6px;border-radius:4px}
+.chip{display:inline-flex;align-items:center;font-size:11px;font-weight:500;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.chip-blue{background:#DBEAFE;color:#1E40AF}
+.chip-green{background:#DCFCE7;color:#15803D}
+.chip-red{background:#FEE2E2;color:#B91C1C}
+.chip-amber{background:#FEF3C7;color:#92400E}
+.chip-gray{background:#F1F5F9;color:#475569}
+.chip-purple{background:#EDE9FE;color:#6D28D9}
+.actions-cell{display:flex;gap:4px;align-items:center}
+.empty-row td{text-align:center;padding:40px;color:var(--muted)}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.pager{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)}
+.pager-btns{display:flex;gap:3px}
+.pg-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border2);background:#fff;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;color:var(--text);font-family:var(--mono)}
+.pg-btn:hover{background:#F1F5F9}
+.pg-btn.active{background:var(--navy2);color:#fff;border-color:var(--navy2)}
+.pg-btn:disabled{opacity:.4;cursor:default}
+.detail-header{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 24px;margin-bottom:16px;display:flex;align-items:flex-start;gap:16px}
+.detail-logo{width:52px;height:52px;border-radius:10px;background:#EFF6FF;border:1px solid #DBEAFE;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.detail-logo i{font-size:26px;color:var(--navy2)}
+.detail-info{flex:1}
+.detail-title{font-size:20px;font-weight:600;margin-bottom:4px}
+.detail-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.detail-meta-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
+.detail-meta-item i{font-size:14px}
+.odoo-tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:16px}
+.odoo-tab{padding:9px 18px;font-size:13px;font-weight:500;cursor:pointer;color:var(--muted);border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-2px;font-family:var(--sans);display:flex;align-items:center;gap:6px}
+.odoo-tab:hover{color:var(--text)}
+.odoo-tab.active{color:var(--navy2);border-bottom-color:var(--navy2)}
+.odoo-tab .cnt{font-size:11px;background:#EFF6FF;color:var(--navy2);padding:1px 6px;border-radius:99px;font-family:var(--mono)}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:16px}
+.info-field{padding:10px 16px;border-bottom:1px solid var(--border);border-right:1px solid var(--border)}
+.info-field:nth-child(even){border-right:none}
+.info-field:nth-last-child(1),.info-field:nth-last-child(2){border-bottom:none}
+.info-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.info-value{font-size:13px;font-weight:500}
+.modal-mask{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:200;align-items:center;justify-content:center;padding:20px}
+.modal-mask.open{display:flex}
+.modal{background:#fff;border-radius:var(--radius-lg);width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.modal-head{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1}
+.modal-title{font-size:14px;font-weight:600}
+.modal-body{padding:18px 20px}
+.modal-foot{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;position:sticky;bottom:0;background:#fff}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.form-group{margin-bottom:12px}
+.form-label{font-size:12px;font-weight:500;color:var(--muted);margin-bottom:4px;display:block}
+.form-input{width:100%;height:34px;padding:0 10px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;font-family:var(--sans);color:var(--text);background:#fff}
+.form-input:focus{outline:none;border-color:var(--navy2);box-shadow:0 0 0 3px rgba(30,64,175,0.1)}
+textarea.form-input{height:70px;padding:8px 10px;resize:vertical}
+select.form-input{cursor:pointer}
+.toggle-row{display:flex;align-items:center;gap:10px;font-size:13px}
+.toggle{width:40px;height:22px;background:#CBD5E1;border-radius:99px;border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--green)}
+.toggle::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
+.toggle.on::after{transform:translateX(18px)}
+.alert{padding:8px 12px;border-radius:var(--radius);font-size:12px;margin-bottom:10px}
+.alert-err{background:#FEF2F2;color:#B91C1C;border:1px solid #FECACA}
+.chat-panel{position:fixed;right:0;top:0;bottom:0;width:520px;background:#fff;border-left:1px solid var(--border);display:flex;flex-direction:column;z-index:150;transform:translateX(100%);transition:transform .25s ease}
+.chat-panel.open{transform:translateX(0)}
+.chat-panel.fullscreen{width:100vw!important;border-left:none}
+.chat-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;background:var(--navy);color:#fff}
+.chat-head-title{font-size:14px;font-weight:600;flex:1;color:#fff}
+.chat-head-sub{font-size:11px;color:rgba(255,255,255,0.65)}
+.chat-head .btn{background:rgba(255,255,255,0.15)!important;color:#fff!important;border:none!important}
+.chat-head .btn:hover{background:rgba(255,255,255,0.25)!important}
+.chat-body{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px;background:#F8FAFC}
+.msg{max-width:88%;display:flex;flex-direction:column;gap:3px}
+.msg.user{align-self:flex-end;align-items:flex-end}
+.msg.ai{align-self:flex-start;align-items:flex-start;max-width:95%}
+.msg-bubble{padding:10px 14px;border-radius:14px;font-size:13px;line-height:1.6;word-break:break-word}
+.msg.user .msg-bubble{background:var(--navy2);color:#fff;border-bottom-right-radius:3px}
+.msg.ai .msg-bubble{background:#fff;color:var(--text);border-bottom-left-radius:3px;border:1px solid #E2E8F0;box-shadow:0 1px 2px rgba(0,0,0,0.05)}
+.msg-time{font-size:10px;color:var(--muted);font-family:var(--mono)}
+.chat-foot{padding:10px 14px;border-top:1px solid var(--border);flex-shrink:0;background:#fff}
+.chat-input-row{display:flex;gap:8px;align-items:flex-end}
+.chat-input-row textarea{flex:1;padding:9px 12px;border:1.5px solid var(--border2);border-radius:10px;font-size:13px;font-family:var(--sans);color:var(--text);background:#fff;resize:none;min-height:40px;max-height:120px;line-height:1.4}
+.chat-input-row textarea:focus{outline:none;border-color:var(--navy2);box-shadow:0 0 0 3px rgba(30,64,175,0.1)}
+.chat-send{width:38px;height:38px;border-radius:10px;background:var(--navy2);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.chat-send:hover{background:var(--navy)}
+.chat-send:disabled{opacity:.5;cursor:default}
+.chat-hint{font-size:11px;color:var(--muted);margin-top:5px}
+.typing{display:flex;gap:4px;padding:10px 13px;background:#fff;border-radius:14px;border-bottom-left-radius:3px;width:fit-content;border:1px solid #E2E8F0;box-shadow:0 1px 2px rgba(0,0,0,0.05)}
+.typing span{width:7px;height:7px;border-radius:50%;background:#94A3B8;animation:bounce .8s infinite}
+.typing span:nth-child(2){animation-delay:.15s}
+.typing span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+.chat-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.25);z-index:149}
+.chat-overlay.open{display:block}
+.rt-wrap{border:0.5px solid #E2E8F0;border-radius:10px;overflow:hidden;margin-bottom:12px}
+.rt-group-hdr{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#F8FAFC;border-bottom:0.5px solid #E2E8F0;cursor:pointer;user-select:none}
+.rt-group-hdr:hover{background:#F1F5F9}
+.rt-g-arrow{font-size:12px;color:#94A3B8;width:14px;text-align:center;transition:transform .15s}
+.rt-g-name{font-size:13px;font-weight:600;color:#0F172A;flex:1}
+.rt-g-oem{font-family:monospace;font-size:11px;background:#DBEAFE;color:#1D4ED8;padding:1px 7px;border-radius:4px}
+.rt-g-count{font-size:11px;color:#94A3B8}
+.rt-g-count.ok{color:#15803D}
+.rt-g-count.no{color:#DC2626}
+.rt-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.rt-tbl th{padding:6px 10px;text-align:left;font-size:10px;font-weight:600;color:#94A3B8;text-transform:uppercase;letter-spacing:.05em;border-bottom:0.5px solid #E2E8F0;background:#fff;white-space:nowrap}
+.rt-tbl td{padding:7px 10px;border-bottom:0.5px solid #F1F5F9;vertical-align:middle}
+.rt-tbl tr:last-child td{border-bottom:none}
+.rt-row-best{background:#F0FDF4}
+.rt-row-muted{opacity:0.45}
+.rt-indent{border-left:3px solid #BFDBFE}
+.rt-indent.best{border-left-color:#86EFAC}
+.rt-indent.muted{border-left-color:#E2E8F0}
+.rt-nm{font-size:12px;color:#0F172A}
+.rt-nm.best{font-weight:600;color:#15803D}
+.rt-ref{font-family:monospace;font-size:11px;color:#475569}
+.rt-oem{font-family:monospace;font-size:11px;color:#94A3B8}
+.rt-loai{font-size:10px;padding:2px 6px;border-radius:4px;white-space:nowrap;font-weight:600}
+.rt-loai-goc{background:#DCFCE7;color:#166534}
+.rt-loai-nm{background:#FEF9C3;color:#854D0E}
+.rt-loai-cc{background:#FEE2E2;color:#991B1B}
+.rt-loai-bh{background:#DBEAFE;color:#1E40AF}
+.rt-price{font-weight:600;color:#15803D;font-size:12px;white-space:nowrap}
+.rt-price-na{color:#94A3B8;font-size:11px;font-style:italic}
+.rt-stock-ok{color:#15803D;font-size:11px;font-weight:600;white-space:nowrap}
+.rt-stock-no{color:#DC2626;font-size:11px;white-space:nowrap}
+.rt-brand{font-size:11px;color:#64748B}
+.rt-add{font-size:11px;padding:3px 9px;border-radius:5px;border:0.5px solid #CBD5E1;background:#fff;cursor:pointer;color:#1E293B;white-space:nowrap}
+.rt-add:hover{background:#F8FAFC}
+.model-sel-table{width:100%;border-collapse:collapse;font-size:12px;border-radius:8px;overflow:hidden;border:1px solid #E2E8F0;margin:6px 0}
+.model-sel-table th{background:#1E3A5F;color:#fff;padding:6px 10px;text-align:left;font-size:11px;font-weight:600}
+.model-sel-table td{padding:8px 10px;border-bottom:1px solid #F1F5F9;vertical-align:middle}
+.model-sel-table tr:last-child td{border-bottom:none}
+.model-sel-table tr.sel-row{cursor:pointer}
+.model-sel-table tr.sel-row:hover td{background:#EFF6FF}
+.model-sel-table .sel-code{font-family:monospace;font-size:11px;color:#1D4ED8;font-weight:600}
+.model-sel-table .sel-name{color:#0F172A;font-weight:500}
+.model-sel-table .sel-year{color:#64748B;font-size:11px}
+.model-sel-table .sel-btn{background:#1E3A5F;color:#fff;border:none;border-radius:5px;padding:3px 10px;font-size:11px;cursor:pointer;white-space:nowrap}
+.model-sel-table .sel-btn:hover{background:#2563EB}
+.result-table{width:100%;border-collapse:collapse;font-size:12px;margin:4px 0;border-radius:8px;overflow:hidden;border:1px solid #E2E8F0}
+.result-table th{background:#EFF6FF;color:#1E40AF;padding:6px 10px;text-align:left;font-weight:600;font-size:11px}
+.result-table td{padding:7px 10px;border-top:1px solid #F1F5F9;vertical-align:middle;font-size:12px}
+.result-table tr.found td:first-child{color:#15803D;font-weight:700}
+.result-table tr.miss td:first-child{color:#DC2626;font-weight:700}
+.badge-sell{font-size:10px;padding:2px 7px;border-radius:99px;font-weight:500;background:#DCFCE7;color:#15803D}
+.badge-stop{font-size:10px;padding:2px 7px;border-radius:99px;font-weight:500;background:#FEE2E2;color:#DC2626}
+.alert-ok{background:#F0FDF4;color:#15803D;border:1px solid #BBF7D0}
+.dropdown-results{display:none;border:1px solid var(--border2);border-radius:var(--radius);margin-top:4px;background:#fff;max-height:180px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.08)}
+.dropdown-results.show{display:block}
+.dropdown-item{padding:8px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.dropdown-item:last-child{border-bottom:none}
+.dropdown-item:hover{background:#F8FAFC}
+#detail-panel{position:fixed;top:0;right:-480px;width:480px;height:100vh;background:var(--bg);border-left:1px solid var(--border);box-shadow:-4px 0 24px rgba(0,0,0,0.12);z-index:9999;display:flex;flex-direction:column;transition:right 0.3s cubic-bezier(.4,0,.2,1);overflow:hidden}
+#detail-panel.open{right:0}
+#detail-panel-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:9998}
+#detail-panel-overlay.open{display:block}
+#detail-panel-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px;background:var(--navy1)}
+#detail-panel-header .dp-title{flex:1}
+#detail-panel-header .dp-title h3{color:#fff;font-size:15px;font-weight:700;margin:0 0 4px}
+#detail-panel-header .dp-title p{color:rgba(255,255,255,0.7);font-size:12px;margin:0}
+#detail-close{background:rgba(255,255,255,0.15);border:none;border-radius:6px;color:#fff;cursor:pointer;padding:6px 10px;font-size:16px;flex-shrink:0}
+#detail-close:hover{background:rgba(255,255,255,0.25)}
+#detail-panel-body{flex:1;overflow-y:auto;padding:0}
+.dp-section{padding:16px 20px;border-bottom:1px solid var(--border)}
+.dp-section h4{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin:0 0 10px}
+.dp-badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.dp-badge{padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600}
+.dp-badge.oem{background:#EFF6FF;color:#1D4ED8}
+.dp-badge.type-goc{background:#F0FDF4;color:#15803D}
+.dp-badge.type-nm{background:#FEF9C3;color:#854D0E}
+.dp-badge.type-cc{background:#FFF7ED;color:#C2410C}
+.dp-badge.status-on{background:#DCFCE7;color:#166534}
+.dp-badge.status-off{background:#FEE2E2;color:#991B1B}
+.dp-vehicles-table{width:100%;border-collapse:collapse;font-size:12px}
+.dp-vehicles-table th{background:var(--header-bg);color:var(--muted);font-weight:600;padding:6px 8px;text-align:left}
+.dp-vehicles-table td{padding:6px 8px;border-bottom:1px solid var(--border);color:var(--text)}
+.dp-vehicles-table tr:last-child td{border-bottom:none}
+.dp-vehicles-table tr:hover td{background:var(--hover)}
+.dp-alt-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.dp-alt-item:last-child{border-bottom:none}
+.dp-alt-name{font-weight:600;color:var(--text)}
+.dp-alt-code{color:var(--muted);font-size:12px;font-family:monospace}
+.dp-empty{color:var(--muted);font-size:13px;font-style:italic}
+.dp-loading{text-align:center;padding:32px;color:var(--muted);font-size:13px}
+.clickable-product{cursor:pointer;color:var(--navy2);text-decoration:underline;text-underline-offset:2px}
+.clickable-product:hover{color:var(--navy1)}
+#chat-attach-btn{background:none;border:none;cursor:pointer;color:var(--muted);padding:6px 8px;border-radius:6px;font-size:18px;display:flex;align-items:center;transition:color 0.15s,background 0.15s;flex-shrink:0}
+#chat-attach-btn:hover{color:var(--navy2);background:var(--hover)}
+#chat-image-preview{display:none;padding:8px 12px 0;position:relative}
+#chat-image-preview img{max-height:80px;border-radius:8px;border:2px solid var(--navy2);object-fit:cover}
+#chat-image-preview .remove-img{position:absolute;top:4px;left:96px;background:#EF4444;color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
+.chat-msg-image{max-width:240px;border-radius:10px;margin-bottom:6px;border:1px solid var(--border);display:block}
+.vin-detected{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:8px 12px;margin-top:6px;font-size:13px}
+.vin-detected strong{color:var(--navy2)}
+#cart-fab{position:fixed;bottom:24px;right:24px;background:var(--navy1);color:#fff;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.25);z-index:9000;font-size:22px;border:none;transition:transform 0.15s}
+#cart-fab:hover{transform:scale(1.08)}
+#cart-fab .cart-count{position:absolute;top:-4px;right:-4px;background:#EF4444;color:#fff;min-width:22px;height:22px;border-radius:11px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 5px}
+#cart-panel{position:fixed;top:0;right:-420px;width:420px;height:100vh;background:var(--bg);border-left:1px solid var(--border);box-shadow:-4px 0 24px rgba(0,0,0,0.12);z-index:9500;display:flex;flex-direction:column;transition:right 0.3s cubic-bezier(.4,0,.2,1)}
+#cart-panel.open{right:0}
+#cart-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:9400}
+#cart-overlay.open{display:block}
+#cart-header{padding:16px 20px;background:var(--navy1);color:#fff;display:flex;align-items:center;justify-content:space-between}
+#cart-header h3{margin:0;font-size:15px;font-weight:700}
+#cart-close{background:rgba(255,255,255,0.15);border:none;border-radius:6px;color:#fff;cursor:pointer;padding:6px 10px;font-size:16px}
+#cart-body{flex:1;overflow-y:auto;padding:12px 16px}
+.cart-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.cart-item-info{flex:1;min-width:0}
+.cart-item-name{font-weight:600;font-size:13px;color:var(--text)}
+.cart-item-ref{font-size:11px;color:var(--muted);font-family:monospace}
+.cart-item-price{font-size:12px;color:#15803D;font-weight:600;margin-top:2px}
+.cart-qty{display:flex;align-items:center;gap:6px}
+.cart-qty button{width:24px;height:24px;border:1px solid var(--border);background:var(--bg);border-radius:5px;cursor:pointer;font-size:14px;line-height:1;color:var(--text)}
+.cart-qty input{width:40px;text-align:center;border:1px solid var(--border);border-radius:5px;padding:3px;font-size:13px}
+.cart-item-remove{background:none;border:none;color:#EF4444;cursor:pointer;font-size:16px;padding:2px}
+#cart-footer{padding:16px 20px;border-top:1px solid var(--border);background:var(--navy1)}
+.cart-total-row{display:flex;justify-content:space-between;color:#fff;font-size:14px;margin-bottom:4px}
+.cart-total-row.grand{font-size:18px;font-weight:700;margin:8px 0}
+#cart-checkout-btn{width:100%;padding:12px;background:#22C55E;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px}
+#cart-checkout-btn:hover{background:#16A34A}
+#cart-checkout-btn:disabled{background:#94A3B8;cursor:not-allowed}
+.cart-empty{text-align:center;color:var(--muted);padding:40px 20px;font-size:14px}
+.add-cart-btn{background:var(--navy2);color:#fff;border:none;border-radius:5px;padding:3px 10px;font-size:11px;cursor:pointer;white-space:nowrap}
+.add-cart-btn:hover{background:var(--navy1)}
+.add-cart-btn.added{background:#22C55E}
+.checkout-field{margin-bottom:10px}
+.checkout-field label{display:block;font-size:12px;color:var(--muted);margin-bottom:3px}
+.checkout-field input,.checkout-field textarea{width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px;box-sizing:border-box}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <div class="logo-icon"><i class="ti ti-car-suv"></i></div>
+      <div><div class="logo-text">Catalog Admin</div><div class="logo-sub">v1.0 · port 3001</div></div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Quản lý dữ liệu</div>
+    <button class="nav-item active" onclick="goPage('dashboard')" id="nav-dashboard"><i class="ti ti-layout-dashboard"></i> Dashboard</button>
+    <button class="nav-item" onclick="goPage('vehicles')" id="nav-vehicles"><i class="ti ti-car-multiple"></i> Model xe <span class="nav-badge" id="nb-v">—</span></button>
+    <button class="nav-item" onclick="goPage('products')" id="nav-products"><i class="ti ti-package-variant"></i> Phụ tùng <span class="nav-badge" id="nb-p">—</span></button>
+    <button class="nav-item" onclick="goPage('fitments')" id="nav-fitments"><i class="ti ti-link"></i> Xe ↔ Phụ tùng <span class="nav-badge" id="nb-f">—</span></button>
+    <div class="nav-section">Công cụ AI</div>
+    <button class="nav-item" onclick="toggleChat()" id="nav-chat"><i class="ti ti-message-chatbot"></i> Hỏi đáp AI</button>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="api-status"><div class="api-dot" id="api-dot"></div><span id="api-txt">Đang kết nối...</span></div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="breadcrumb" id="breadcrumb"><span class="cur">Dashboard</span></div>
+    <div class="topbar-actions">
+      <button class="btn" onclick="loadAll()"><i class="ti ti-refresh"></i> Làm mới</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="stats-row" id="stats-row" style="display:none">
+      <div class="stat-card"><div class="stat-val" id="st-p" style="color:var(--navy2)">—</div><div class="stat-lbl">Sản phẩm</div><div class="stat-sub" id="st-ps">—</div></div>
+      <div class="stat-card"><div class="stat-val" id="st-o" style="color:#0F6E56">—</div><div class="stat-lbl">OEM chính hãng</div></div>
+      <div class="stat-card"><div class="stat-val" id="st-a" style="color:var(--amber)">—</div><div class="stat-lbl">Aftermarket</div></div>
+      <div class="stat-card"><div class="stat-val" id="st-v" style="color:var(--purple)">—</div><div class="stat-lbl">Model xe</div><div class="stat-sub" id="st-vs">—</div></div>
+      <div class="stat-card"><div class="stat-val" id="st-f" style="color:var(--green)">—</div><div class="stat-lbl">Liên kết</div></div>
+    </div>
+
+    <div id="pg-dashboard">
+      <div class="table-card" style="padding:40px;text-align:center;color:var(--muted)">
+        <i class="ti ti-loader" style="font-size:36px;display:block;margin:0 auto 12px" id="dash-icon"></i>
+        <div id="dash-msg" style="font-size:14px">Đang kết nối API...</div>
+      </div>
+    </div>
+
+    <div id="pg-vehicles" style="display:none">
+      <div class="toolbar">
+        <div class="search-box"><i class="ti ti-search"></i><input id="v-q" placeholder="Tìm hãng, mã model..." oninput="deb(()=>{vPg=1;renderV()},300)()"></div>
+        <select class="filter" id="v-make" onchange="vPg=1;populateModelNames(true).then(()=>renderV())"><option value="">Tất cả hãng</option></select>
+        <select class="filter" id="v-type" onchange="vPg=1;renderV()"><option value="">Tất cả loại</option><option value="car">Ô tô</option><option value="truck">Xe tải</option></select>
+        <select class="filter" id="v-modelname" onchange="vPg=1;renderV()" style="width:160px;font-size:13px"><option value="">Tất cả dòng xe</option></select>
+        <div class="search-box" style="flex:0 0 220px">
+          <i class="ti ti-tool" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px;pointer-events:none"></i>
+          <input id="v-part" placeholder="Phụ tùng: mã phanh sau..." style="padding-left:30px;width:100%" oninput="deb(()=>{vPg=1;renderV()},500)()">
+        </div>
+        <button class="btn primary" onclick="openVForm()"><i class="ti ti-plus"></i> Thêm model xe</button>
+      </div>
+      <div class="table-card">
+        <table>
+          <thead><tr><th>Hãng</th><th>Mã model</th><th>Tên thương mại</th><th>Loại</th><th>Năm SX</th><th>Phụ tùng</th><th>Odoo ref</th><th></th></tr></thead>
+          <tbody id="v-tbody"></tbody>
+        </table>
+        <div class="pager"><span id="v-info"></span><div class="pager-btns" id="v-pager"></div></div>
+      </div>
+    </div>
+
+    <div id="pg-vehicle-detail" style="display:none">
+      <div class="detail-header">
+        <div class="detail-logo"><i class="ti ti-car-suv"></i></div>
+        <div class="detail-info">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:4px" id="vd-make-label"></div>
+          <div class="detail-title" id="vd-title"></div>
+          <div class="detail-meta" id="vd-meta"></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0">
+          <button class="btn" onclick="openVForm(currentVehId)"><i class="ti ti-edit"></i> Sửa</button>
+          <button class="btn danger" onclick="delVehicle(currentVehId)"><i class="ti ti-trash"></i> Xóa</button>
+        </div>
+      </div>
+      <div class="info-grid" id="vd-info-grid"></div>
+      <div class="odoo-tabs">
+        <button class="odoo-tab active" onclick="switchVDTab('parts')" id="vdt-parts"><i class="ti ti-tool"></i> Phụ tùng <span class="cnt" id="vdt-parts-cnt">0</span></button>
+        <button class="odoo-tab" onclick="switchVDTab('info')" id="vdt-info"><i class="ti ti-info-circle"></i> Thông tin thêm</button>
+      </div>
+      <div id="vdt-parts-content">
+        <div class="toolbar" style="margin-bottom:10px">
+          <div class="search-box"><i class="ti ti-search"></i><input id="vdp-q" placeholder="Tìm phụ tùng..." oninput="deb(()=>renderVDParts(),300)()"></div>
+          <button class="btn primary ml-auto" onclick="openFitmentForm(currentVehId)"><i class="ti ti-plus"></i> Gắn phụ tùng</button>
+        </div>
+        <div class="table-card">
+          <table>
+            <thead><tr><th>Tên phụ tùng</th><th>Tham chiếu nội bộ</th><th>Mã quốc tế (OEM)</th><th>Loại</th><th>Thương hiệu</th><th>Trạng thái</th><th></th></tr></thead>
+            <tbody id="vdp-tbody"></tbody>
+          </table>
+          <div class="pager"><span id="vdp-info"></span><div class="pager-btns" id="vdp-pager"></div></div>
+        </div>
+      </div>
+      <div id="vdt-info-content" style="display:none">
+        <div class="table-card" style="padding:20px"><div id="vdt-extra-info"></div></div>
+      </div>
+    </div>
+
+    <div id="pg-products" style="display:none">
+      <div class="toolbar">
+        <div class="search-box"><i class="ti ti-search"></i><input id="p-q" placeholder="Tìm tên, mã sản phẩm..." oninput="deb(()=>{pPg=1;renderP()},300)()"></div>
+        <select class="filter" id="p-type" onchange="pPg=1;renderP()"><option value="">Tất cả loại</option><option value="oem">OEM chính hãng</option><option value="aftermarket">Aftermarket</option></select>
+        <select class="filter" id="p-sale" onchange="pPg=1;renderP()"><option value="">Tất cả TT</option><option value="true">Đang bán</option><option value="false">Ngừng bán</option></select>
+        <button class="btn primary ml-auto" onclick="openPForm()"><i class="ti ti-plus"></i> Thêm sản phẩm</button>
+      </div>
+      <div class="table-card">
+        <table>
+          <thead><tr><th>Tên sản phẩm</th><th>Mã nội bộ</th><th>Mã OEM</th><th>Loại</th><th>Thương hiệu</th><th>ĐVT</th><th>Trạng thái</th><th>Xe gắn</th><th></th></tr></thead>
+          <tbody id="p-tbody"></tbody>
+        </table>
+        <div class="pager"><span id="p-info"></span><div class="pager-btns" id="p-pager"></div></div>
+      </div>
+    </div>
+
+    <div id="pg-fitments" style="display:none">
+      <div class="toolbar">
+        <div class="search-box"><i class="ti ti-search"></i><input id="f-q" placeholder="Tìm phụ tùng hoặc xe..." oninput="deb(()=>{fPg=1;renderF()},300)()"></div>
+        <button class="btn primary ml-auto" onclick="openFitmentForm(null)"><i class="ti ti-plus"></i> Gắn phụ tùng vào xe</button>
+      </div>
+      <div class="table-card">
+        <table>
+          <thead><tr><th>Phụ tùng</th><th>Mã</th><th>Hãng xe</th><th>Model</th><th>Năm SX</th><th>Ghi chú</th><th></th></tr></thead>
+          <tbody id="f-tbody"></tbody>
+        </table>
+        <div class="pager"><span id="f-info"></span><div class="pager-btns" id="f-pager"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Vehicle Form -->
+<div class="modal-mask" id="modal-v">
+  <div class="modal">
+    <div class="modal-head"><span class="modal-title" id="v-ftitle">Thêm model xe</span><button class="btn sm icon" onclick="closeModal('modal-v')"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body">
+      <div id="v-alert"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Hãng xe *</label><input class="form-input" id="vf-make" placeholder="Toyota..."></div>
+        <div class="form-group"><label class="form-label">Mã model *</label><input class="form-input" id="vf-code" placeholder="KUN60L-NKMSHU"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Tên thương mại</label><input class="form-input" id="vf-name" placeholder="Hilux Vigo, Vios..."></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Năm từ</label><input class="form-input" id="vf-from" type="number" placeholder="2005"></div>
+        <div class="form-group"><label class="form-label">Năm đến</label><input class="form-input" id="vf-to" type="number" placeholder="Bỏ trống nếu còn SX"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Loại xe</label><select class="form-input" id="vf-vtype"><option value="car">Ô tô</option><option value="truck">Xe tải</option></select></div>
+        <div class="form-group"><label class="form-label">Odoo ref</label><input class="form-input" id="vf-ref" placeholder="Toyota/KUN60L-NKMSHU"></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal('modal-v')">Hủy</button><button class="btn primary" onclick="saveVehicle()">Lưu</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Product Form -->
+<div class="modal-mask" id="modal-p">
+  <div class="modal">
+    <div class="modal-head"><span class="modal-title" id="p-ftitle">Thêm sản phẩm</span><button class="btn sm icon" onclick="closeModal('modal-p')"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body">
+      <div id="p-alert"></div>
+      <div class="form-group"><label class="form-label">Tên sản phẩm *</label><input class="form-input" id="pf-name" placeholder="Lọc dầu Toyota"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Mã nội bộ (Bravo)</label><input class="form-input" id="pf-ref" placeholder="04152-YZZA6"></div>
+        <div class="form-group"><label class="form-label">Mã OEM</label><input class="form-input" id="pf-oem" placeholder="04152-YZZA6"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Loại hàng</label><select class="form-input" id="pf-type"><option value="aftermarket">Aftermarket</option><option value="oem">OEM chính hãng</option></select></div>
+        <div class="form-group"><label class="form-label">Thương hiệu</label><input class="form-input" id="pf-brand" placeholder="Toyota, Bosch..."></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Đơn vị tính</label><input class="form-input" id="pf-unit" value="cái"></div>
+        <div class="form-group" style="display:flex;align-items:flex-end;padding-bottom:4px">
+          <div class="toggle-row"><button class="toggle on" id="pf-sale-t" onclick="toggleSale()"></button><span id="pf-sale-l">Đang bán</span><input type="hidden" id="pf-sale" value="true"></div>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Ghi chú kỹ thuật</label><textarea class="form-input" id="pf-notes" placeholder="VD: Chỉ dùng cho máy 2KD-FTV"></textarea></div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal('modal-p')">Hủy</button><button class="btn primary" onclick="saveProd()">Lưu</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Fitment Form -->
+<div class="modal-mask" id="modal-f">
+  <div class="modal">
+    <div class="modal-head"><span class="modal-title">Gắn phụ tùng vào xe</span><button class="btn sm icon" onclick="closeModal('modal-f')"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body">
+      <div id="f-alert"></div>
+      <div class="form-group">
+        <label class="form-label">Phụ tùng *</label>
+        <input class="form-input" id="ff-prod-inp" placeholder="Gõ tên hoặc mã phụ tùng..." oninput="srcProd()" autocomplete="off">
+        <div class="dropdown-results" id="ff-prod-res"></div>
+        <input type="hidden" id="ff-prod-id">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Model xe *</label>
+        <input class="form-input" id="ff-veh-inp" placeholder="Gõ hãng hoặc mã model..." oninput="srcVeh()" autocomplete="off">
+        <div class="dropdown-results" id="ff-veh-res"></div>
+        <input type="hidden" id="ff-veh-id">
+      </div>
+      <div class="form-group"><label class="form-label">Ghi chú</label><input class="form-input" id="ff-note" placeholder="VD: Chỉ máy dầu 2.5L"></div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal('modal-f')">Hủy</button><button class="btn primary" onclick="saveFitment()">Gắn</button></div>
+  </div>
+</div>
+<script>
+const API='/api/v1/catalog';
+const PG=15,VPG=20;
+let vehicles=[],products=[],fitments=[];
+let vPg=1,pPg=1,fPg=1,vdpPg=1;
+let editVId=null,editPId=null,currentVehId=null,currentVDTab='parts';
+let fitmentPrefilledVehId=null;
+
+async function req(path,opts={}){
+  const r=await fetch(API+path,{headers:{'Content-Type':'application/json'},...opts});
+  if(!r.ok){const e=await r.json();throw new Error(e.message||'Lỗi API');}
+  return r.json();
+}
+
+// ID extension "Catalog AI — Parts & VIN Lookup" (thư mục catalog-ai-extension-v2) — extension DUY NHẤT
+// nhận được chrome.runtime.sendMessage từ trang này (có onMessageExternal + externally_connectable).
+// KHÔNG phải Downloads/vin-extension (bản WebSocket cũ, không nhận sendMessage).
+// LƯU Ý: đây là ID Chrome tự sinh khi load unpacked. Nếu tra VIN báo "Không kết nối được extension" →
+// mở chrome://extensions, copy ID của extension "Catalog AI — Parts & VIN Lookup", DÁN vào đây cho khớp.
+var PARTSOUQ_EXTENSION_ID = 'ploclkpkpjniekgeoehglmfiidjldafh';
+
+function sendToExtension(payload) {
+  return new Promise(function(resolve, reject) {
+    try {
+      chrome.runtime.sendMessage(PARTSOUQ_EXTENSION_ID, payload, function(resp) {
+        if (chrome.runtime.lastError) { reject(new Error(chrome.runtime.lastError.message)); return; }
+        resolve(resp || { ok: false, error: 'Khong co phan hoi' });
+      });
+    } catch(e) { reject(e); }
+  });
+}
+
+async function lookupViaExtension(mode, value) {
+  if (!chrome || !chrome.runtime || !chrome.runtime.sendMessage) throw new Error('Trinh duyet khong ho tro hoac chua cai extension');
+  if (PARTSOUQ_EXTENSION_ID === 'DAN_ID_EXTENSION_VAO_DAY') throw new Error('Chua cau hinh ID extension trong index.html');
+  var payload;
+  if (mode === 'vin') payload = { type: 'AI_LOOKUP_VIN', vin: value };
+  else if (mode === 'models') { var info = JSON.parse(value); payload = { type: 'AI_LOOKUP_MODELS', make: info.make, model: info.model, year: info.year }; }
+  else payload = { type: 'AI_LOOKUP_PART', partNumber: value };
+  try { await sendToExtension({ type: 'AI_PING' }); } catch(e) {
+    await new Promise(function(r){ setTimeout(r, 1000); });
+    try { await sendToExtension({ type: 'AI_PING' }); } catch(e2) { throw new Error('Khong ket noi duoc extension'); }
+  }
+  return await sendToExtension(payload);
+}
+
+async function loadAll(){
+  try{
+    const [p,f,s]=await Promise.all([req('/products?limit=5000'),req('/fitments?limit=100'),req('/stats')]);
+    products=p.data||[];fitments=f||[];
+    document.getElementById('st-p').textContent=s.products.total.toLocaleString('vi-VN');
+    document.getElementById('st-ps').textContent=s.products.for_sale+' đang bán';
+    document.getElementById('st-o').textContent=s.products.oem.toLocaleString('vi-VN');
+    document.getElementById('st-a').textContent=s.products.aftermarket.toLocaleString('vi-VN');
+    document.getElementById('st-v').textContent=s.vehicles.total.toLocaleString('vi-VN');
+    document.getElementById('st-vs').textContent=s.vehicles.makes+' hãng xe';
+    document.getElementById('st-f').textContent=s.fitments.total.toLocaleString('vi-VN');
+    document.getElementById('stats-row').style.display='grid';
+    document.getElementById('nb-v').textContent=s.vehicles.total.toLocaleString('vi-VN');
+    document.getElementById('nb-p').textContent=s.products.total.toLocaleString('vi-VN');
+    document.getElementById('nb-f').textContent=s.fitments.total.toLocaleString('vi-VN');
+    setAPI(true);
+    await populateMakes();
+    await populateModelNames(false);
+    renderV();renderP();renderF();
+    document.getElementById('dash-icon').className='ti ti-check-circle';
+    document.getElementById('dash-icon').style.color='#16A34A';
+    document.getElementById('dash-msg').textContent=`Kết nối thành công — ${s.products.total} sản phẩm, ${s.vehicles.total} model xe, ${s.fitments.total} liên kết`;
+  }catch(e){
+    setAPI(false);
+    document.getElementById('dash-icon').className='ti ti-alert-circle';
+    document.getElementById('dash-icon').style.color='#DC2626';
+    document.getElementById('dash-msg').textContent='Không kết nối được: '+e.message;
+  }
+}
+
+function setAPI(ok){
+  document.getElementById('api-dot').className='api-dot '+(ok?'ok':'err');
+  document.getElementById('api-txt').textContent=ok?'API: localhost:3001':'Mất kết nối';
+}
+
+var _modelNameCache = {};
+
+async function populateModelNames(resetValue){
+  const sel = document.getElementById('v-modelname');
+  if (!sel) return;
+  const make = document.getElementById('v-make')?.value || '';
+  const cacheKey = make || '__all__';
+  if (_modelNameCache[cacheKey]) {
+    const cur = resetValue ? '' : sel.value;
+    _fillModelSelect(sel, _modelNameCache[cacheKey], cur);
+    return;
+  }
+  try {
+    const params = new URLSearchParams({ limit: 5000, page: 1 });
+    if (make) params.set('make', make);
+    const vres = await req('/vehicles?' + params);
+    const allVehicles = vres.data || [];
+    const modelNames = [...new Set(allVehicles.map(v => v.model_name).filter(Boolean).map(n => n.trim()))].sort();
+    _modelNameCache[cacheKey] = modelNames;
+    const cur = resetValue ? '' : sel.value;
+    _fillModelSelect(sel, modelNames, cur);
+  } catch(e) { console.warn('populateModelNames error:', e); }
+}
+
+function _fillModelSelect(sel, names, curVal) {
+  sel.innerHTML = '<option value="">Tất cả dòng xe</option>' +
+    names.map(n => '<option value="' + n + '"' + (n===curVal?' selected':'') + '>' + n + '</option>').join('');
+}
+
+async function populateMakes(){
+  try {
+    const res = await req('/stats');
+    const makes = (res.top_brands||[]).map(b=>b.brand).filter(Boolean);
+    let allMakes = makes;
+    if (!allMakes.length) {
+      const vres = await req('/vehicles?limit=100');
+      allMakes = [...new Set((vres.data||[]).map(v=>v.make))];
+    }
+    try {
+      const mres = await fetch('/api/v1/catalog/vehicles/makes');
+      if (mres.ok) { const mdata = await mres.json(); allMakes = mdata.makes || allMakes; }
+    } catch(_) {}
+    allMakes = [...new Set(allMakes)].sort();
+    const sel = document.getElementById('v-make');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">Tất cả hãng</option>' +
+      allMakes.map(m=>`<option value="${m}"${m===cur?' selected':''}>${m}</option>`).join('');
+  } catch(e) { console.warn('populateMakes error:', e); }
+}
+
+const PAGES=['dashboard','vehicles','vehicle-detail','products','fitments'];
+function goPage(p){
+  PAGES.forEach(k=>document.getElementById('pg-'+k).style.display=k===p?'':'none');
+  ['dashboard','vehicles','products','fitments'].forEach(k=>{
+    const n=document.getElementById('nav-'+k);
+    if(n) n.classList.toggle('active',k===p||(k==='vehicles'&&p==='vehicle-detail'));
+  });
+  setBreadcrumb(p);
+}
+
+function setBreadcrumb(p){
+  const el=document.getElementById('breadcrumb');
+  if(p==='dashboard') el.innerHTML='<span class="cur">Dashboard</span>';
+  else if(p==='vehicles') el.innerHTML='<span class="cur">Model xe</span>';
+  else if(p==='products') el.innerHTML='<span class="cur">Phụ tùng</span>';
+  else if(p==='fitments') el.innerHTML='<span class="cur">Xe ↔ Phụ tùng</span>';
+  else if(p==='vehicle-detail'){
+    const v=vehicles.find(x=>x.id===currentVehId);
+    el.innerHTML=`<a onclick="goPage('vehicles')">Model xe</a><span class="sep">›</span><span class="cur">${v?v.make+' / '+v.model_code:'Chi tiết'}</span>`;
+  }
+}
+
+let vTotal=0, vTotalPages=1;
+
+async function renderV(){
+  const q=(document.getElementById('v-q')?.value?.trim()||'');
+  const make=document.getElementById('v-make')?.value||'';
+  const type=document.getElementById('v-type')?.value||'';
+  const modelname=document.getElementById('v-modelname')?.value||'';
+  const yearFrom=document.getElementById('v-year')?.value||'';
+  const partQ=(document.getElementById('v-part')?.value||'').trim();
+  const tb=document.getElementById('v-tbody');
+  tb.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)"><i class="ti ti-loader" style="font-size:20px;display:block;margin:0 auto 6px;animation:spin 1s linear infinite"></i>Đang tải...</td></tr>`;
+  try {
+    const fetchLimit=partQ?500:PG, fetchPage=partQ?1:vPg;
+    const params=new URLSearchParams({page:fetchPage,limit:fetchLimit});
+    if(q) params.set('q',q);
+    if(make) params.set('make',make);
+    if(modelname) params.set('model',modelname);
+    if(type) params.set('vehicle_type',type);
+    if(yearFrom) params.set('year_from_min',yearFrom);
+    const res=await req(`/vehicles?${params}`);
+    let data=res.data||[];
+    if(partQ&&data.length){
+      tb.innerHTML='<tr><td colspan="8" style="text-align:center;padding:16px;color:var(--muted)"><i class="ti ti-loader" style="font-size:18px;display:block;margin:0 auto 6px;animation:spin 1s linear infinite"></i>Đang lọc phụ tùng <b>'+partQ+'</b>...</td></tr>';
+      const checkResults=await Promise.all(data.map(async v=>{
+        try{
+          const p2=new URLSearchParams({make:v.make,model:v.model_code,part:partQ,limit:'1'});
+          const r=await req('/search/by-model?'+p2);
+          return{v,count:r.found?(r.results||[]).length:0};
+        }catch{return{v,count:0};}
+      }));
+      const matched=checkResults.filter(x=>x.count>0);
+      data=matched.map(x=>({...x.v,_partCount:x.count}));
+      vTotal=data.length; vTotalPages=Math.ceil(data.length/PG)||1;
+      data=data.slice((vPg-1)*PG,vPg*PG);
+    } else { vTotal=res.total||0; vTotalPages=res.totalPages||1; }
+    tb.innerHTML=!data.length
+      ?`<tr class="empty-row"><td colspan="8"><i class="ti ti-car-off" style="font-size:28px;display:block;margin:0 auto 8px"></i>Không có model xe nào</td></tr>`
+      :data.map(v=>`<tr class="clickable" onclick="openVehicleDetail('${v.id}')">
+          <td><span class="chip chip-blue">${v.make}</span></td>
+          <td><code>${v.model_code}</code></td>
+          <td style="color:var(--muted);font-size:13px">${v.model_name||'—'}</td>
+          <td style="font-size:12px"><i class="ti ${v.vehicle_type==='truck'?'ti-truck':'ti-car'}" style="vertical-align:-2px;margin-right:3px"></i>${v.vehicle_type==='truck'?'Xe tải':'Ô tô'}</td>
+          <td style="font-size:12px;color:var(--muted)">${v.year_from||'?'}–${v.year_to||'nay'}</td>
+          <td><span class="chip chip-gray" id="fcount-${v.id}">— phụ tùng</span>${v._partCount?'<span class="chip chip-green" style="margin-left:4px;font-size:11px">✓ '+v._partCount+' mã "'+partQ+'"</span>':''}</td>
+          <td style="font-size:11px;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.odoo_ref||'—'}</td>
+          <td onclick="event.stopPropagation()"><div class="actions-cell">
+            <button class="btn sm icon" onclick="openVForm('${v.id}')" title="Sửa"><i class="ti ti-edit"></i></button>
+            <button class="btn sm icon danger" onclick="delVehicle('${v.id}')" title="Xóa"><i class="ti ti-trash"></i></button>
+          </div></td>
+        </tr>`).join('');
+    document.getElementById('v-info').textContent=`${vTotal.toLocaleString('vi-VN')} model xe`;
+    renderPager('v-pager',vPg,vTotalPages,p=>{vPg=p;renderV();});
+    data.forEach(async v=>{
+      try{
+        const fits=await req(`/vehicles/${v.id}/fitments`);
+        const el=document.getElementById(`fcount-${v.id}`);
+        if(el){const cnt=fits.length;el.textContent=`${cnt} phụ tùng`;el.className=`chip ${cnt>0?'chip-green':'chip-gray'}`;}
+      }catch{}
+    });
+  }catch(e){
+    tb.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--red)">Lỗi: ${e.message}</td></tr>`;
+  }
+}
+
+async function openVehicleDetail(id){
+  currentVehId=id; goPage('vehicle-detail');
+  document.getElementById('vd-make-label').textContent='...';
+  document.getElementById('vd-title').textContent='Đang tải...';
+  document.getElementById('vd-meta').innerHTML='';
+  document.getElementById('vd-info-grid').innerHTML='';
+  document.getElementById('vdt-parts-cnt').textContent='...';
+  await renderVDetail(id);
+}
+
+async function renderVDetail(id){
+  try{
+    const res=await req(`/vehicles/${id}`);
+    const v=res; if(!v) return;
+    const idx=vehicles.findIndex(x=>x.id===id);
+    if(idx>=0) vehicles[idx]=v; else vehicles.push(v);
+    document.getElementById('vd-make-label').textContent=v.make;
+    document.getElementById('vd-title').textContent=v.model_code+(v.model_name?' — '+v.model_name:'');
+    setBreadcrumb('vehicle-detail');
+    document.getElementById('vd-meta').innerHTML=`
+      <div class="detail-meta-item"><i class="ti ti-${v.vehicle_type==='truck'?'truck':'car'}"></i>${v.vehicle_type==='truck'?'Xe tải':'Ô tô'}</div>
+      <div class="detail-meta-item"><i class="ti ti-calendar"></i>${v.year_from||'?'} – ${v.year_to||'nay'}</div>
+      <div class="detail-meta-item" id="vd-meta-cnt"><i class="ti ti-tool"></i>... phụ tùng</div>
+      ${v.odoo_ref?`<div class="detail-meta-item"><i class="ti ti-tag"></i>${v.odoo_ref}</div>`:''}`;
+    document.getElementById('vd-info-grid').innerHTML=`
+      <div class="info-field"><div class="info-label">Nhà sản xuất</div><div class="info-value">${v.make}</div></div>
+      <div class="info-field"><div class="info-label">Mã model</div><div class="info-value"><code>${v.model_code}</code></div></div>
+      <div class="info-field"><div class="info-label">Tên thương mại</div><div class="info-value">${v.model_name||'—'}</div></div>
+      <div class="info-field"><div class="info-label">Loại xe</div><div class="info-value">${v.vehicle_type==='truck'?'Xe tải':'Ô tô'}</div></div>
+      <div class="info-field"><div class="info-label">Năm từ</div><div class="info-value">${v.year_from||'—'}</div></div>
+      <div class="info-field"><div class="info-label">Năm đến</div><div class="info-value">${v.year_to||'Đang SX'}</div></div>`;
+    switchVDTab('parts');
+  }catch(e){ document.getElementById('vd-title').textContent='Lỗi tải dữ liệu: '+e.message; }
+}
+
+function switchVDTab(tab){
+  currentVDTab=tab;
+  ['parts','info'].forEach(t=>{
+    document.getElementById('vdt-'+t).classList.toggle('active',t===tab);
+    document.getElementById('vdt-'+t+'-content').style.display=t===tab?'':'none';
+  });
+  if(tab==='parts') renderVDParts(); else renderVDExtra();
+}
+
+const vehFitCache={};
+
+async function renderVDParts(){
+  const tb=document.getElementById('vdp-tbody');
+  const q=(document.getElementById('vdp-q')?.value||'').toLowerCase();
+  tb.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)"><i class="ti ti-loader" style="font-size:24px;display:block;margin:0 auto 8px;animation:spin 1s linear infinite"></i>Đang tải dữ liệu...</td></tr>`;
+  try{
+    if(!vehFitCache[currentVehId]){ const res=await req(`/vehicles/${currentVehId}/fitments`); vehFitCache[currentVehId]=res; }
+    const allFits=vehFitCache[currentVehId]||[];
+    const data=!q?allFits:allFits.filter(f=>((f.name||'')+(f.name_vi||'')+(f.internal_ref||'')+(f.oem_code||'')).toLowerCase().includes(q));
+    const total=data.length, pages=Math.ceil(total/VPG)||1;
+    if(vdpPg>pages) vdpPg=1;
+    const sl=data.slice((vdpPg-1)*VPG,vdpPg*VPG);
+    document.getElementById('vdt-parts-cnt').textContent=total;
+    const metaCnt=document.getElementById('vd-meta-cnt');
+    if(metaCnt) metaCnt.innerHTML=`<i class="ti ti-tool"></i>${total} phụ tùng`;
+    tb.innerHTML=!sl.length
+      ?`<tr class="empty-row"><td colspan="7"><i class="ti ti-package-off" style="font-size:28px;display:block;margin:0 auto 8px"></i>Chưa có phụ tùng nào</td></tr>`
+      :sl.map(f=>`<tr>
+        <td><div class="td-main">${f.name||'—'}</div>${f.name_vi&&f.name_vi!=='(chua dich)'?'<div class="td-sub" style="color:var(--navy2);font-weight:500">'+f.name_vi+'</div>':''}${f.notes?'<div class="td-sub">'+f.notes+'</div>':''}</td>
+        <td>${f.internal_ref?`<code>${f.internal_ref}</code>`:'<span style="color:var(--muted)">—</span>'}</td>
+        <td>${f.oem_code?`<code>${f.oem_code}</code>`:'<span style="color:var(--muted)">—</span>'}</td>
+        <td><span class="chip ${f.product_type==='oem'?'chip-blue':'chip-gray'}">${f.product_type==='oem'?'OEM':'Aftermarket'}</span></td>
+        <td style="font-size:13px">${f.brand||'—'}</td>
+        <td><span class="chip ${f.is_for_sale?'chip-green':'chip-red'}">${f.is_for_sale?'Đang bán':'Ngừng bán'}</span></td>
+        <td><button class="btn sm icon danger" onclick="delFitmentAndRefresh('${f.fitment_id||f.id}')"><i class="ti ti-trash"></i></button></td>
+      </tr>`).join('');
+    document.getElementById('vdp-info').textContent=`${total.toLocaleString('vi-VN')} phụ tùng`;
+    renderPager('vdp-pager',vdpPg,pages,p=>{vdpPg=p;renderVDParts();});
+  }catch(e){ tb.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--red)">Lỗi: ${e.message}</td></tr>`; }
+}
+
+async function delFitmentAndRefresh(id){
+  if(!confirm('Xóa liên kết này?')) return;
+  await req(`/fitments/${id}`,{method:'DELETE'});
+  delete vehFitCache[currentVehId];
+  await renderVDParts(); await loadAll();
+}
+
+function renderVDExtra(){
+  const v=vehicles.find(x=>x.id===currentVehId);
+  document.getElementById('vdt-extra-info').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:13px">
+      <div><div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Odoo Reference</div><code>${v?.odoo_ref||'—'}</code></div>
+      <div><div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">ID hệ thống</div><code style="font-size:11px">${v?.id||'—'}</code></div>
+    </div>`;
+}
+
+function getP(){
+  const q=(document.getElementById('p-q')?.value||'').toLowerCase();
+  const type=document.getElementById('p-type')?.value||'';
+  const sale=document.getElementById('p-sale')?.value||'';
+  return products.map(p=>({...p,fitment_count:fitments.filter(f=>f.product_id===p.id).length}))
+    .filter(p=>(!q||(p.name+' '+(p.internal_ref||'')+' '+(p.oem_code||'')).toLowerCase().includes(q))&&(!type||p.product_type===type)&&(sale===''||String(p.is_for_sale)===sale));
+}
+
+function renderP(){
+  const data=getP(),total=data.length,pages=Math.ceil(total/PG)||1;
+  if(pPg>pages) pPg=1;
+  const sl=data.slice((pPg-1)*PG,pPg*PG);
+  const tb=document.getElementById('p-tbody');
+  tb.innerHTML=!sl.length
+    ?`<tr class="empty-row"><td colspan="9">Không có sản phẩm nào</td></tr>`
+    :sl.map(p=>`<tr>
+      <td><div class="td-main">${p.name}</div>${p.notes?`<div class="td-sub">${p.notes}</div>`:''}</td>
+      <td>${p.internal_ref?`<code>${p.internal_ref}</code>`:'<span style="color:var(--muted)">—</span>'}</td>
+      <td>${p.oem_code?`<code>${p.oem_code}</code>`:'<span style="color:var(--muted)">—</span>'}</td>
+      <td><span class="chip ${p.product_type==='oem'?'chip-blue':'chip-gray'}">${p.product_type==='oem'?'OEM':'Aftermarket'}</span></td>
+      <td style="font-size:13px">${p.brand||'—'}</td>
+      <td style="font-size:13px">${p.unit||'cái'}</td>
+      <td><span class="chip ${p.is_for_sale?'chip-green':'chip-red'}">${p.is_for_sale?'Đang bán':'Ngừng bán'}</span></td>
+      <td><span class="chip chip-amber">${p.fitment_count} xe</span></td>
+      <td><div class="actions-cell">
+        <button class="btn sm icon" onclick="openPForm('${p.id}')" title="Sửa"><i class="ti ti-edit"></i></button>
+        <button class="btn sm icon danger" onclick="delProd('${p.id}')" title="Xóa"><i class="ti ti-trash"></i></button>
+      </div></td>
+    </tr>`).join('');
+  document.getElementById('p-info').textContent=`${total.toLocaleString('vi-VN')} sản phẩm`;
+  renderPager('p-pager',pPg,pages,p=>{pPg=p;renderP();});
+}
+
+function getF(){
+  const q=(document.getElementById('f-q')?.value||'').toLowerCase();
+  return fitments.filter(f=>{
+    const p=products.find(x=>x.id===f.product_id),v=vehicles.find(x=>x.id===f.vehicle_id);
+    return !q||((p?.name||'')+(p?.internal_ref||'')+(v?.make||'')+(v?.model_code||'')).toLowerCase().includes(q);
+  });
+}
+
+function renderF(){
+  const data=getF(),total=data.length,pages=Math.ceil(total/PG)||1;
+  if(fPg>pages) fPg=1;
+  const sl=data.slice((fPg-1)*PG,fPg*PG);
+  const tb=document.getElementById('f-tbody');
+  tb.innerHTML=!sl.length
+    ?`<tr class="empty-row"><td colspan="7">Chưa có liên kết nào</td></tr>`
+    :sl.map(f=>{
+      const p=products.find(x=>x.id===f.product_id),v=vehicles.find(x=>x.id===f.vehicle_id);
+      return`<tr>
+        <td><div class="td-main">${p?.name||'—'}</div></td>
+        <td>${p?.internal_ref?`<code>${p.internal_ref}</code>`:'—'}</td>
+        <td><span class="chip chip-blue">${v?.make||'—'}</span></td>
+        <td><code>${v?.model_code||'—'}</code>${v?.model_name?` <span style="font-size:11px;color:var(--muted)">(${v.model_name})</span>`:''}</td>
+        <td style="font-size:12px;color:var(--muted)">${v?.year_from||'?'}–${v?.year_to||'nay'}</td>
+        <td style="font-size:12px;color:var(--muted)">${f.notes||'—'}</td>
+        <td><button class="btn sm icon danger" onclick="delFitment('${f.id}',false)"><i class="ti ti-trash"></i></button></td>
+      </tr>`;
+    }).join('');
+  document.getElementById('f-info').textContent=`${total.toLocaleString('vi-VN')} liên kết`;
+  renderPager('f-pager',fPg,pages,p=>{fPg=p;renderF();});
+}
+
+function openVForm(id=null){
+  editVId=id;
+  const v=id?vehicles.find(x=>x.id===id):null;
+  document.getElementById('v-ftitle').textContent=id?'Sửa model xe':'Thêm model xe';
+  document.getElementById('vf-make').value=v?.make||'';
+  document.getElementById('vf-code').value=v?.model_code||'';
+  document.getElementById('vf-name').value=v?.model_name||'';
+  document.getElementById('vf-from').value=v?.year_from||'';
+  document.getElementById('vf-to').value=v?.year_to||'';
+  document.getElementById('vf-vtype').value=v?.vehicle_type||'car';
+  document.getElementById('vf-ref').value=v?.odoo_ref||'';
+  document.getElementById('v-alert').innerHTML='';
+  openModal('modal-v');
+}
+
+async function saveVehicle(){
+  const make=document.getElementById('vf-make').value.trim();
+  const code=document.getElementById('vf-code').value.trim();
+  if(!make||!code){showAlert('v-alert','Vui lòng nhập hãng xe và mã model','err');return;}
+  const body={make,model_code:code,model_name:document.getElementById('vf-name').value.trim()||null,
+    year_from:parseInt(document.getElementById('vf-from').value)||null,year_to:parseInt(document.getElementById('vf-to').value)||null,
+    vehicle_type:document.getElementById('vf-vtype').value,odoo_ref:document.getElementById('vf-ref').value.trim()||null};
+  try{
+    if(editVId) await req(`/vehicles/${editVId}`,{method:'PATCH',body:JSON.stringify(body)});
+    else await req('/vehicles',{method:'POST',body:JSON.stringify(body)});
+    closeModal('modal-v'); await loadAll();
+  }catch(e){showAlert('v-alert',e.message,'err');}
+}
+
+async function delVehicle(id){
+  if(!confirm('Xóa model xe này? Các liên kết phụ tùng sẽ bị xóa theo.')) return;
+  await req(`/vehicles/${id}`,{method:'DELETE'});
+  if(currentVehId===id){goPage('vehicles');currentVehId=null;}
+  await loadAll();
+}
+
+function openPForm(id=null){
+  editPId=id;
+  const p=id?products.find(x=>x.id===id):null;
+  document.getElementById('p-ftitle').textContent=id?'Sửa sản phẩm':'Thêm sản phẩm';
+  document.getElementById('pf-name').value=p?.name||'';
+  document.getElementById('pf-ref').value=p?.internal_ref||'';
+  document.getElementById('pf-oem').value=p?.oem_code||'';
+  document.getElementById('pf-type').value=p?.product_type||'aftermarket';
+  document.getElementById('pf-brand').value=p?.brand||'';
+  document.getElementById('pf-unit').value=p?.unit||'cái';
+  document.getElementById('pf-notes').value=p?.notes||'';
+  const sale=p?.is_for_sale!==false;
+  document.getElementById('pf-sale').value=String(sale);
+  document.getElementById('pf-sale-t').classList.toggle('on',sale);
+  document.getElementById('pf-sale-l').textContent=sale?'Đang bán':'Ngừng bán';
+  document.getElementById('p-alert').innerHTML='';
+  openModal('modal-p');
+}
+
+function toggleSale(){
+  const t=document.getElementById('pf-sale-t');t.classList.toggle('on');
+  const on=t.classList.contains('on');
+  document.getElementById('pf-sale').value=String(on);
+  document.getElementById('pf-sale-l').textContent=on?'Đang bán':'Ngừng bán';
+}
+
+async function saveProd(){
+  const name=document.getElementById('pf-name').value.trim();
+  if(!name){showAlert('p-alert','Vui lòng nhập tên sản phẩm','err');return;}
+  const body={name,internal_ref:document.getElementById('pf-ref').value.trim()||null,oem_code:document.getElementById('pf-oem').value.trim()||null,
+    product_type:document.getElementById('pf-type').value,brand:document.getElementById('pf-brand').value.trim()||null,
+    unit:document.getElementById('pf-unit').value||'cái',notes:document.getElementById('pf-notes').value.trim()||null,
+    is_for_sale:document.getElementById('pf-sale').value==='true'};
+  try{
+    if(editPId) await req(`/products/${editPId}`,{method:'PATCH',body:JSON.stringify(body)});
+    else await req('/products',{method:'POST',body:JSON.stringify(body)});
+    closeModal('modal-p'); await loadAll();
+  }catch(e){showAlert('p-alert',e.message,'err');}
+}
+
+async function delProd(id){
+  if(!confirm('Xóa sản phẩm này?')) return;
+  await req(`/products/${id}`,{method:'DELETE'}); await loadAll();
+}
+
+function openFitmentForm(prefilledVehId=null){
+  fitmentPrefilledVehId=prefilledVehId;
+  ['ff-prod-inp','ff-note','ff-prod-id','ff-veh-id'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('ff-prod-res').classList.remove('show');
+  document.getElementById('ff-veh-res').classList.remove('show');
+  document.getElementById('f-alert').innerHTML='';
+  if(prefilledVehId){
+    const v=vehicles.find(x=>x.id===prefilledVehId);
+    document.getElementById('ff-veh-inp').value=v?`${v.make} ${v.model_code}`:'';
+    document.getElementById('ff-veh-id').value=prefilledVehId;
+  } else { document.getElementById('ff-veh-inp').value=''; }
+  openModal('modal-f');
+}
+
+let pt2,vt2;
+function srcProd(){
+  clearTimeout(pt2);pt2=setTimeout(()=>{
+    const q=document.getElementById('ff-prod-inp').value.trim().toLowerCase();
+    const el=document.getElementById('ff-prod-res');
+    if(!q){el.classList.remove('show');return;}
+    const res=products.filter(p=>(p.name+' '+(p.internal_ref||'')).toLowerCase().includes(q)).slice(0,8);
+    el.innerHTML=res.map(p=>`<div class="dropdown-item" onclick="selProd('${p.id}','${p.name.replace(/'/g,"\\'")}')"><strong>${p.name}</strong>${p.internal_ref?` <code style="font-size:10px">${p.internal_ref}</code>`:''}</div>`).join('')||'<div class="dropdown-item" style="color:var(--muted)">Không tìm thấy</div>';
+    el.classList.add('show');
+  },200);
+}
+
+function selProd(id,name){document.getElementById('ff-prod-id').value=id;document.getElementById('ff-prod-inp').value=name;document.getElementById('ff-prod-res').classList.remove('show');}
+
+function srcVeh(){
+  clearTimeout(vt2);vt2=setTimeout(()=>{
+    const q=document.getElementById('ff-veh-inp').value.trim().toLowerCase();
+    const el=document.getElementById('ff-veh-res');
+    if(!q){el.classList.remove('show');return;}
+    const res=vehicles.filter(v=>(v.make+' '+v.model_code+' '+(v.model_name||'')).toLowerCase().includes(q)).slice(0,8);
+    el.innerHTML=res.map(v=>`<div class="dropdown-item" onclick="selVeh('${v.id}','${v.make} ${v.model_code}')"><span class="chip chip-blue" style="font-size:10px;padding:1px 5px">${v.make}</span>${v.model_code}${v.model_name?' ('+v.model_name+')':''}<span style="font-size:11px;color:var(--muted);margin-left:auto">${v.year_from||'?'}–${v.year_to||'nay'}</span></div>`).join('')||'<div class="dropdown-item" style="color:var(--muted)">Không tìm thấy</div>';
+    el.classList.add('show');
+  },200);
+}
+
+function selVeh(id,label){document.getElementById('ff-veh-id').value=id;document.getElementById('ff-veh-inp').value=label;document.getElementById('ff-veh-res').classList.remove('show');}
+
+async function saveFitment(){
+  const pid=document.getElementById('ff-prod-id').value;
+  const vid=document.getElementById('ff-veh-id').value;
+  if(!pid||!vid){showAlert('f-alert','Vui lòng chọn đủ phụ tùng và xe','err');return;}
+  try{
+    await req(`/products/${pid}/fitments`,{method:'POST',body:JSON.stringify({vehicle_id:vid,notes:document.getElementById('ff-note').value||undefined})});
+    closeModal('modal-f'); await loadAll();
+    if(fitmentPrefilledVehId) renderVDParts();
+  }catch(e){showAlert('f-alert',e.message.includes('23505')||e.message.includes('exist')?'Liên kết này đã tồn tại':e.message,'err');}
+}
+
+async function delFitment(id,refreshDetail=false){
+  if(!confirm('Xóa liên kết này?')) return;
+  await req(`/fitments/${id}`,{method:'DELETE'}); await loadAll();
+  if(refreshDetail&&currentVehId) renderVDParts();
+}
+
+function renderPager(elId,cur,total,cb){
+  const el=document.getElementById(elId);
+  if(total<=1){el.innerHTML='';return;}
+  let h=`<button class="pg-btn" onclick="(${cb})(${Math.max(1,cur-1)})" ${cur===1?'disabled':''}>‹</button>`;
+  const s=Math.max(1,cur-2),e=Math.min(total,cur+2);
+  if(s>1) h+=`<button class="pg-btn" onclick="(${cb})(1)">1</button>${s>2?'<span style="padding:0 3px;font-size:12px">…</span>':''}`;
+  for(let i=s;i<=e;i++) h+=`<button class="pg-btn ${i===cur?'active':''}" onclick="(${cb})(${i})">${i}</button>`;
+  if(e<total) h+=`${e<total-1?'<span style="padding:0 3px;font-size:12px">…</span>':''}<button class="pg-btn" onclick="(${cb})(${total})">${total}</button>`;
+  h+=`<button class="pg-btn" onclick="(${cb})(${Math.min(total,cur+1)})" ${cur===total?'disabled':''}>›</button>`;
+  el.innerHTML=h;
+}
+
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function showAlert(el,msg,type){const e=document.getElementById(el);if(!e)return;e.innerHTML=`<div class="alert alert-${type}">${msg}</div>`;if(type==='ok')setTimeout(()=>e.innerHTML='',3000);}
+const deb=(fn,ms)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};};
+
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#ff-prod-inp')&&!e.target.closest('#ff-prod-res')) document.getElementById('ff-prod-res').classList.remove('show');
+  if(!e.target.closest('#ff-veh-inp')&&!e.target.closest('#ff-veh-res')) document.getElementById('ff-veh-res').classList.remove('show');
+});
+
+goPage('dashboard');
+loadAll();
+</script>
+
+<!-- CHAT OVERLAY & PANEL -->
+<div class="chat-overlay" id="chat-overlay" onclick="toggleChat()"></div>
+<div class="chat-panel" id="chat-panel">
+  <div class="chat-head">
+    <div style="flex:1">
+      <div class="chat-head-title"><i class="ti ti-message-chatbot" style="font-size:16px;vertical-align:-2px;margin-right:6px;opacity:.85"></i>Hỏi đáp AI — Catalog phụ tùng</div>
+      <div class="chat-head-sub">Hỏi theo mã, dòng xe, VIN...</div>
+    </div>
+    <button class="btn sm icon" onclick="toggleFullscreen()" id="btn-fullscreen" title="Toàn màn hình"><i class="ti ti-arrows-maximize"></i></button>
+    <button class="btn sm icon" onclick="toggleChat()" title="Đóng"><i class="ti ti-x"></i></button>
+  </div>
+  <div class="chat-body" id="chat-body">
+    <div class="msg ai">
+      <div class="msg-bubble">Xin chào! Tôi có thể giúp bạn tra cứu phụ tùng theo:<br>
+• <b>Mã phụ tùng</b> — VD: "lọc dầu 04152-YZZA6"<br>
+• <b>VIN xe</b> — VD: "VIN JTDBF10K000123456 cần bugi"<br>
+• <b>Dòng xe + năm</b> — VD: "Toyota Vios 2019 cần má phanh"<br><br>
+Bạn cần tra cứu gì?</div>
+      <div class="msg-time">Catalog AI</div>
+    </div>
+  </div>
+  <div class="chat-foot">
+    <div id="customer-bar" style="display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--header-bg);border-bottom:1px solid var(--border);font-size:12px">
+      <span style="color:var(--muted);white-space:nowrap">👤 Khách:</span>
+      <input id="customer-name-input" type="text" placeholder="Nhập tên khách hàng..."
+        style="flex:1;border:1px solid var(--border);border-radius:5px;padding:4px 8px;font-size:12px"
+        oninput="setCustomer(this.value)">
+      <span id="customer-saved" style="color:#15803D;display:none">✓ đã lưu</span>
+    </div>
+    <div id="chat-image-preview"><img id="preview-img" src="" alt=""><button class="remove-img" onclick="removeImage()">✕</button></div>
+    <div class="chat-input-row">
+      <textarea id="chat-input" placeholder="VD: Toyota Vios 2019 cần lọc dầu..." rows="1"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"
+        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+      <button id="chat-attach-btn" onclick="document.getElementById('chat-file-input').click()" title="Đính kèm ảnh VIN">📷</button>
+      <input type="file" id="chat-file-input" accept="image/*" style="display:none" onchange="handleImageAttach(this)">
+      <button class="chat-send" id="chat-send-btn" onclick="sendChat()"><i class="ti ti-send" style="font-size:16px"></i></button>
+    </div>
+    <div class="chat-hint">Enter gửi · Shift+Enter xuống dòng</div>
+  </div>
+</div>
+
+<!-- PRODUCT DETAIL PANEL -->
+<div id="detail-panel-overlay" onclick="closeDetailPanel()"></div>
+<div id="detail-panel">
+  <div id="detail-panel-header">
+    <div class="dp-title">
+      <h3 id="dp-name">Tên sản phẩm</h3>
+      <p id="dp-subtitle">Mã tham chiếu</p>
+    </div>
+    <button id="detail-close" onclick="closeDetailPanel()">✕</button>
+  </div>
+  <div id="detail-panel-body">
+    <div class="dp-loading" id="dp-loading">Đang tải...</div>
+    <div id="dp-content" style="display:none">
+      <div class="dp-section">
+        <h4>Thông tin sản phẩm</h4>
+        <div class="dp-badges" id="dp-badges"></div>
+      </div>
+      <div class="dp-section">
+        <h4>Xe nắp được (<span id="dp-vehicle-count">0</span> dòng)</h4>
+        <div id="dp-vehicles"></div>
+      </div>
+      <div class="dp-section" id="dp-alts-section">
+        <h4>Phụ tùng tương đương</h4>
+        <div id="dp-alts"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GIỎ HÀNG -->
+<button id="cart-fab" onclick="openCart()">🛒<span class="cart-count" id="cart-count" style="display:none">0</span></button>
+<div id="cart-overlay" onclick="closeCart()"></div>
+<div id="cart-panel">
+  <div id="cart-header">
+    <h3>🛒 Đơn hàng</h3>
+    <button id="cart-close" onclick="closeCart()">✕</button>
+  </div>
+  <div id="cart-body">
+    <div class="cart-empty" id="cart-empty">Chưa có sản phẩm nào.<br>Bấm "+ Thêm" ở bảng kết quả.</div>
+    <div id="cart-items"></div>
+  </div>
+  <div id="cart-footer" style="display:none">
+    <div class="cart-total-row"><span>Số mặt hàng:</span><span id="cart-item-count">0</span></div>
+    <div class="cart-total-row grand"><span>Tổng cộng:</span><span id="cart-grand-total">0 đ</span></div>
+    <button id="cart-checkout-btn" onclick="openCheckout()">Lập báo giá / Chốt đơn</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CHAT FUNCTIONS
+// ============================================================
+let chatHistory=[], chatOpen=false, chatFullscreen=false;
+
+function toggleFullscreen(){
+  chatFullscreen=!chatFullscreen;
+  const panel=document.getElementById('chat-panel');
+  const btn=document.getElementById('btn-fullscreen');
+  const overlay=document.getElementById('chat-overlay');
+  panel.classList.toggle('fullscreen',chatFullscreen);
+  overlay.style.display=chatFullscreen?'none':'';
+  btn.innerHTML=chatFullscreen?'<i class="ti ti-arrows-minimize"></i>':'<i class="ti ti-arrows-maximize"></i>';
+}
+
+function toggleChat(){
+  chatOpen=!chatOpen;
+  document.getElementById('chat-panel').classList.toggle('open',chatOpen);
+  document.getElementById('chat-overlay').classList.toggle('open',chatOpen);
+  document.getElementById('nav-chat').classList.toggle('active',chatOpen);
+  if(chatOpen) document.getElementById('chat-input').focus();
+}
+
+function addMsg(role,html){
+  const body=document.getElementById('chat-body');
+  const div=document.createElement('div');
+  div.className=`msg ${role}`;
+  const time=new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});
+  const content=role==='ai'?html:html.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  div.innerHTML=`<div class="msg-bubble">${content}</div><div class="msg-time">${time}</div>`;
+  body.appendChild(div);
+  body.scrollTop=body.scrollHeight;
+  return div;
+}
+
+function showTyping(){
+  const body=document.getElementById('chat-body');
+  const div=document.createElement('div');
+  div.className='msg ai';div.id='typing-indicator';
+  div.innerHTML='<div class="typing"><span></span><span></span><span></span></div>';
+  body.appendChild(div);
+  body.scrollTop=body.scrollHeight;
+}
+function removeTyping(){ document.getElementById('typing-indicator')?.remove(); }
+
+async function callOpenAI(systemPrompt,userMsg,maxTokens=400,model='gpt-4o-mini',temperature){
+  const body={model,max_tokens:maxTokens,messages:[{role:'system',content:systemPrompt},{role:'user',content:userMsg}]};
+  if(temperature!=null) body.temperature=temperature;
+  const res=await fetch('/api/ai/chat',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||`HTTP ${res.status}`);}
+  const data=await res.json();
+  return data.choices[0].message.content;
+}
+
+async function sendChat(){
+  if(window._attachedImageBase64){await sendChatWithImage();return;}
+  const input=document.getElementById('chat-input');
+  let msg=input.value.trim();
+  if(!msg) return;
+  let _forceByModel=false;
+  if(msg.startsWith('__EXACT__ ')){msg=msg.replace('__EXACT__ ','');_forceByModel=true;}
+  const btn=document.getElementById('chat-send-btn');
+  btn.disabled=true; input.value=''; input.style.height='auto';
+  addMsg('user',msg);
+  chatHistory.push({role:'user',content:msg});
+  showTyping();
+  try{
+    // ---- Classifier: 1 lần gọi AI duy nhất ----
+    // Prompt ngắn gọn, max_tokens thấp → nhanh nhất có thể
+    const classifierPrompt=`Bạn là bộ phân loại câu hỏi phụ tùng ô tô. CHỈ trả về JSON thuần (không markdown).
+Các loại (type):
+- by_code: khách đưa MÃ phụ tùng cụ thể (VD "04152-YZZA6", "90915-YZZD4").
+- by_multi_code: NHIỀU mã phụ tùng.
+- by_vin: có số VIN (17 ký tự) hoặc số khung.
+- by_model: khách nêu XE (hãng và/hoặc dòng xe, có thể kèm năm) + TÊN phụ tùng. ĐÂY LÀ LOẠI PHỔ BIẾN NHẤT. Chỉ cần có (tên xe) + (tên phụ tùng) là đủ, KHÔNG cần mã.
+- need_info: khách hỏi CHUNG CHUNG, KHÔNG nêu được xe HOẶC không nêu phụ tùng (VD "tôi cần mua phụ tùng", "tư vấn giúp tôi", "xe tôi hỏng").
+- need_clarify: có tên phụ tùng nhưng quá mơ hồ và KHÔNG có xe.
+- checkout: khách muốn chốt đơn / đặt hàng / mua.
+
+QUY TẮC QUAN TRỌNG NHẤT: nếu câu có (tên hãng HOẶC dòng xe) VÀ (tên phụ tùng) → LUÔN là by_model. TUYỆT ĐỐI KHÔNG hỏi lại mã phụ tùng khi đã có tên xe + tên phụ tùng. Từ "cần", "cho", "mua", "tìm" trước tên phụ tùng KHÔNG làm câu thành need_info.
+Nếu chỉ có dòng xe mà đoán được hãng phổ biến thì điền "make": Vios/Camry/Innova/Fortuner/Altis/Corolla/Vios/Hilux/Yaris/Wigo→Toyota; City/CRV/Civic/Accord→Honda; Mazda3/CX5→Mazda; i10/Accent/SantaFe/Tucson→Hyundai; Morning/Cerato/Seltos→Kia.
+
+JSON: {"type":"","codes":[],"vin":"","make":"","model":"","year":null,"part_names":[]}
+
+Ví dụ:
+"Toyota Vios 2019 cần má phanh" → {"type":"by_model","make":"Toyota","model":"Vios","year":2019,"part_names":["má phanh"],"codes":[],"vin":""}
+"Innova 2020 lọc dầu" → {"type":"by_model","make":"Toyota","model":"Innova","year":2020,"part_names":["lọc dầu"],"codes":[],"vin":""}
+"Honda City giảm sóc trước" → {"type":"by_model","make":"Honda","model":"City","year":null,"part_names":["giảm sóc trước"],"codes":[],"vin":""}
+"má phanh cho camry 2015" → {"type":"by_model","make":"Toyota","model":"Camry","year":2015,"part_names":["má phanh"],"codes":[],"vin":""}
+"cần bugi xe fortuner" → {"type":"by_model","make":"Toyota","model":"Fortuner","year":null,"part_names":["bugi"],"codes":[],"vin":""}
+"04152-YZZA6" → {"type":"by_code","codes":["04152-YZZA6"],"vin":"","make":"","model":"","year":null,"part_names":[]}
+"tôi cần mua phụ tùng" → {"type":"need_info","codes":[],"vin":"","make":"","model":"","year":null,"part_names":[]}
+"xe tôi hỏng rồi" → {"type":"need_info","codes":[],"vin":"","make":"","model":"","year":null,"part_names":[]}`;
+
+    let cl;
+    try{
+      const raw=await callOpenAI(classifierPrompt,msg,200,'gpt-4o-mini',0);
+      cl=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    }catch(e){
+      cl={type:'need_clarify'};
+    }
+
+    const type=_forceByModel?'by_model':cl.type;
+
+    // ---- need_clarify / need_info: trả lời tĩnh, KHÔNG gọi AI lần 2 ----
+    if(type==='need_info'){
+      removeTyping();
+      addMsg('ai','Bạn có thể hỏi theo:<br>• <b>Mã phụ tùng</b> — VD: "04152-YZZA6"<br>• <b>Dòng xe</b> — VD: "Toyota Vios 2019 cần lọc dầu"<br>• <b>VIN</b> — VD: "VIN JTDBF10K000123456 cần bugi"');
+      return;
+    }
+    if(type==='need_clarify'){
+      removeTyping();
+      addMsg('ai','Bạn có thể cho biết thêm <b>hãng xe, dòng xe</b> hoặc <b>mã phụ tùng</b> cần tra không?');
+      return;
+    }
+    if(type==='checkout'){
+      removeTyping();
+      addMsg('ai','Bấm nút <b>🛒</b> góc phải màn hình để xem giỏ hàng và lập báo giá.');
+      return;
+    }
+
+    // ---- Tra catalog (không gọi AI) ----
+    let results=[], vinBanner='', err='', byModelMsg='';
+
+    if(type==='by_code'&&cl.codes&&cl.codes.length>0){
+      try{
+        // Tra tất cả mã, gộp kết quả
+        const allRes=await Promise.all(cl.codes.map(c=>
+          fetch(`/api/v1/catalog/search/by-code?code=${encodeURIComponent(c)}`).then(r=>r.json())
+        ));
+        results=allRes.flatMap(d=>d.results||[]);
+      }catch(e){err=e.message;}
+
+    }else if(type==='by_multi_code'&&cl.codes&&cl.codes.length>0){
+      // Tra VIN song song với tra mã
+      const promises=[];
+      if(cl.vin&&cl.vin.length>=12){
+        promises.push(
+          fetch(`/api/v1/catalog/vin/lookup?vin=${encodeURIComponent(cl.vin)}`).then(r=>r.json()).then(vd=>{
+            if(vd.vehicles&&vd.vehicles.length>0){
+              const v=vd.vehicles[0];
+              vinBanner=`<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:13px">🚗 VIN <b>${cl.vin}</b> → Xe: <b>${v.make||''} ${v.model_name||''} ${v.year||''}</b></div>`;
+            }
+          }).catch(()=>{})
+        );
+      }
+      promises.push(
+        fetch(`/api/v1/catalog/search/by-multi-code?codes=${cl.codes.map(c=>encodeURIComponent(c)).join(',')}`).then(r=>r.json()).then(d=>{results=d.results||[];}).catch(e=>{err=e.message;})
+      );
+      await Promise.all(promises);
+
+    }else if(type==='by_vin'&&cl.vin){
+      try{
+        // B1: check cache qua backend
+        let vd=await fetch(`/api/v1/catalog/vin/lookup?vin=${encodeURIComponent(cl.vin)}`).then(r=>r.json());
+
+        // B2: CACHE MISS → gọi EXTENSION tra VIN trên PartSouq, rồi lấy lại từ cache
+        // (Lưu ý: /vin/lookup KHÔNG trả field `found` — chỉ dựa vào vehicles.length)
+        if(!(vd.vehicles&&vd.vehicles.length>0)){
+          removeTyping();
+          addMsg('ai',`<div class="vin-detected">⏳ VIN <b>${cl.vin}</b> chưa có sẵn — đang tra trên PartSouq qua extension (~30–60s), vui lòng đợi...</div>`);
+          showTyping();
+          try{
+            const ext=await lookupViaExtension('vin', cl.vin);
+            const okModels = ext && ext.ok!==false && (
+              (ext.result&&ext.result.models&&ext.result.models.length) ||
+              (ext.models&&ext.models.length) || (ext.vehicles&&ext.vehicles.length)
+            );
+            if(okModels){
+              // extension đã tự POST /vin/save → tra lại cache để lấy đúng model_code chuẩn
+              vd=await fetch(`/api/v1/catalog/vin/lookup?vin=${encodeURIComponent(cl.vin)}`).then(r=>r.json());
+            }
+          }catch(exErr){
+            removeTyping();
+            addMsg('ai',`<div class="vin-detected">⚠️ Không gọi được extension tra VIN (${exErr.message}).<br>Kiểm tra đã cài & bật extension <b>“Catalog AI — Parts & VIN Lookup”</b> và mở trang này đúng địa chỉ server (:3001), hoặc tra theo dòng xe.</div>`);
+            return;
+          }
+        }
+
+        // B3-B4: có model (cache hit hoặc vừa tra được) → tra phụ tùng theo model_code
+        if(vd.vehicles&&vd.vehicles.length>0){
+          const v=vd.vehicles[0];
+          vinBanner=`<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:13px">🚗 VIN <b>${cl.vin}</b> → Xe: <b>${v.make||''} ${v.model_name||''} ${v.year||''}</b></div>`;
+          const partName=(cl.part_names&&cl.part_names[0])||'';
+          // Ưu tiên MODEL_CODE (định danh xe chính xác cho fitment). make lấy từ cache; nếu rỗng
+          // thì suy từ model_name (VD "LEXUS LX450D/460/570" → "LEXUS") để /search/by-model không thiếu make.
+          const rawMake=(v.make||'').trim();
+          const junkMake=!rawMake||/catalog/i.test(rawMake)||/^genuine$/i.test(rawMake);
+          const searchMake=(junkMake?'':rawMake) || (v.model_name||'').trim().split(/[\s\/,]+/)[0] || '';
+          if(partName){
+            const d2=await fetch(`/api/v1/catalog/search/by-model?make=${encodeURIComponent(searchMake)}&model=${encodeURIComponent(v.model_code||v.model||'')}&part=${encodeURIComponent(partName)}`).then(r=>r.json());
+            results=d2.results||[];
+          }
+        }else{
+          // Đã thử extension nhưng PartSouq cũng không ra model
+          removeTyping();
+          addMsg('ai',`<div class="vin-detected">⚠️ Không tra được VIN <b>${cl.vin}</b> trên PartSouq.<br>Kiểm tra lại số VIN, hoặc tra theo dòng xe: VD "Toyota Hilux 2018 cần lọc dầu"</div>`);
+          return;
+        }
+      }catch(e){err=e.message;}
+
+    }else if((type==='by_model'||type==='by_multi_part')&&(cl.make||cl.model)){
+      try{
+        // Nếu nhiều phụ tùng: tra song song tất cả, gộp kết quả
+        const partNames=(cl.part_names&&cl.part_names.length>0)?cl.part_names:[''];
+        const allRes=await Promise.all(partNames.map(partName=>{
+          const p=new URLSearchParams();
+          if(cl.make) p.set('make',cl.make);
+          if(cl.model) p.set('model',cl.model);
+          if(cl.year) p.set('year',cl.year);
+          if(partName) p.set('part',partName);
+          return fetch(`/api/v1/catalog/search/by-model?${p}`).then(r=>r.json());
+        }));
+        // Gộp + loại trùng theo id
+        const seen=new Set();
+        results=allRes.flatMap(d=>d.results||[]).filter(p=>{if(seen.has(p.id))return false;seen.add(p.id);return true;});
+        // Nếu rỗng, giữ lại message rõ ràng từ backend (nêu đúng xe + phụ tùng) để hiển thị
+        if(!results.length){ const m=allRes.find(d=>d&&d.message); byModelMsg=m?m.message:''; }
+      }catch(e){err=e.message;}
+
+    }else{
+      // Không đủ thông tin để tra
+      removeTyping();
+      addMsg('ai','Bạn có thể cho biết thêm <b>hãng xe, dòng xe</b> hoặc <b>mã phụ tùng</b> cần tra không?');
+      return;
+    }
+
+    // ---- Render kết quả (không gọi AI) ----
+    removeTyping();
+
+    if(err){
+      addMsg('ai',`❌ Lỗi kết nối catalog: ${err}`);
+      return;
+    }
+
+    if(!results.length){
+      // by_model đã có đủ (xe + phụ tùng) nhưng chưa có dữ liệu → báo RÕ, KHÔNG hỏi lại thông tin đã có
+      if(type==='by_model'||type==='by_multi_part'){
+        const xe=[cl.make,cl.model,cl.year].filter(Boolean).join(' ').trim();
+        const pt=(cl.part_names&&cl.part_names[0])||'phụ tùng';
+        const base=byModelMsg || `Chưa tìm thấy <b>${pt}</b>${xe?` cho <b>${xe}</b>`:''} trong dữ liệu.`;
+        addMsg('ai',vinBanner+base+`<br>Bạn thử tra bằng <b>mã phụ tùng</b> hoặc <b>VIN</b> để chính xác hơn.`);
+        return;
+      }
+      addMsg('ai',vinBanner+`⚠️ Không tìm thấy sản phẩm phù hợp.<br>Thử lại với mã khác hoặc tên phụ tùng cụ thể hơn.`);
+      return;
+    }
+
+    window._lastCatalogData={alternatives:[]};
+    const tableHtml=renderResultTable(results,{showPrice:true});
+    addMsg('ai',vinBanner+`Tìm thấy <b>${results.length}</b> sản phẩm:<br><br>`+tableHtml);
+    chatHistory.push({role:'assistant',content:`[Kết quả: ${results.length} sản phẩm]`});
+
+  }catch(e){
+    removeTyping();
+    addMsg('ai','❌ Lỗi: '+e.message);
+  }finally{
+    btn.disabled=false; input.focus();
+  }
+}
+
+// ============================================================
+// PRODUCT DETAIL PANEL
+// ============================================================
+const API_BASE='/api/v1/catalog';
+
+function getSuffix(ref){ if(!ref) return 'goc'; if(ref.endsWith('-CC')) return 'cc'; if(ref.endsWith('-NM')) return 'nm'; return 'goc'; }
+function getLoaiLabel(ref){ if(!ref) return 'Hàng gốc'; if(ref.endsWith('-CC')) return 'Chạy cửa'; if(ref.endsWith('-NM')) return 'Nhập trong nước'; return 'Hàng gốc'; }
+
+async function openDetailPanel(productId,productName,internalRef){
+  document.getElementById('detail-panel').classList.add('open');
+  document.getElementById('detail-panel-overlay').classList.add('open');
+  document.getElementById('dp-loading').style.display='block';
+  document.getElementById('dp-content').style.display='none';
+  document.getElementById('dp-name').textContent=productName;
+  document.getElementById('dp-subtitle').textContent=(internalRef||'').replace(/-(CC|NM|TEST)$/i,'');
+  try{
+    const [detailRes,altRes]=await Promise.all([
+      fetch(API_BASE+'/products/'+productId),
+      fetch(API_BASE+'/products/'+productId+'/alternatives')
+    ]);
+    const product=await detailRes.json();
+    const altsData=await altRes.json();
+    const suffix=getSuffix(internalRef);
+    const isForSale=product.is_for_sale;
+    const oem=product.oem_code||'—';
+    document.getElementById('dp-badges').innerHTML=
+      '<span class="dp-badge oem">OEM: '+oem+'</span>'+
+      '<span class="dp-badge type-'+suffix+'">'+getLoaiLabel(internalRef)+'</span>'+
+      '<span class="dp-badge status-'+(isForSale?'on':'off')+'">'+(isForSale?'Đang bán':'Ngừng bán')+'</span>';
+    const vehicles2=product.compatible_vehicles||[];
+    document.getElementById('dp-vehicle-count').textContent=vehicles2.length;
+    if(!vehicles2.length){
+      document.getElementById('dp-vehicles').innerHTML='<p class="dp-empty">Không có dữ liệu xe tương thích</p>';
+    } else {
+      const grouped={};
+      for(const v of vehicles2){
+        const key=(v.make||'')+'|'+(v.model_name||'');
+        if(!grouped[key]) grouped[key]={make:v.make,model:v.model_name,years:[]};
+        if(v.year_from) grouped[key].years.push(v.year_from);
+        if(v.year_to&&v.year_to!==v.year_from) grouped[key].years.push(v.year_to);
+      }
+      const rows=Object.values(grouped).map(function(g){
+        const minY=g.years.length?Math.min(...g.years):null;
+        const maxY=g.years.length?Math.max(...g.years):null;
+        const yearStr=minY?(minY===maxY?minY:minY+' – '+maxY):'—';
+        return '<tr><td>'+(g.make||'')+'</td><td style="font-weight:600">'+(g.model||'')+'</td><td style="color:var(--muted)">'+yearStr+'</td></tr>';
+      }).join('');
+      document.getElementById('dp-vehicles').innerHTML=
+        '<table class="dp-vehicles-table"><thead><tr><th>Hãng</th><th>Model</th><th>Năm</th></tr></thead><tbody>'+rows+'</tbody></table>';
+    }
+    let alts=[];
+    if(window._lastCatalogData&&window._lastCatalogData.alternatives) alts=window._lastCatalogData.alternatives;
+    if(altsData&&altsData.length) for(const a of altsData){if(!alts.find(x=>x.id===a.id)) alts.push(a);}
+    if(!alts.length){
+      document.getElementById('dp-alts').innerHTML='<p class="dp-empty">Không có phụ tùng tương đương</p>';
+    } else {
+      document.getElementById('dp-alts').innerHTML=alts.map(function(a){
+        var aRef=a.internal_ref||'';
+        var aRefClean=aRef.replace(/-(CC|NM|TEST)$/i,'');
+        return '<div class="dp-alt-item">'+
+          '<div><div class="dp-alt-name">'+(a.name||'')+'</div>'+
+          '<div class="dp-alt-code">'+aRefClean+' · OEM: '+(a.oem_code||'—')+'</div></div>'+
+          '<span class="dp-badge type-'+getSuffix(aRef)+'" style="font-size:11px">'+getLoaiLabel(aRef)+'</span>'+
+          '</div>';
+      }).join('');
+    }
+    document.getElementById('dp-loading').style.display='none';
+    document.getElementById('dp-content').style.display='block';
+  }catch(e){
+    document.getElementById('dp-loading').textContent='Lỗi tải dữ liệu: '+e.message;
+  }
+}
+
+function closeDetailPanel(){
+  document.getElementById('detail-panel').classList.remove('open');
+  document.getElementById('detail-panel-overlay').classList.remove('open');
+}
+
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeDetailPanel(); });
+
+// ============================================================
+// IMAGE ATTACHMENT
+// ============================================================
+var _attachedImageBase64=null, _attachedImageType=null;
+
+function handleImageAttach(input){
+  var file=input.files[0]; if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var dataUrl=e.target.result;
+    var parts=dataUrl.split(',');
+    _attachedImageBase64=parts[1];
+    _attachedImageType=file.type||'image/jpeg';
+    document.getElementById('preview-img').src=dataUrl;
+    document.getElementById('chat-image-preview').style.display='block';
+    var inp=document.getElementById('chat-input');
+    if(!inp.value) inp.value='Đọc số VIN trong ảnh này giúp em';
+    inp.dispatchEvent(new Event('input'));
+  };
+  reader.readAsDataURL(file);
+  input.value='';
+}
+
+function removeImage(){
+  _attachedImageBase64=null; _attachedImageType=null;
+  document.getElementById('preview-img').src='';
+  document.getElementById('chat-image-preview').style.display='none';
+}
+
+async function sendChatWithImage(){
+  var input=document.getElementById('chat-input');
+  var msg=input.value.trim()||'Đọc số VIN trong ảnh này';
+  var btn=document.getElementById('chat-send-btn');
+  var imgB64=_attachedImageBase64;
+  var imgType=_attachedImageType;
+  btn.disabled=true; input.value=''; input.style.height='auto';
+  var imgDataUrl='data:'+imgType+';base64,'+imgB64;
+  addMsg('user','<img src="'+imgDataUrl+'" class="chat-msg-image"><br>'+msg);
+  removeImage(); showTyping();
+  try{
+    var visionRes=await fetch('/api/ai/vision',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({image_base64:imgB64,image_type:imgType})
+    });
+    if(!visionRes.ok) throw new Error('Vision API lỗi '+visionRes.status);
+    var visionData=await visionRes.json();
+    var vinRaw=(visionData.text||'').trim();
+    if(!vinRaw||vinRaw==='KHONG_TIM_THAY'){
+      removeTyping();
+      addMsg('ai','<div class="vin-detected">⚠️ Không đọc được số VIN từ ảnh.<br>Thử chụp rõ hơn hoặc nhập VIN thủ công.</div>');
+    } else {
+      removeTyping();
+      addMsg('ai','<div class="vin-detected">🔍 Đọc được VIN: <strong>'+vinRaw+'</strong><br>Nhập vào chat: <em>VIN '+vinRaw+' cần [tên phụ tùng]</em></div>');
+      var inp2=document.getElementById('chat-input');
+      inp2.value='VIN '+vinRaw+' ';
+      inp2.dispatchEvent(new Event('input')); inp2.focus();
+    }
+  }catch(e){
+    removeTyping();
+    addMsg('ai','❌ Lỗi đọc ảnh: '+e.message);
+  }finally{
+    btn.disabled=false;
+    document.getElementById('chat-input').focus();
+  }
+}
+
+// Drag & drop + paste image
+(function(){
+  var chatBox=document.getElementById('chat-body');
+  if(chatBox){
+    chatBox.addEventListener('dragover',function(e){e.preventDefault();chatBox.style.outline='2px dashed #1E40AF';});
+    chatBox.addEventListener('dragleave',function(){chatBox.style.outline='';});
+    chatBox.addEventListener('drop',function(e){
+      e.preventDefault(); chatBox.style.outline='';
+      var file=e.dataTransfer&&e.dataTransfer.files[0];
+      if(file&&file.type.startsWith('image/')) handleImageAttach({files:[file]});
+    });
+  }
+  document.addEventListener('paste',function(e){
+    var items=e.clipboardData&&e.clipboardData.items;
+    if(!items) return;
+    for(var i=0;i<items.length;i++){
+      if((items[i].type||'').startsWith('image/')){
+        e.preventDefault();
+        var file=items[i].getAsFile();
+        if(file) handleImageAttach({files:[file]});
+        return;
+      }
+    }
+  });
+})();
+
+// Event delegation: clickable-product
+document.addEventListener('click',function(e){
+  var el=e.target.closest('.clickable-product');
+  if(el){
+    e.preventDefault();
+    var pid=el.getAttribute('data-id')||'';
+    var ref=el.getAttribute('data-ref')||'';
+    var name=el.textContent||'';
+    if(pid) openDetailPanel(pid,name,ref);
+  }
+});
+
+// ============================================================
+// RENDER RESULT TABLE (for chat)
+// ============================================================
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function loaiHangFromRef(ref){if(!ref)return 'Hàng gốc';var r=ref.toUpperCase();if(r.endsWith('-CC'))return 'Chạy cửa';if(r.endsWith('-NM'))return 'Trong nước';return 'Hàng gốc';}
+function refClean(ref){return(ref||'').replace(/-(CC|NM|TEST|BH)\s*$/i,'');}
+function loaiClass(ref){var r=(ref||'').toUpperCase();if(r.endsWith('-CC'))return 'rt-loai-cc';if(r.endsWith('-NM'))return 'rt-loai-nm';return 'rt-loai-goc';}
+
+function sortResults(arr){
+  return arr.slice().sort(function(a,b){
+    var sa=(a.price>0?2:0)+(a.in_stock===true?2:0)+((a.stock_qty||0)>0?1:0);
+    var sb=(b.price>0?2:0)+(b.in_stock===true?2:0)+((b.stock_qty||0)>0?1:0);
+    if(sb!==sa)return sb-sa;
+    return(b.stock_qty||0)-(a.stock_qty||0);
+  });
+}
+
+function groupByOem(results){
+  var groups=[],oemMap={};
+  results.forEach(function(p){
+    var oem=p.oem_code||('__nooem__'+p.id);
+    var base=(p.name||'').replace(/\s*\(.*?\)\s*/g,'').replace(/-(CC|NM|BH|TEST)\s*$/i,'').trim();
+    if(!oemMap[oem]){oemMap[oem]={oem:p.oem_code||'—',name:base,items:[]};groups.push(oemMap[oem]);}
+    oemMap[oem].items.push(p);
+  });
+  groups.forEach(function(g){g.items=sortResults(g.items);});
+  groups.sort(function(a,b){
+    var ah=a.items.some(function(x){return x.in_stock&&x.price>0;})?1:0;
+    var bh=b.items.some(function(x){return x.in_stock&&x.price>0;})?1:0;
+    return bh-ah;
+  });
+  return groups;
+}
+
+function toggleGroup(gid,hdr){
+  var rows=document.querySelectorAll('[data-grp="'+gid+'"]');
+  var arrow=hdr.querySelector('.rt-g-arrow');
+  var hidden=rows[0]&&rows[0].style.display==='none';
+  rows.forEach(function(r){r.style.display=hidden?'':'none';});
+  if(arrow) arrow.style.transform=hidden?'':'rotate(-90deg)';
+}
+
+function renderResultTable(results,opts){
+  opts=opts||{};
+  if(!results||!results.length) return '';
+  var showPrice=opts.showPrice!==false;
+  var groups=groupByOem(results);
+  var html='';
+  groups.forEach(function(g){
+    var anyStock=g.items.some(function(x){return x.in_stock&&x.price>0;});
+    var gid='g'+Math.random().toString(36).slice(2,8);
+    var cntCls=anyStock?'ok':'no';
+    var cntTxt=anyStock?(g.items.filter(function(x){return x.in_stock;}).length+' loại còn hàng'):'hết hàng';
+    var grpStyle=anyStock?'':'opacity:0.6;';
+    html+='<div class="rt-wrap" style="'+grpStyle+'">';
+    html+='<div class="rt-group-hdr" onclick="toggleGroup(\''+gid+'\',this)">';
+    html+='<span class="rt-g-arrow">▾</span>';
+    html+='<span class="rt-g-name">'+esc(g.name)+'</span>';
+    html+='<span class="rt-g-oem">'+esc(g.oem)+'</span>';
+    html+='<span class="rt-g-count '+cntCls+'">'+g.items.length+' loại · '+cntTxt+'</span>';
+    html+='</div>';
+    var hideRef=opts.customerView===true;
+    html+='<table class="rt-tbl"><thead><tr>';
+    html+='<th>Tên sản phẩm</th>';
+    if(!hideRef) html+='<th>Mã riêng</th>';
+    html+='<th>Mã quốc tế</th><th>Loại hàng</th><th>Hãng SX</th>';
+    if(showPrice) html+='<th>Giá bán</th><th>Tồn kho</th>';
+    html+='<th></th></tr></thead><tbody>';
+    g.items.forEach(function(p){
+      var ref=p.internal_ref||'';
+      var hasBest=p.price>0&&p.in_stock===true;
+      var hasMuted=p.in_stock===false||p.in_stock===null;
+      var rowCls=hasBest?'rt-row-best':(hasMuted?'rt-row-muted':'');
+      var indCls=hasBest?'best':(hasMuted?'muted':'');
+      var nmCls=hasBest?'best':'';
+      var noModel='';
+      if(p.fitment_count!=null&&p.fitment_count===0) noModel=' <span style="font-size:10px;background:#FEF3C7;color:#92400E;padding:1px 4px;border-radius:3px">⚠ chưa có xe</span>';
+      var priceAttr=p.price!=null?p.price:'null';
+      html+='<tr class="rt-indent '+indCls+' '+rowCls+'" data-grp="'+gid+'">';
+      html+='<td><span class="clickable-product rt-nm '+nmCls+'" data-id="'+(p.id||'')+'" data-ref="'+ref+'">'+(p.name||'')+'</span>'+noModel+'</td>';
+      if(!hideRef) html+='<td><code class="rt-ref">'+refClean(ref)+'</code></td>';
+      html+='<td><code class="rt-oem">'+(p.oem_code||'—')+'</code></td>';
+      html+='<td><span class="rt-loai '+loaiClass(ref)+'">'+loaiHangFromRef(ref)+'</span></td>';
+      html+='<td class="rt-brand">'+esc(p.brand||'—')+'</td>';
+      if(showPrice){
+        html+='<td>'+(p.price>0?'<span class="rt-price">'+Number(p.price).toLocaleString('vi-VN')+' đ</span>':'<span class="rt-price-na">Liên hệ</span>')+'</td>';
+        html+='<td>'+(p.in_stock===true?'<span class="rt-stock-ok">✓ Còn'+(p.stock_qty?' ('+p.stock_qty+')':'')+'</span>':'<span class="rt-stock-no">✗ Hết hàng</span>')+'</td>';
+      }
+      html+='<td><button class="rt-add add-cart-btn" data-id="'+(p.id||'')+'" data-name="'+(p.name||'').replace(/"/g,'&quot;')+'" data-ref="'+refClean(ref)+'" data-oem="'+(p.oem_code||'')+'" data-price="'+priceAttr+'">+ Thêm</button></td>';
+      html+='</tr>';
+    });
+    html+='</tbody></table></div>';
+  });
+  return html;
+}
+
+// ============================================================
+// GIỎ HÀNG
+// ============================================================
+var _cart=[];
+
+function cartAdd(id,name,ref,oem,price){
+  var existing=_cart.find(function(x){return x.id===id;});
+  if(existing){existing.qty+=1;}
+  else{_cart.push({id,name,ref,oem,price:price!=null?Number(price):null,qty:1});}
+  renderCart(); return true;
+}
+
+function cartRemove(id){_cart=_cart.filter(function(x){return x.id!==id;});renderCart();}
+
+function cartSetQty(id,qty){
+  var item=_cart.find(function(x){return x.id===id;});
+  if(item){item.qty=Math.max(1,parseInt(qty)||1);renderCart();}
+}
+
+function cartTotal(){return _cart.reduce(function(sum,x){return sum+(x.price||0)*x.qty;},0);}
+
+function renderCart(){
+  var count=_cart.reduce(function(s,x){return s+x.qty;},0);
+  var badge=document.getElementById('cart-count');
+  badge.textContent=count; badge.style.display=count>0?'flex':'none';
+  var itemsBox=document.getElementById('cart-items');
+  var emptyBox=document.getElementById('cart-empty');
+  var footer=document.getElementById('cart-footer');
+  if(!_cart.length){itemsBox.innerHTML='';emptyBox.style.display='block';footer.style.display='none';return;}
+  emptyBox.style.display='none'; footer.style.display='block';
+  itemsBox.innerHTML=_cart.map(function(x){
+    var lineTotal=(x.price||0)*x.qty;
+    var priceStr=x.price?x.price.toLocaleString('vi-VN')+' đ × '+x.qty+' = '+lineTotal.toLocaleString('vi-VN')+' đ':'Liên hệ × '+x.qty;
+    return '<div class="cart-item">'+
+      '<div class="cart-item-info">'+
+        '<div class="cart-item-name">'+x.name+'</div>'+
+        '<div class="cart-item-ref">'+(x.ref||'')+'</div>'+
+        '<div class="cart-item-price">'+priceStr+'</div>'+
+        '<div class="cart-qty" style="margin-top:6px">'+
+          '<button onclick="cartSetQty(\''+x.id+'\','+(x.qty-1)+')">−</button>'+
+          '<input type="number" value="'+x.qty+'" min="1" onchange="cartSetQty(\''+x.id+'\',this.value)">'+
+          '<button onclick="cartSetQty(\''+x.id+'\','+(x.qty+1)+')">+</button>'+
+        '</div>'+
+      '</div>'+
+      '<button class="cart-item-remove" onclick="cartRemove(\''+x.id+'\')">🗑</button>'+
+    '</div>';
+  }).join('');
+  document.getElementById('cart-item-count').textContent=_cart.length;
+  document.getElementById('cart-grand-total').textContent=cartTotal().toLocaleString('vi-VN')+' đ';
+}
+
+function openCart(){document.getElementById('cart-panel').classList.add('open');document.getElementById('cart-overlay').classList.add('open');}
+function closeCart(){document.getElementById('cart-panel').classList.remove('open');document.getElementById('cart-overlay').classList.remove('open');}
+
+function openCheckout(){
+  if(!_cart.length) return;
+  var rows=_cart.map(function(x,i){
+    var lineTotal=(x.price||0)*x.qty;
+    return '<tr><td>'+(i+1)+'</td><td>'+x.name+'<br><span style="font-size:11px;color:var(--muted);font-family:monospace">'+(x.ref||'')+'</span></td><td style="text-align:center">'+x.qty+'</td><td style="text-align:right">'+(x.price?x.price.toLocaleString('vi-VN'):'LH')+'</td><td style="text-align:right;font-weight:600">'+(x.price?lineTotal.toLocaleString('vi-VN'):'LH')+'</td></tr>';
+  }).join('');
+  var total=cartTotal();
+  var html='<div style="margin-bottom:10px;font-weight:600">📋 Báo giá đơn hàng</div>'+
+    '<table class="result-table"><thead><tr><th>#</th><th>Sản phẩm</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead><tbody>'+rows+'</tbody>'+
+    '<tfoot><tr style="font-weight:700;background:var(--header-bg)"><td colspan="4" style="text-align:right">TỔNG CỘNG:</td><td style="text-align:right;color:#15803D">'+total.toLocaleString('vi-VN')+' đ</td></tr></tfoot></table>'+
+    '<div style="margin-top:12px;padding:12px;background:var(--header-bg);border-radius:8px">'+
+      '<div style="font-weight:600;margin-bottom:8px;font-size:13px">Thông tin khách hàng</div>'+
+      '<div class="checkout-field"><label>Tên khách</label><input id="co-name" placeholder="Nguyễn Văn A"></div>'+
+      '<div class="checkout-field"><label>Số điện thoại</label><input id="co-phone" placeholder="09xx xxx xxx"></div>'+
+      '<div class="checkout-field"><label>Địa chỉ giao hàng</label><input id="co-addr" placeholder="Số nhà, đường, quận..."></div>'+
+      '<div class="checkout-field"><label>Ghi chú</label><textarea id="co-note" rows="2" placeholder="Ghi chú thêm..."></textarea></div>'+
+    '</div>'+
+    '<button onclick="submitOrder()" style="width:100%;padding:12px;background:#22C55E;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;margin-top:10px">✓ Xác nhận chốt đơn</button>';
+  closeCart();
+  addMsg('ai',html);
+}
+
+async function submitOrder(){
+  var name=(document.getElementById('co-name')||{}).value||'';
+  var phone=(document.getElementById('co-phone')||{}).value||'';
+  var addr=(document.getElementById('co-addr')||{}).value||'';
+  var note=(document.getElementById('co-note')||{}).value||'';
+  if(!name.trim()||!phone.trim()){addMsg('ai','⚠️ Vui lòng nhập <b>tên</b> và <b>số điện thoại</b> khách hàng.');return;}
+  var order={customer_name:name.trim(),customer_phone:phone.trim(),address:addr.trim(),note:note.trim(),
+    items:_cart.map(function(x){return{product_id:x.id,name:x.name,ref:x.ref,price:x.price,qty:x.qty};}),total:cartTotal()};
+  try{
+    var res=await fetch('/api/v1/catalog/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(order)});
+    var data=await res.json();
+    if(res.ok&&data.order_code){
+      addMsg('ai','<div class="vin-detected">✅ <b>Đã tạo đơn hàng thành công!</b><br>Mã đơn: <strong>'+data.order_code+'</strong><br>Khách: '+name+' — '+phone+'<br>Tổng tiền: <strong style="color:#15803D">'+cartTotal().toLocaleString('vi-VN')+' đ</strong></div>');
+      _cart=[]; renderCart();
+    } else { addMsg('ai','❌ Lỗi tạo đơn: '+(data.error||'Không xác định')); }
+  }catch(e){ addMsg('ai','❌ Lỗi kết nối: '+e.message); }
+}
+
+// Event delegation: add-cart-btn
+document.addEventListener('click',function(e){
+  var btn=e.target.closest('.add-cart-btn');
+  if(btn){
+    e.preventDefault();
+    var id=btn.getAttribute('data-id');
+    var name=btn.getAttribute('data-name');
+    var ref=btn.getAttribute('data-ref');
+    var oem=btn.getAttribute('data-oem');
+    var price=btn.getAttribute('data-price');
+    if(id){
+      cartAdd(id,name,ref,oem,price==='null'?null:price);
+      btn.textContent='✓ Đã thêm'; btn.classList.add('added');
+      setTimeout(function(){btn.textContent='+ Thêm';btn.classList.remove('added');},1500);
+    }
+  }
+});
+
+var _custName='';
+function setCustomer(name){
+  _custName=(name||'').trim();
+  var saved=document.getElementById('customer-saved');
+  if(saved) saved.style.display=_custName?'inline':'none';
+}
+</script>
+</body>
+</html>

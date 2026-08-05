@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "PartSouq OEM Crawler",
+  "version": "1.0",
+  "description": "Tra ngược mã OEM trên PartSouq (/search) → lấy xe tương thích → import fitment vào Catalog API.",
+  "permissions": ["tabs", "storage", "scripting", "downloads", "activeTab", "alarms"],
+  "host_permissions": [
+    "https://www.partsouq.com/*",
+    "http://103.214.9.97/*",
+    "http://localhost/*"
+  ],
+  "action": { "default_popup": "popup.html" },
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.partsouq.com/en/search/all*",
+        "https://www.partsouq.com/search/all*",
+        "https://www.partsouq.com/search*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["dashboard.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

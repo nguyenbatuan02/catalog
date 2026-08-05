@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "PartSouq Scraper",
+  "version": "3.0.0",
+  "description": "Tra model code + ph\u1ee5 t\u00f9ng t\u1eeb PartSouq, xu\u1ea5t Excel",
+  "permissions": [
+    "tabs",
+    "scripting",
+    "downloads",
+    "storage",
+    "windows"
+  ],
+  "host_permissions": [
+    "https://partsouq.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "PartSouq Scraper"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://partsouq.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

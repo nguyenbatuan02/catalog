@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>PartSouq OEM Crawler</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Arial,sans-serif}
+body{width:400px;background:#f0f4f8;color:#1a1a2e}
+.hdr{background:#0b4f6c;color:#fff;padding:12px 14px;display:flex;align-items:center;gap:10px}
+.hdr-ico{width:32px;height:32px;background:rgba(255,255,255,.15);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.hdr h1{font-size:14px;font-weight:700}
+.hdr small{font-size:11px;opacity:.8;display:block}
+.body{padding:10px;display:flex;flex-direction:column;gap:8px}
+.card{background:#fff;border-radius:8px;border:.5px solid #ddd;padding:11px 13px}
+.ct{font-size:11px;font-weight:700;color:#777;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+label{font-size:12px;color:#555;display:block;margin-bottom:3px;margin-top:6px}
+label:first-of-type{margin-top:0}
+input{width:100%;padding:7px 10px;border:.5px solid #ccc;border-radius:6px;font-size:13px;outline:none;background:#fff;color:#1a1a2e}
+input:focus{border-color:#0b4f6c}
+.row{display:flex;gap:7px}
+.row>*{flex:1}
+.btn{padding:8px 12px;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:opacity .15s}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.g{background:#0b4f6c;color:#fff;width:100%}
+.r{background:#993c1d;color:#fff}
+.gray{background:#556;color:#fff}
+.sm{padding:6px 10px;font-size:12px}
+.file-lbl{display:block;padding:8px 12px;border:1.5px dashed #0b4f6c;border-radius:6px;text-align:center;color:#0b4f6c;font-size:13px;font-weight:600;cursor:pointer;background:#eef6fa}
+#csvFile{display:none}
+.hint{font-size:11px;color:#999;margin-top:4px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px}
+.stat{background:#f0f4f8;border-radius:6px;padding:7px 4px;text-align:center}
+.stat .n{font-size:17px;font-weight:700;color:#0b4f6c;line-height:1}
+.stat .l{font-size:9px;color:#888;margin-top:2px}
+.stat.err .n{color:#a32d2d}
+.prog-wrap{background:#e8ecef;border-radius:99px;height:7px;overflow:hidden}
+.prog-bar{height:100%;background:#0b4f6c;border-radius:99px;transition:width .4s}
+.cur-box{background:#e6f2f8;border-radius:6px;padding:8px 10px;margin:8px 0;display:flex;justify-content:space-between;align-items:center}
+.cur-box .label{font-size:10px;color:#0b4f6c}
+.cur-box .val{font-size:13px;font-weight:700;color:#08384d;font-family:Consolas,monospace}
+.badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px}
+.bd-run{background:#e1f0f7;color:#08384d}.bd-idle{background:#eee;color:#555}.bd-done{background:#e1f5ee;color:#085041}
+.log{background:#1a1a2e;border-radius:6px;padding:8px 10px;height:140px;overflow-y:auto;font-size:11px;font-family:Consolas,monospace;line-height:1.6}
+.log p{color:#a8d8ea;margin:0;white-space:pre-wrap;word-break:break-all}
+.log .e{color:#f09595}.log .w{color:#fac775}.log .ok{color:#9fe0a9}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="hdr-ico">🔩</div>
+  <div><h1>PartSouq OEM Crawler</h1><small>Tra mã OEM → xe tương thích → import fitment</small></div>
+</div>
+
+<div class="body">
+
+  <!-- Cấu hình -->
+  <div class="card">
+    <div class="ct">Cấu hình</div>
+    <label for="csvFile" class="file-lbl" id="csvLabel">📂 Nạp file CSV (oem_codes.csv)</label>
+    <input type="file" id="csvFile" accept=".csv,.txt">
+    <div class="hint" id="csvHint">Mỗi dòng 1 mã OEM (cột đầu). Có/không header đều được.</div>
+
+    <label>Server API</label>
+    <input id="inApi" placeholder="http://103.214.9.97:3001/api/v1/catalog">
+    <label>Delay giữa các mã (ms)</label>
+    <input id="inDelay" type="number" min="0" step="500" placeholder="2000">
+
+    <div class="row" style="margin-top:10px">
+      <button class="btn g" id="btnStart">▶ Bắt đầu</button>
+      <button class="btn r sm" id="btnStop" disabled>⏹ Dừng</button>
+    </div>
+    <button class="btn gray sm" id="btnClear" style="width:100%;margin-top:7px">🗑️ Xóa queue + tiến độ</button>
+  </div>
+
+  <!-- Trạng thái -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="ct" style="margin:0">Trạng thái</div>
+      <span class="badge bd-idle" id="badge">Chờ</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="n" id="sTotal">0</div><div class="l">Tổng mã</div></div>
+      <div class="stat"><div class="n" id="sDone">0</div><div class="l">Đã xong</div></div>
+      <div class="stat err"><div class="n" id="sErr">0</div><div class="l">Lỗi</div></div>
+      <div class="stat"><div class="n" id="sFound">0</div><div class="l">Fitment</div></div>
+    </div>
+    <div class="prog-wrap"><div class="prog-bar" id="progBar" style="width:0%"></div></div>
+    <div class="cur-box">
+      <div><div class="label">Đang tra</div><div class="val" id="curOem">—</div></div>
+      <div style="text-align:right"><div class="label">Xe tìm được</div><div class="val" id="curFound">0</div></div>
+    </div>
+  </div>
+
+  <!-- Log -->
+  <div class="card">
+    <div class="ct">Log</div>
+    <div class="log" id="logBox"></div>
+  </div>
+
+  <div style="margin-top:2px; text-align:center;">
+    <button id="btnDashboard" style="background:#1e40af;color:#fff;border:none;padding:7px 16px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">📊 Mở Dashboard</button>
+  </div>
+
+</div>
+<script src="popup.js"></script>
+</body>
+</html>
