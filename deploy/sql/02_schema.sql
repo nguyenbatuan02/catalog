@@ -38,32 +38,35 @@ CREATE TABLE catalog_products (
   needs_translation boolean      DEFAULT false,
 
   -- ══ CHỐNG RÁC ═══════════════════════════════════════════════
-  -- DB cũ để mã OEM 2 kiểu lẫn lộn: '09111-0K180' và '091110K180'
-  -- → 2.915.182 dòng nhưng chỉ có 2.728.105 mã thật
-  -- → ~187.000 dòng TRÙNG ẨN, tra cứu hay trượt.
-  --
-  -- Cột này tự sinh: bỏ hết gạch/space/ký tự lạ rồi viết hoa.
-  -- Không cần ghi vào, Postgres tự tính mỗi khi oem_code đổi.
+  -- DB cũ ghi mã 2 kiểu lẫn lộn: '09111-0K180' và '091110K180'.
+  -- Hai cột dưới đây tự sinh: bỏ hết gạch/space/ký tự lạ rồi viết hoa.
+  -- Không cần ghi vào, Postgres tự tính lại mỗi khi cột gốc đổi.
   --   '09111-0K180'  → '091110K180'
   --   ' 42200-S04-5' → '42200S045'
   --   ''  hoặc NULL  → NULL  (NULL không bị UNIQUE chặn)
+
+  -- Dạng chuẩn của MÃ OEM — dùng để TRA CỨU nhanh, KHÔNG unique.
+  -- Nhiều dòng được phép chung một mã OEM: đó là hàng tương đương
+  -- (cùng phụ tùng, khác nhà cung cấp / khác phẩm cấp, giá khác nhau).
+  -- Đo trên DB cũ: 14.477 trường hợp như vậy — đặt UNIQUE ở đây là mất hàng.
   oem_norm text GENERATED ALWAYS AS (
     NULLIF(upper(regexp_replace(coalesce(oem_code, ''), '[^a-zA-Z0-9]', '', 'g')), '')
+  ) STORED,
+
+  -- Dạng chuẩn của MÃ SẢN PHẨM — đây mới là khoá chống trùng thật sự.
+  -- Mỗi mã sản phẩm = một dòng duy nhất, ghi kiểu gì cũng quy về một.
+  -- Đo trên DB cũ: 174.036 dòng trùng đúng nghĩa sẽ bị chặn nhờ cột này.
+  ref_norm text GENERATED ALWAYS AS (
+    NULLIF(upper(regexp_replace(coalesce(internal_ref, ''), '[^a-zA-Z0-9]', '', 'g')), '')
   ) STORED
 );
 
--- Một mã OEM = một dòng. Ghi kiểu nào cũng đụng vào đây → rác cũ
--- KHÔNG thể quay lại. Script import dùng ON CONFLICT (oem_norm) để gộp.
--- Nếu về sau vướng (2 hãng trùng mã thật) thì gỡ bằng:
---     DROP INDEX uq_products_oem_norm;
-CREATE UNIQUE INDEX uq_products_oem_norm
-  ON catalog_products (oem_norm)
-  WHERE oem_norm IS NOT NULL;
-
--- Mã nội bộ cũng không được trùng
-CREATE UNIQUE INDEX idx_prod_ref
-  ON catalog_products (internal_ref)
-  WHERE internal_ref IS NOT NULL;
+-- Một MÃ SẢN PHẨM = một dòng. '01463-T0A-A01' và '01463T0AA01' là một.
+-- Nhưng '01463-T0A-A01' và '01463-T0A-A01-A' là HAI hàng khác nhau → vẫn giữ cả hai.
+-- Script import dùng ON CONFLICT (ref_norm) để gộp thay vì báo lỗi.
+CREATE UNIQUE INDEX uq_products_ref_norm
+  ON catalog_products (ref_norm)
+  WHERE ref_norm IS NOT NULL;
 
 
 -- ─────────────────────────────────────────────────────────────

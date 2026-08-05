@@ -34,6 +34,12 @@ CREATE INDEX IF NOT EXISTS idx_products_search_trgm
 CREATE INDEX IF NOT EXISTS idx_prod_oem
   ON catalog_products (oem_code) WHERE oem_code IS NOT NULL;
 
+-- Tra mã OEM bất kể cách ghi. KHÔNG unique — nhiều hàng tương đương
+-- được phép chung một mã OEM. Index này thay cho việc app phải chạy
+-- REPLACE(oem_code,'-','') lúc truy vấn (rất chậm vì không dùng được index).
+CREATE INDEX IF NOT EXISTS idx_prod_oem_norm
+  ON catalog_products (oem_norm) WHERE oem_norm IS NOT NULL;
+
 CREATE INDEX IF NOT EXISTS idx_products_brand ON catalog_products (brand);
 CREATE INDEX IF NOT EXISTS idx_products_type  ON catalog_products (product_type);
 CREATE INDEX IF NOT EXISTS idx_products_sale  ON catalog_products (is_for_sale);
