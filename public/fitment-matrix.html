@@ -72,9 +72,12 @@ tr:hover td.fix,tr:hover td.fix2,tr:hover td.fix3{background:#f0f4ff}
   </div>
   <div class="field">
     <label>Số dòng/trang</label>
+    <!-- Mặc định 20: mỗi dòng phải so tên phụ tùng với 122 mẫu, để 100 hay
+         dính timeout 30s (HTTP 503). Cần xem nhiều thì lọc theo tên model. -->
     <select id="lim">
+      <option value="20" selected>20</option>
       <option value="50">50</option>
-      <option value="100" selected>100</option>
+      <option value="100">100</option>
       <option value="200">200</option>
       <option value="500">500</option>
     </select>
@@ -100,8 +103,8 @@ tr:hover td.fix,tr:hover td.fix2,tr:hover td.fix3{background:#f0f4ff}
       <option value="total_desc">Nhiều PT nhất</option>
       <option value="total_asc">Ít PT nhất</option>
       <option value="missing">Thiếu nhiều nhất</option>
-      <option value="score_asc">Score thấp nhất</option>
-      <option value="score_desc">Score cao nhất</option>
+      <option value="score_asc">% phủ thấp nhất</option>
+      <option value="score_desc">% phủ cao nhất</option>
     </select>
   </label>
   <div class="legend">
@@ -222,6 +225,9 @@ function renderStats() {
 }
 
 function applyFilter() {
+  // Đếm số nhóm phụ tùng xe này đã có (dùng cho cột % phủ và cho sắp xếp)
+  const soNhomCo = r => COLS.reduce((n, c) => n + (r[c.k] ? 1 : 0), 0);
+
   let rows = [...allRows];
   if (document.getElementById('f-miss').checked) rows = rows.filter(r => COLS.some(c => !r[c.k]));
   if (document.getElementById('f-empty').checked) rows = rows.filter(r => r.total_parts > 0);
@@ -229,8 +235,9 @@ function applyFilter() {
   if (sort === 'total_desc') rows.sort((a,b) => b.total_parts - a.total_parts);
   else if (sort === 'total_asc') rows.sort((a,b) => a.total_parts - b.total_parts);
   else if (sort === 'missing') rows.sort((a,b) => COLS.filter(c=>!b[c.k]).length - COLS.filter(c=>!a[c.k]).length);
-  else if (sort === 'score_asc')  rows.sort((a,b) => (a.coverage_score ?? -1) - (b.coverage_score ?? -1));
-  else if (sort === 'score_desc') rows.sort((a,b) => (b.coverage_score ?? -1) - (a.coverage_score ?? -1));
+  // Sắp xếp theo % độ phủ — tính lại từ các cột ✓, không dùng coverage_score cũ
+  else if (sort === 'score_asc')  rows.sort((a,b) => soNhomCo(a) - soNhomCo(b));
+  else if (sort === 'score_desc') rows.sort((a,b) => soNhomCo(b) - soNhomCo(a));
   else rows.sort((a,b) => (a.model_name||'').localeCompare(b.model_name||''));
   renderTable(rows);
 }
@@ -247,7 +254,7 @@ function renderTable(rows) {
   h += '<th class="fix" rowspan="2">Model code</th>';
   h += '<th class="fix fix2" rowspan="2">Năm</th>';
   h += '<th class="fix fix3" rowspan="2">Tổng PT</th>';
-  h += '<th style="left:267px;z-index:3;min-width:60px;max-width:60px;background:#e8e8e8;text-align:center" rowspan="2" title="Điểm này do hệ thống cào chấm. Không chạy hệ thống cào thì luôn rỗng (—) — xem cột số phụ tùng và các cột ✓/✗ bên phải.">Score</th>';
+  h += '<th style="left:267px;z-index:3;min-width:60px;max-width:60px;background:#e8e8e8;text-align:center" rowspan="2" title="Phần trăm độ phủ = số nhóm phụ tùng đã có ✓ chia cho tổng số nhóm theo dõi. Rê chuột vào từng ô để xem số cụ thể.">% phủ</th>';
   groups.forEach(g => {
     const cnt = COLS.filter(c => c.g === g).length;
     h += `<th colspan="${cnt}" class="grp">${g}</th>`;
@@ -268,10 +275,13 @@ function renderTable(rows) {
     h += `<td class="fix" title="${r.model_code}\n${r.model_name||''}">${r.model_code}</td>`;
     h += `<td class="fix fix2">${yr}</td>`;
     h += `<td class="fix fix3">${total.toLocaleString()}</td>`;
-    const score = r.coverage_score;
-    const scColor = score == null ? '#999' : score >= 40 ? '#2e7d32' : score >= 30 ? '#e65100' : '#c62828';
-    const scBg    = score == null ? '#fff' : score >= 40 ? '#f1f8e9' : score >= 30 ? '#fff8e1' : '#ffebee';
-    h += `<td style="position:sticky;left:267px;min-width:60px;max-width:60px;z-index:1;background:${scBg};text-align:center;font-weight:600;color:${scColor};font-size:12px;border:1px solid #e0e0e0">${score == null ? '—' : score + '/50'}</td>`;
+    // % độ phủ = số nhóm phụ tùng đã có / tổng số nhóm theo dõi.
+    // Thay cho cột Score cũ (do hệ thống cào chấm, nay luôn rỗng).
+    const soCo = COLS.reduce((n, c) => n + (r[c.k] ? 1 : 0), 0);
+    const pct  = total === 0 ? null : Math.round(soCo * 100 / COLS.length);
+    const scColor = pct == null ? '#999' : pct >= 60 ? '#2e7d32' : pct >= 30 ? '#e65100' : '#c62828';
+    const scBg    = pct == null ? '#fff' : pct >= 60 ? '#f1f8e9' : pct >= 30 ? '#fff8e1' : '#ffebee';
+    h += `<td title="${soCo}/${COLS.length} nhóm phụ tùng" style="position:sticky;left:267px;min-width:60px;max-width:60px;z-index:1;background:${scBg};text-align:center;font-weight:600;color:${scColor};font-size:12px;border:1px solid #e0e0e0">${pct == null ? '—' : pct + '%'}</td>`;
     COLS.forEach(c => {
       if (total === 0) h += `<td><span class="dot na">—</span></td>`;
       else if (r[c.k]) h += `<td><span class="dot y">✓</span></td>`;
