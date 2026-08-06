@@ -100,14 +100,24 @@ CAU_HINH = {
     "ghi_chu_ban_xe": None,
 
     # tầng 3 → HAI cột  year_from  VÀ  year_to
-    #   Đây là ánh xạ 1 → 2: một trường JSON, script bóc số năm ra rồi
-    #   điền vào cả hai cột. DB không có cột nào tên "year".
-    #   ★ TRƯỜNG HAY PHẢI SỬA:
-    #       "prod_period" : "08.2009 - 06.2012"  → year_from=2009, year_to=2012
-    #       "manufactured": "1996"               → year_from=1996, year_to=1996
-    #       None                                 → cả hai để trống
-    #   Để trống thì xe khớp MỌI năm — an toàn hơn điền sai (điền sai
-    #   là xe bị loại oan, khách hỏi không ra hàng).
+    #   Script bóc mọi số 4 chữ số ra khỏi giá trị: số ĐẦU → year_from,
+    #   số CUỐI → year_to. DB không có cột nào tên "year".
+    #   ★ TRƯỜNG HAY PHẢI SỬA — nhận 3 kiểu:
+    #
+    #   1) Một trường chứa cả khoảng:
+    #       "prod_period"  : "08.2009 - 06.2012" → 2009 và 2012
+    #       "prod_range"   : "1950 - 1959"       → 1950 và 1959
+    #       "manufactured" : "1996"              → 1996 và 1996
+    #
+    #   2) HAI trường riêng — điền danh sách, thứ tự TỪ trước ĐẾN sau:
+    #       ["model_year_from", "model_year_to"]  → 2017 và 2026
+    #      Trường thứ hai rỗng thì year_to = year_from (xe coi như chỉ
+    #      sản xuất đúng năm đó). Xe còn đang sản xuất mà muốn khớp mọi
+    #      năm về sau thì để cả hai trống, đừng điền mỗi năm bắt đầu.
+    #
+    #   3) None → cả hai cột để trống, xe khớp MỌI năm.
+    #      An toàn hơn điền sai: điền sai là xe bị loại oan, khách hỏi
+    #      không ra hàng.
     "year_from_to": "prod_period",
 
     # ─────────────────────────────────────────────────────────────────
@@ -439,13 +449,13 @@ def kiem_trung_model(ds):
                 # hẳn — Porsche 101 model bảo còn 4 xe, trong khi nạp thật ra
                 # gần đủ 101 vì engine/transmission đã tách chúng ra.
                 nam_tu, nam_den = tach_nam(
-                    m.get(cfg["year_from_to"]) if cfg["year_from_to"] else None)
+                    lay(m, "year_from_to"))
                 bt = khoa_bien_the(nam_tu, nam_den,
                                    lay(m, "engine"), lay(m, "transmission"),
                                    lay(m, "drive_type"), lay(m, "steering"),
                                    lay(m, "gear_shift"), thi_truong)
                 nhan = " / ".join(x for x in (
-                    str(m.get(cfg["year_from_to"]) or "").strip() if cfg["year_from_to"] else "",
+                    lay(m, "year_from_to") or "",
                     lay(m, "engine"), lay(m, "transmission"),
                     lay(m, "drive_type"), lay(m, "steering"), lay(m, "gear_shift"),
                     thi_truong,
@@ -555,7 +565,7 @@ def boc_tach(goc):
                     "specs_raw":    lay(m, "specs_raw"),
                 }
                 nam_tu, nam_den = tach_nam(
-                    m.get(cfg["year_from_to"]) if cfg["year_from_to"] else None)
+                    lay(m, "year_from_to"))
 
                 # Khoá phải giống hệt khoá UNIQUE của DB (make, model_code, variant_key),
                 # nếu không Python gộp một kiểu còn DB gộp một kiểu.
@@ -596,7 +606,7 @@ def boc_tach(goc):
                 # (trước đây chỉ báo khi model thiếu mã nên gộp diễn ra im lặng)
                 gop.setdefault(khoa_xe, []).append({
                     "ten": None if rong(ten_xe) else str(ten_xe).strip(),
-                    "nam": m.get(cfg["year_from_to"]) if cfg["year_from_to"] else None,
+                    "nam": lay(m, "year_from_to"),
                     "tu_ten": dung_tam,
                 })
 
