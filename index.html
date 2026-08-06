@@ -355,7 +355,7 @@ select.form-input{cursor:pointer}
       </div>
       <div class="table-card">
         <table>
-          <thead><tr><th>Hãng</th><th>Mã model</th><th>Tên thương mại</th><th>Loại</th><th>Năm SX</th><th>Phụ tùng</th><th>Odoo ref</th><th></th></tr></thead>
+          <thead><tr><th>Hãng</th><th>Mã model</th><th>Tên thương mại</th><th>Loại</th><th>Năm SX</th><th>Phụ tùng</th><th>Thông số</th><th></th></tr></thead>
           <tbody id="v-tbody"></tbody>
         </table>
         <div class="pager"><span id="v-info"></span><div class="pager-btns" id="v-pager"></div></div>
@@ -659,6 +659,24 @@ function setBreadcrumb(p){
 
 let vTotal=0, vTotalPages=1;
 
+// Thông số phân biệt các bản xe trùng mã/trùng tên: máy, hộp số, dẫn động,
+// tay lái, thị trường. Dữ liệu cào hay có nhiều bản chung một mã model —
+// không hiện mấy cái này thì trên bảng nhìn chúng giống hệt nhau.
+function vehSpecs(v){
+  const it=[
+    [v.engine,       'ti-engine',        'Động cơ'],
+    [v.gear_shift,   'ti-manual-gearbox','Hộp số'],
+    [v.transmission, 'ti-settings',      'Truyền động'],
+    [v.drive_type,   'ti-car-4wd',       'Dẫn động'],
+    [v.steering,     'ti-steering-wheel','Tay lái'],
+    [v.description,  'ti-world',         'Thị trường'],
+  ].filter(x=>x[0]);
+  if(!it.length) return `<span style="color:var(--muted)">${v.odoo_ref||'—'}</span>`;
+  return it.map(([val,ic,lb])=>
+    `<span class="chip chip-gray" title="${lb}" style="font-size:10px;padding:1px 5px;margin:1px 2px 1px 0;white-space:nowrap"><i class="ti ${ic}" style="vertical-align:-1px;margin-right:2px"></i>${esc(String(val))}</span>`
+  ).join('');
+}
+
 async function renderV(){
   const q=(document.getElementById('v-q')?.value?.trim()||'');
   const make=document.getElementById('v-make')?.value||'';
@@ -701,7 +719,7 @@ async function renderV(){
           <td style="font-size:12px"><i class="ti ${v.vehicle_type==='truck'?'ti-truck':'ti-car'}" style="vertical-align:-2px;margin-right:3px"></i>${v.vehicle_type==='truck'?'Xe tải':'Ô tô'}</td>
           <td style="font-size:12px;color:var(--muted)">${v.year_from||'?'}–${v.year_to||'nay'}</td>
           <td><span class="chip chip-gray" id="fcount-${v.id}">— phụ tùng</span>${v._partCount?'<span class="chip chip-green" style="margin-left:4px;font-size:11px">✓ '+v._partCount+' mã "'+partQ+'"</span>':''}</td>
-          <td style="font-size:11px;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.odoo_ref||'—'}</td>
+          <td style="font-size:11px;max-width:190px">${vehSpecs(v)}</td>
           <td onclick="event.stopPropagation()"><div class="actions-cell">
             <button class="btn sm icon" onclick="openVForm('${v.id}')" title="Sửa"><i class="ti ti-edit"></i></button>
             <button class="btn sm icon danger" onclick="delVehicle('${v.id}')" title="Xóa"><i class="ti ti-trash"></i></button>
@@ -751,7 +769,14 @@ async function renderVDetail(id){
       <div class="info-field"><div class="info-label">Tên thương mại</div><div class="info-value">${v.model_name||'—'}</div></div>
       <div class="info-field"><div class="info-label">Loại xe</div><div class="info-value">${v.vehicle_type==='truck'?'Xe tải':'Ô tô'}</div></div>
       <div class="info-field"><div class="info-label">Năm từ</div><div class="info-value">${v.year_from||'—'}</div></div>
-      <div class="info-field"><div class="info-label">Năm đến</div><div class="info-value">${v.year_to||'Đang SX'}</div></div>`;
+      <div class="info-field"><div class="info-label">Năm đến</div><div class="info-value">${v.year_to||'Đang SX'}</div></div>
+      ${[['Động cơ',v.engine],['Hộp số',v.gear_shift],['Truyền động',v.transmission],
+         ['Dẫn động',v.drive_type],['Tay lái',v.steering],['Thị trường',v.description],
+         ['Odoo ref',v.odoo_ref]]
+        .filter(x=>x[1])
+        .map(([lb,val])=>`<div class="info-field"><div class="info-label">${lb}</div><div class="info-value">${esc(String(val))}</div></div>`)
+        .join('')}
+      ${v.specs_raw?`<div class="info-field" style="grid-column:1/-1"><div class="info-label">Thông số gốc</div><div class="info-value" style="font-size:12px;line-height:1.5">${esc(String(v.specs_raw))}</div></div>`:''}`;
     switchVDTab('parts');
   }catch(e){ document.getElementById('vd-title').textContent='Lỗi tải dữ liệu: '+e.message; }
 }
