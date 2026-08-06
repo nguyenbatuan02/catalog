@@ -25,6 +25,21 @@ const server = Fastify({
 });
 
 // ============================================================
+// Cho phép body RỖNG khi client vẫn khai Content-Type: application/json
+// ------------------------------------------------------------
+// Mặc định Fastify trả 400 FST_ERR_CTP_EMPTY_JSON_BODY. Trình duyệt hay
+// gắn sẵn header này cho MỌI request kể cả DELETE (vốn không có body),
+// nên các nút Xóa trên giao diện bấm mà không ăn. Extension hay công cụ
+// khác cũng dễ vướng y hệt → xử lý ở đây một lần cho tất cả.
+// ============================================================
+server.addContentTypeParser('application/json', { parseAs: 'string' },
+  (_req, body: string, done) => {
+    if (!body || !body.trim()) return done(null, undefined);
+    try { done(null, JSON.parse(body)); }
+    catch (e: any) { e.statusCode = 400; done(e); }
+  });
+
+// ============================================================
 // Plugins
 // ============================================================
 await server.register(helmet, { contentSecurityPolicy: false });

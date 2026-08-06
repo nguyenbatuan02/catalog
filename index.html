@@ -513,9 +513,21 @@ let editVId=null,editPId=null,currentVehId=null,currentVDTab='parts';
 let fitmentPrefilledVehId=null;
 
 async function req(path,opts={}){
-  const r=await fetch(API+path,{headers:{'Content-Type':'application/json'},...opts});
-  if(!r.ok){const e=await r.json();throw new Error(e.message||'Lỗi API');}
-  return r.json();
+  // CHỈ khai Content-Type khi thực sự có body.
+  // Gắn 'application/json' cho DELETE (không có body) thì Fastify trả 400
+  // "Body cannot be empty when content-type is set to 'application/json'"
+  // — đây chính là lý do các nút Xóa trước đây bấm mà không ăn.
+  const headers=Object.assign({},
+    opts.body?{'Content-Type':'application/json'}:{},
+    opts.headers||{});
+  const r=await fetch(API+path,Object.assign({},opts,{headers}));
+  if(!r.ok){
+    let msg='Lỗi API ('+r.status+')';
+    try{ const e=await r.json(); msg=e.message||e.error||msg; }catch(_){ }
+    throw new Error(msg);
+  }
+  if(r.status===204) return null;
+  try{ return await r.json(); }catch(_){ return null; }
 }
 
 // ID extension "Catalog AI — Parts & VIN Lookup" (thư mục catalog-ai-extension-v2) — extension DUY NHẤT
