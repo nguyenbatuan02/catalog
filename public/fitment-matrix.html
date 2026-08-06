@@ -61,11 +61,10 @@ tr:hover td.fix,tr:hover td.fix2,tr:hover td.fix3{background:#f0f4ff}
   <h1>Fitment Matrix</h1>
   <div class="field">
     <label>Hãng xe</label>
-    <select id="mk">
-      <option>Toyota</option><option>Hyundai</option><option>Kia</option>
-      <option>Infiniti</option><option>Mazda</option><option>Mitsubishi</option>
-      <option>Nissan</option><option>Audi</option><option>Lexus</option>
-    </select>
+    <!-- Danh sách nạp từ DB lúc mở trang (xem napDanhSachHang).
+         Trước đây ghi cứng 9 hãng của DB cũ nên hãng mới nạp vào
+         không chọn được. -->
+    <select id="mk"><option>Đang tải…</option></select>
   </div>
   <div class="field">
     <label>Tên model (bỏ trống = tất cả)</label>
@@ -310,6 +309,30 @@ function exportCsv() {
 document.getElementById('mn').addEventListener('keydown', e => {
   if (e.key === 'Enter') load(1);
 });
+
+// Nạp danh sách hãng THẲNG TỪ DB, kèm số xe mỗi hãng.
+// Hãng nào không có xe nào thì không hiện — khỏi chọn nhầm rồi ra bảng rỗng.
+async function napDanhSachHang(){
+  const sel = document.getElementById('mk');
+  try {
+    const r = await fetch('/api/v1/catalog/vehicles/makes');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    const ds = (d.counts && d.counts.length ? d.counts : (d.makes||[]).map(m=>({make:m,count:null})))
+                 .filter(x => x.make);
+    if (!ds.length) { sel.innerHTML = '<option value="">(DB chưa có xe nào)</option>'; return; }
+    // hãng nhiều xe nhất lên đầu cho đỡ phải tìm
+    ds.sort((a,b) => (b.count||0) - (a.count||0));
+    sel.innerHTML = ds.map(x =>
+      `<option value="${x.make}">${x.make}${x.count!=null ? ' ('+x.count.toLocaleString('vi-VN')+' xe)' : ''}</option>`
+    ).join('');
+    load(1);
+  } catch (e) {
+    sel.innerHTML = '<option value="">Không tải được danh sách hãng</option>';
+    console.error('[makes]', e);
+  }
+}
+napDanhSachHang();
 </script>
 </body>
 </html>
