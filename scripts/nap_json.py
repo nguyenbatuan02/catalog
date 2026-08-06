@@ -68,6 +68,22 @@ CAU_HINH = {
     #   Trường nào rỗng thì tự bỏ qua. Chạy --soi để xem file có trường gì.
     "model_code":   "model",
 
+    # tầng 3 → các cột THÔNG SỐ XE. Để None nếu file không có.
+    #   Mỗi cái nhận tên trường, hoặc DANH SÁCH trường (ghép bằng " | ").
+    #   VD với file Nissan:
+    #       "engine":     "engine",     → MR20DE
+    #       "gear_shift": "gearbox",    → M-CVT
+    #       "specs_raw":  "options",    → SEAT TYPE:3 ROW SEATS; ...WHEEL DRIVE:2WD...
+    #   Điền mấy cột này thì nhân viên nhìn xe là biết máy gì, số gì,
+    #   không phải đoán — kể cả khi các bản xe bị gộp chung một mã.
+    "vehicle_type": None,      # → vehicle_type   (car / truck / bus...)
+    "engine":       None,      # → engine
+    "transmission": None,      # → transmission
+    "drive_type":   None,      # → drive_type     (2WD / 4WD)
+    "steering":     None,      # → steering       (LHD / RHD)
+    "gear_shift":   None,      # → gear_shift     (AT / MT / CVT)
+    "specs_raw":    None,      # → specs_raw      (chuỗi thông số gốc, để nguyên)
+
     # tầng 3 → cột  catalog_fitments.notes   (ghi trên từng dòng nối xe–phụ tùng)
     #   Dùng khi MỘT mã xe dùng chung cho nhiều bản (Nissan JJ10E có cả bản
     #   2WD lẫn 4WD, ST lẫn TI). Thay vì tách mã ra cho dài loằng ngoằng,
@@ -208,6 +224,20 @@ def tach_nam(s):
 
 def rong(v):
     return v is None or str(v).strip() == ""
+
+
+def lay(m, khoa):
+    """Đọc một giá trị từ model theo cấu hình.
+    Cấu hình nhận tên trường ("engine") hoặc danh sách (["grade","gearbox"]
+    → ghép bằng " | "). Không có / rỗng → None."""
+    kh = CAU_HINH.get(khoa)
+    if not kh:
+        return None
+    if isinstance(kh, (list, tuple)):
+        phan = [str(m.get(k)).strip() for k in kh if not rong(m.get(k))]
+        return " | ".join(phan) or None
+    v = m.get(kh)
+    return None if rong(v) else str(v).strip()
 
 
 def lay_ma_xe(m, ten_xe):
@@ -472,6 +502,13 @@ def boc_tach(goc):
                         "year_from": nam_tu,
                         "year_to": nam_den,
                         "description": cat(None if rong(thi_truong) else str(thi_truong).strip(), 255),
+                        "vehicle_type": cat(lay(m, "vehicle_type"), 50),
+                        "engine": cat(lay(m, "engine"), 100),
+                        "transmission": cat(lay(m, "transmission"), 50),
+                        "drive_type": cat(lay(m, "drive_type"), 20),
+                        "steering": cat(lay(m, "steering"), 10),
+                        "gear_shift": cat(lay(m, "gear_shift"), 50),
+                        "specs_raw": lay(m, "specs_raw"),
                     }
                 else:
                     # Đã gặp mã này rồi → NỚI RỘNG khoảng năm thay vì vứt bản sau.
@@ -488,6 +525,15 @@ def boc_tach(goc):
                                          else max(cu["year_to"], nam_den))
                     if rong(cu["model_name"]) and not rong(ten_xe):
                         cu["model_name"] = cat(str(ten_xe).strip(), 200)
+                    # Thông số: dòng đầu để trống thì lấy của dòng sau bù vào
+                    for k, gh in (("vehicle_type", 50), ("engine", 100),
+                                  ("transmission", 50), ("drive_type", 20),
+                                  ("steering", 10), ("gear_shift", 50),
+                                  ("specs_raw", None)):
+                        if rong(cu.get(k)):
+                            v = lay(m, k)
+                            if v:
+                                cu[k] = cat(v, gh) if gh else v
 
                 # Ghi nhận MỌI lần gộp để báo lại — kể cả khi file có sẵn mã.
                 # (trước đây chỉ báo khi model thiếu mã nên gộp diễn ra im lặng)
@@ -628,15 +674,29 @@ def nap(duong_dan, chay_thu):
         # 1) XE
         print("  [1/3] Xe")
         hang_xe = [(v["make"], v["model_code"], v["model_name"],
-                    v["year_from"], v["year_to"], v["description"]) for v in xe.values()]
+                    v["year_from"], v["year_to"], v["description"],
+                    v["vehicle_type"], v["engine"], v["transmission"],
+                    v["drive_type"], v["steering"], v["gear_shift"], v["specs_raw"])
+                   for v in xe.values()]
         id_xe = {}
-        for i in range(0, len(hang_xe), 500):
+        for i in range(0, len(hang_xe), 400):
             rows = execute_values(cur, """
                 INSERT INTO catalog_vehicles
-                    (make, model_code, model_name, year_from, year_to, description)
+                    (make, model_code, model_name, year_from, year_to, description,
+                     vehicle_type, engine, transmission, drive_type, steering,
+                     gear_shift, specs_raw)
                 VALUES %s
                 ON CONFLICT (make, model_code) DO UPDATE SET
-                    model_name = COALESCE(EXCLUDED.model_name, catalog_vehicles.model_name),
+                    model_name   = COALESCE(EXCLUDED.model_name,   catalog_vehicles.model_name),
+                    -- thông số: chỉ điền khi đang trống, không đè cái đã có
+                    vehicle_type = COALESCE(catalog_vehicles.vehicle_type, EXCLUDED.vehicle_type),
+                    engine       = COALESCE(catalog_vehicles.engine,       EXCLUDED.engine),
+                    transmission = COALESCE(catalog_vehicles.transmission, EXCLUDED.transmission),
+                    drive_type   = COALESCE(catalog_vehicles.drive_type,   EXCLUDED.drive_type),
+                    steering     = COALESCE(catalog_vehicles.steering,     EXCLUDED.steering),
+                    gear_shift   = COALESCE(catalog_vehicles.gear_shift,   EXCLUDED.gear_shift),
+                    specs_raw    = COALESCE(catalog_vehicles.specs_raw,    EXCLUDED.specs_raw),
+                    description  = COALESCE(catalog_vehicles.description,  EXCLUDED.description),
                     -- Nới rộng khoảng năm thay vì đè. LEAST/GREATEST của Postgres
                     -- tự bỏ qua NULL nên xe chưa có năm cũng an toàn.
                     -- Nhờ vậy nạp lại file, hay nạp thêm file khác cùng mã xe,
