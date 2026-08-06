@@ -244,15 +244,20 @@ def lay(m, khoa):
     return None if rong(v) else str(v).strip()
 
 
-def khoa_bien_the(nam_tu, nam_den, engine, transmission, drive_type, steering, gear_shift):
+def khoa_bien_the(nam_tu, nam_den, engine, transmission, drive_type, steering,
+                  gear_shift, thi_truong):
     """Ghép các thông số phân biệt bản xe thành một chuỗi.
 
     PHẢI khớp ĐÚNG công thức cột sinh variant_key trong deploy/sql/02_schema.sql:
         upper(coalesce(year_from::text,'')||'|'||coalesce(year_to::text,'')||'|'
-              ||coalesce(engine,'')||'|'||...)
+              ||coalesce(engine,'')||'|'||...||'|'||coalesce(description,''))
     Lệch công thức là Python gộp một kiểu, DB gộp một kiểu → sai số lượng xe.
+
+    Thứ tự: năm_từ | năm_đến | engine | transmission | drive_type | steering |
+            gear_shift | thị_trường
     """
-    p = [nam_tu, nam_den, engine, transmission, drive_type, steering, gear_shift]
+    p = [nam_tu, nam_den, engine, transmission, drive_type, steering,
+         gear_shift, thi_truong]
     return "|".join("" if x is None else str(x) for x in p).upper()
 
 
@@ -422,12 +427,14 @@ def kiem_trung_model(ds):
             continue
         make = str(make).strip()
         for c in b.get("car_types") or []:
+            tt_goc = c.get(cfg["description"]) if cfg["description"] else None
+            thi_truong = cat(None if rong(tt_goc) else str(tt_goc).strip(), 255)
             for m in c.get("models") or []:
                 ten = m.get(cfg["model_name"]) if cfg["model_name"] else None
                 ma, _ = lay_ma_xe(m, ten)
                 if ma is None:
                     continue
-                # Khoá phải giống HỆT boc_tach: mã + năm + thông số phân biệt.
+                # Khoá phải giống HỆT boc_tach: mã + năm + thông số + thị trường.
                 # Trước đây chỗ này chỉ gộp theo make|model_code nên báo sai
                 # hẳn — Porsche 101 model bảo còn 4 xe, trong khi nạp thật ra
                 # gần đủ 101 vì engine/transmission đã tách chúng ra.
@@ -436,11 +443,12 @@ def kiem_trung_model(ds):
                 bt = khoa_bien_the(nam_tu, nam_den,
                                    lay(m, "engine"), lay(m, "transmission"),
                                    lay(m, "drive_type"), lay(m, "steering"),
-                                   lay(m, "gear_shift"))
+                                   lay(m, "gear_shift"), thi_truong)
                 nhan = " / ".join(x for x in (
                     str(m.get(cfg["year_from_to"]) or "").strip() if cfg["year_from_to"] else "",
                     lay(m, "engine"), lay(m, "transmission"),
                     lay(m, "drive_type"), lay(m, "steering"), lay(m, "gear_shift"),
+                    thi_truong,
                 ) if x) or "(không có thông số)"
                 dem.setdefault(f"{make}|{ma}|{bt}", []).append(nhan)
 
@@ -521,7 +529,10 @@ def boc_tach(goc):
         make = str(make).strip()
 
         for c in b.get("car_types") or []:
-            thi_truong = c.get(cfg["description"]) if cfg["description"] else None
+            tt_goc = c.get(cfg["description"]) if cfg["description"] else None
+            # Cắt sẵn đúng như lúc ghi DB (varchar 255) — vì thị trường tham gia
+            # vào khoá, lệch một ký tự là Python và DB gộp khác nhau.
+            thi_truong = cat(None if rong(tt_goc) else str(tt_goc).strip(), 255)
 
             for m in c.get("models") or []:
                 cb["tong_model_trong_file"] += 1
@@ -549,7 +560,8 @@ def boc_tach(goc):
                 # Khoá phải giống hệt khoá UNIQUE của DB (make, model_code, variant_key),
                 # nếu không Python gộp một kiểu còn DB gộp một kiểu.
                 bt = khoa_bien_the(nam_tu, nam_den, ts["engine"], ts["transmission"],
-                                   ts["drive_type"], ts["steering"], ts["gear_shift"])
+                                   ts["drive_type"], ts["steering"], ts["gear_shift"],
+                                   thi_truong)
                 khoa_xe = f"{make}|{ma_xe}|{bt}"
 
                 # Chú thích bản xe — ghi lên dòng fitment
@@ -565,7 +577,7 @@ def boc_tach(goc):
                         "model_name": cat(None if rong(ten_xe) else str(ten_xe).strip(), 200),
                         "year_from": nam_tu,
                         "year_to": nam_den,
-                        "description": cat(None if rong(thi_truong) else str(thi_truong).strip(), 255),
+                        "description": thi_truong,
                         **ts,
                     }
                 else:
@@ -575,8 +587,8 @@ def boc_tach(goc):
                     cu = xe[khoa_xe]
                     if rong(cu["model_name"]) and not rong(ten_xe):
                         cu["model_name"] = cat(str(ten_xe).strip(), 200)
-                    if rong(cu["description"]) and not rong(thi_truong):
-                        cu["description"] = cat(str(thi_truong).strip(), 255)
+                    # description KHÔNG bù nữa: nó nằm trong khoá, trùng khoá
+                    # nghĩa là thị trường đã giống nhau rồi
                     if rong(cu["specs_raw"]) and ts["specs_raw"]:
                         cu["specs_raw"] = ts["specs_raw"]
 

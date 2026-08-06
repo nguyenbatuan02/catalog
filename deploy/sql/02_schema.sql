@@ -109,6 +109,12 @@ CREATE TABLE catalog_vehicles (
   -- Cột này tự gộp các thông số phân biệt lại. KHÔNG hiện cho người dùng,
   -- chỉ để chống trùng. COALESCE về chuỗi rỗng vì NULL <> NULL trong
   -- UNIQUE — không có nó thì xe chưa điền thông số sẽ trùng thoải mái.
+  --
+  -- description = THỊ TRƯỜNG (Europe / Japan / Australia...) cũng nằm trong
+  -- khoá. Không có nó thì nạp file Porsche_Japan sau file Porsche_Europe sẽ
+  -- trộn vào nhau: chỉ còn một dòng mang nhãn "Europe", mà phụ tùng bản Nhật
+  -- vẫn gắn vào đó → nhãn sai. Tách ra KHÔNG làm mất kết quả tra cứu vì câu
+  -- tra của app khớp model_code bằng ILIKE nên vẫn nhận cả hai dòng.
   variant_key text GENERATED ALWAYS AS (
     upper(
       coalesce(year_from::text, '') || '|' ||
@@ -117,7 +123,8 @@ CREATE TABLE catalog_vehicles (
       coalesce(transmission,    '') || '|' ||
       coalesce(drive_type,      '') || '|' ||
       coalesce(steering,        '') || '|' ||
-      coalesce(gear_shift,      '')
+      coalesce(gear_shift,      '') || '|' ||
+      coalesce(description,     '')
     )
   ) STORED,
 
