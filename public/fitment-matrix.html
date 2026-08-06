@@ -72,12 +72,13 @@ tr:hover td.fix,tr:hover td.fix2,tr:hover td.fix3{background:#f0f4ff}
   </div>
   <div class="field">
     <label>Số dòng/trang</label>
-    <!-- Mặc định 20: mỗi dòng phải so tên phụ tùng với 122 mẫu, để 100 hay
-         dính timeout 30s (HTTP 503). Cần xem nhiều thì lọc theo tên model. -->
+    <!-- Độ phủ nay tính sẵn trong catalog_fitment_matrix nên đọc rất nhanh
+         (500 dòng ~0,2s). Trước đây mỗi lần mở trang phải dò 122 mẫu chữ
+         cho từng phụ tùng nên 100 dòng đã dính timeout 30s. -->
     <select id="lim">
-      <option value="20" selected>20</option>
+      <option value="20">20</option>
       <option value="50">50</option>
-      <option value="100">100</option>
+      <option value="100" selected>100</option>
       <option value="200">200</option>
       <option value="500">500</option>
     </select>
@@ -85,6 +86,8 @@ tr:hover td.fix,tr:hover td.fix2,tr:hover td.fix3{background:#f0f4ff}
   <button class="pri" onclick="load(1)">🔍 Tìm kiếm</button>
   <button onclick="reset()">✕ Xóa</button>
   <button onclick="exportCsv()">⬇ Xuất CSV</button>
+  <button onclick="tinhLai()" id="btn-tinh" title="Dò lại tên phụ tùng để cập nhật các cột ✓/✗. Chạy sau mỗi lần nạp thêm dữ liệu.">⟳ Tính lại độ phủ</button>
+  <span id="tinh-luc" style="margin-left:8px;font-size:12px;color:#666"></span>
 </div>
 
 <div class="stats" id="stats" style="display:none">
@@ -199,6 +202,7 @@ async function load(page) {
     allRows = d.data || [];
     totalRows = d.total || 0;
     totalPages = d.totalPages || 1;
+    hienLucTinh(allRows);
     renderStats();
     applyFilter();
     document.getElementById('fbar').style.display = 'flex';
@@ -319,6 +323,40 @@ function exportCsv() {
 document.getElementById('mn').addEventListener('keydown', e => {
   if (e.key === 'Enter') load(1);
 });
+
+// Bấm để dò lại tên phụ tùng và cất kết quả vào bảng tính sẵn.
+// Chỉ chạy khi bấm — mở trang thì chỉ đọc kết quả, nên nhanh.
+async function tinhLai(){
+  const mk = document.getElementById('mk').value;
+  const nut = document.getElementById('btn-tinh');
+  const cu = nut.textContent;
+  nut.disabled = true;
+  nut.textContent = '⏳ Đang tính…';
+  try {
+    const r = await fetch('/api/v1/catalog/fitment-matrix/rebuild?make=' + encodeURIComponent(mk),
+                          { method: 'POST' });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+    alert(`Đã tính lại ${d.vehicles} xe của hãng ${d.make} trong ${d.seconds}s.`);
+    load(curPage || 1);
+  } catch (e) {
+    alert('Tính lại không được: ' + (e.message || e));
+  } finally {
+    nut.disabled = false;
+    nut.textContent = cu;
+  }
+}
+
+// Cho biết số liệu đang xem tính từ lúc nào — tránh nhìn nhầm số cũ.
+function hienLucTinh(rows){
+  const el = document.getElementById('tinh-luc');
+  const luc = rows.map(r => r.matrix_updated_at).filter(Boolean).sort().pop();
+  if (!luc) {
+    el.innerHTML = '<b style="color:#c62828">Chưa tính độ phủ — bấm “Tính lại độ phủ”</b>';
+  } else {
+    el.textContent = 'Độ phủ tính lúc: ' + new Date(luc).toLocaleString('vi-VN');
+  }
+}
 
 // Nạp danh sách hãng THẲNG TỪ DB, kèm số xe mỗi hãng.
 // Hãng nào không có xe nào thì không hiện — khỏi chọn nhầm rồi ra bảng rỗng.

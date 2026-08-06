@@ -141,6 +141,27 @@ CREATE TABLE catalog_fitments (
 
 
 -- ─────────────────────────────────────────────────────────────
+-- KẾT QUẢ ĐỘ PHỦ TÍNH SẴN  (cho trang /fitment-matrix)
+-- ─────────────────────────────────────────────────────────────
+-- Trang ma trận phải dò tên từng phụ tùng với 122 mẫu chữ để biết xe có
+-- những nhóm nào (bugi, lọc dầu, má phanh...). Làm việc đó mỗi lần mở
+-- trang thì 100 xe đã quá 30 giây, trả về lỗi 503.
+--
+-- Phụ tùng của một xe gần như không đổi, nên tính MỘT LẦN rồi cất vào đây:
+--   mask = 50 bit, bit thứ i bật nghĩa là xe có nhóm phụ tùng thứ i
+-- Mở trang chỉ còn là đọc bảng này ra — tức thì, không còn dò chữ.
+--
+-- Tính lại bằng:  POST /api/v1/catalog/fitment-matrix/rebuild
+-- CHẠY SAU MỖI LẦN NẠP THÊM DỮ LIỆU, không thì số liệu sẽ cũ.
+CREATE TABLE catalog_fitment_matrix (
+  vehicle_id  uuid PRIMARY KEY REFERENCES catalog_vehicles(id) ON DELETE CASCADE,
+  total_parts integer     NOT NULL DEFAULT 0,
+  mask        bigint      NOT NULL DEFAULT 0,
+  updated_at  timestamptz NOT NULL DEFAULT now()
+);
+
+
+-- ─────────────────────────────────────────────────────────────
 -- SẢN PHẨM THAY THẾ
 -- ─────────────────────────────────────────────────────────────
 CREATE TABLE catalog_alternatives (

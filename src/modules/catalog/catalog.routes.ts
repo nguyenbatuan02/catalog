@@ -115,9 +115,11 @@ const MATRIX_CATEGORIES: [string, string][] = [
 //   2) CTE prod: tag moi SAN PHAM DISTINCT dung 1 lan (cac bien the cung model dung chung phan lon
 //      phu tung → so san pham distinct nho hon nhieu so voi so dong fitment).
 //   3) BOOL_OR(prod.x) gop theo xe. total_parts = so product distinct/xe; total = tong xe khop filter.
+// ĐỌC ma trận — chỉ lấy kết quả đã tính sẵn trong catalog_fitment_matrix.
+// Không dò chữ gì ở đây nữa nên nhanh bất kể bao nhiêu xe.
 const FITMENT_MATRIX_SQL = (() => {
-  const prodTags = MATRIX_CATEGORIES.map(([a, e]) => `      (${e}) AS ${a}`).join(',\n');
-  const boolAgg  = MATRIX_CATEGORIES.map(([a]) => `    BOOL_OR(prod.${a}) AS ${a}`).join(',\n');
+  const bits = MATRIX_CATEGORIES.map(([a], i) =>
+    `      (COALESCE(m.mask,0) & (1::bigint << ${i})) <> 0 AS ${a}`).join(',\n');
   return `
     WITH page AS (
       SELECT id, model_code, model_name, make, year_from, year_to
@@ -125,46 +127,52 @@ const FITMENT_MATRIX_SQL = (() => {
       WHERE make = $1 AND ($2::text IS NULL OR model_name ILIKE '%' || $2 || '%')
       ORDER BY model_name, model_code, year_from, id
       LIMIT $3 OFFSET $4
-    ),
-    pf AS (
-      SELECT DISTINCT vehicle_id, product_id
-      FROM catalog_fitments
-      WHERE vehicle_id IN (SELECT id FROM page)
-    ),
-    prod AS (
-      SELECT p.id,
-${prodTags}
-      FROM catalog_products p
-      -- Gộp SẴN tên Việt + tên gốc tiếng Anh + mã, hạ chữ thường MỘT LẦN.
-      -- Hai lý do:
-      --  1) Cột name giờ ưu tiên tiếng Việt (xem scripts/nap_json.py), nên dò
-      --     '%spark plug%' trên riêng name là trượt hết — phụ tùng tên "bugi"
-      --     bị đánh ✗ dù thực tế có. Bản tiếng Anh nằm trong search_text.
-      --  2) Dò LIKE trên chuỗi đã lower() nhanh hơn hẳn ILIKE (không phải
-      --     gấp-chữ lại ở từng phép so, mà mỗi dòng phải so tới 122 mẫu).
-      CROSS JOIN LATERAL (
-        SELECT lower(COALESCE(p.search_text,'') || ' ' ||
-                     COALESCE(p.name,'')        || ' ' ||
-                     COALESCE(p.name_vi,'')) AS txt
-      ) t
-      WHERE p.id IN (SELECT product_id FROM pf)
     )
     SELECT
       pg.model_code, pg.model_name, pg.make, pg.year_from, pg.year_to,
-      COUNT(pf.product_id)::int AS total_parts,
-      -- coverage_score do hệ thống cào chấm, nằm ở catalog_crawl_jobs.
-      -- Ma trận độ phủ vốn chỉ cần products + fitments + vehicles, nên KHÔNG
-      -- đọc bảng đó nữa: DB nào không dựng hệ thống cào thì trang này vẫn chạy.
-      -- Vẫn trả về trường coverage_score (rỗng) để giao diện không phải sửa.
+      COALESCE(m.total_parts, 0) AS total_parts,
+      m.updated_at AS matrix_updated_at,
       NULL::int AS coverage_score,
-${boolAgg},
+${bits},
       (SELECT COUNT(*) FROM catalog_vehicles v
         WHERE v.make = $1 AND ($2::text IS NULL OR v.model_name ILIKE '%' || $2 || '%')) AS total
     FROM page pg
-    LEFT JOIN pf   ON pf.vehicle_id = pg.id
-    LEFT JOIN prod ON prod.id = pf.product_id
-    GROUP BY pg.id, pg.model_code, pg.model_name, pg.make, pg.year_from, pg.year_to
+    LEFT JOIN catalog_fitment_matrix m ON m.vehicle_id = pg.id
     ORDER BY pg.model_name, pg.model_code, pg.year_from, pg.id`;
+})();
+
+// TÍNH ma trận — chỗ DUY NHẤT còn dò 122 mẫu chữ. Chạy sau khi nạp dữ liệu.
+// Gộp sẵn tên Việt + tên gốc tiếng Anh + mã rồi hạ chữ thường MỘT LẦN:
+//  - cột name nay ưu tiên tiếng Việt (xem scripts/nap_json.py) nên dò riêng
+//    nó là trượt hết — phụ tùng tên "bugi" bị đánh thiếu dù thực tế có;
+//    bản tiếng Anh nằm trong search_text
+//  - LIKE trên chuỗi đã lower() nhanh hơn ILIKE vì không phải gấp chữ lại
+//    ở từng phép so
+const FITMENT_MATRIX_BUILD_SQL = (() => {
+  const bitExpr = MATRIX_CATEGORIES.map(([, e], i) =>
+    `        CASE WHEN ${e} THEN (1::bigint << ${i}) ELSE 0 END`).join(' |\n');
+  return `
+    INSERT INTO catalog_fitment_matrix (vehicle_id, total_parts, mask, updated_at)
+    SELECT f.vehicle_id,
+           COUNT(DISTINCT f.product_id)::int,
+           COALESCE(BIT_OR(
+${bitExpr}
+           ), 0),
+           now()
+    FROM catalog_fitments f
+    JOIN catalog_products p ON p.id = f.product_id
+    CROSS JOIN LATERAL (
+      SELECT lower(COALESCE(p.search_text,'') || ' ' ||
+                   COALESCE(p.name,'')        || ' ' ||
+                   COALESCE(p.name_vi,'')) AS txt
+    ) t
+    WHERE ($1::text IS NULL OR f.vehicle_id IN
+             (SELECT id FROM catalog_vehicles WHERE make = $1))
+    GROUP BY f.vehicle_id
+    ON CONFLICT (vehicle_id) DO UPDATE SET
+      total_parts = EXCLUDED.total_parts,
+      mask        = EXCLUDED.mask,
+      updated_at  = now()`;
 })();
 
 export async function catalogRoutes(fastify: FastifyInstance) {
@@ -1550,6 +1558,38 @@ export async function catalogRoutes(fastify: FastifyInstance) {
   //   ?make=Toyota (bat buoc) &model_name=INNOVA (optional, ILIKE) &page=1 &limit=100 (max 500)
   //   Tra { data:[{model_code,model_name,make,year_from,year_to,total_parts, <50 bool danh muc>}], total,page,limit,totalPages }
   // ============================================================
+  // POST /fitment-matrix/rebuild  — tính lại độ phủ, cất vào catalog_fitment_matrix.
+  //   ?make=Suzuki  → chỉ tính lại một hãng (nhanh hơn nhiều)
+  //   không có make → tính lại toàn bộ
+  // CHẠY SAU MỖI LẦN NẠP DỮ LIỆU. Đây là chỗ duy nhất còn dò chữ nên chậm,
+  // nhưng chỉ chạy khi bạn gọi, không phải mỗi lần mở trang.
+  fastify.post<{ Querystring: { make?: string } }>(
+    '/fitment-matrix/rebuild', async (req, reply) => {
+      const make = (req.query.make || '').trim() || null;
+      const batDau = Date.now();
+      const client = await pool.connect();
+      try {
+        // Xe không còn fitment nào thì xoá khỏi bảng, nếu không sẽ giữ số cũ mãi
+        await client.query(
+          `DELETE FROM catalog_fitment_matrix m
+           WHERE ($1::text IS NULL OR EXISTS (
+                    SELECT 1 FROM catalog_vehicles v
+                    WHERE v.id = m.vehicle_id AND v.make = $1))
+             AND NOT EXISTS (SELECT 1 FROM catalog_fitments f WHERE f.vehicle_id = m.vehicle_id)`,
+          [make]);
+        const res = await client.query(FITMENT_MATRIX_BUILD_SQL, [make]);
+        const giay = Math.round((Date.now() - batDau) / 100) / 10;
+        fastify.log.info(`[fitment-matrix/rebuild] make=${make ?? 'tất cả'} → ${res.rowCount} xe, ${giay}s`);
+        return reply.send({ ok: true, make: make ?? 'tất cả', vehicles: res.rowCount, seconds: giay });
+      } catch (e: any) {
+        fastify.log.error('[fitment-matrix/rebuild] ' + e.message);
+        return reply.status(500).send({ error: e.message });
+      } finally {
+        client.release();
+      }
+    }
+  );
+
   fastify.get<{ Querystring: { make?:string; model_name?:string; page?:string; limit?:string } }>(
     '/fitment-matrix', async (req, reply) => {
       const { make, model_name, page='1', limit='100' } = req.query;

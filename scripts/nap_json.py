@@ -777,6 +777,11 @@ def nap(duong_dan, chay_thu):
         if hong:
             print(f"  ⚠ {so_dep(hong)} fitment bỏ qua vì không khớp được id")
         print("")
+        print("  ── Việc còn lại ──")
+        print("  Trang /fitment-matrix đọc số liệu ĐÃ TÍNH SẴN nên chưa thấy dữ liệu")
+        print("  vừa nạp. Bấm nút “⟳ Tính lại độ phủ” trên trang đó, hoặc chạy:")
+        print("      curl -X POST http://localhost:3001/api/v1/catalog/fitment-matrix/rebuild")
+        print("")
     except Exception as e:
         conn.rollback()
         print(f"\n✗ LỖI — đã huỷ toàn bộ, DB giữ nguyên như trước:\n  {e}")
