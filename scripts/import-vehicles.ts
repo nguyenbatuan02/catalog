@@ -41,7 +41,7 @@ try {
       await client.query(`
         INSERT INTO catalog_vehicles (make, model_code, model_name, vehicle_type, year_from, year_to, odoo_ref)
         VALUES ($1,$2,$3,$4,$5,$6,$7)
-        ON CONFLICT (make, model_code) DO UPDATE SET
+        ON CONFLICT (make, model_code, variant_key) DO UPDATE SET
           model_name   = COALESCE(EXCLUDED.model_name, catalog_vehicles.model_name),
           vehicle_type = COALESCE(EXCLUDED.vehicle_type, catalog_vehicles.vehicle_type),
           odoo_ref     = COALESCE(EXCLUDED.odoo_ref, catalog_vehicles.odoo_ref),

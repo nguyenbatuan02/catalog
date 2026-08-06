@@ -335,7 +335,7 @@ server.post('/api/v1/catalog/fitments/import', async (req, reply) => {
         const insV = await pool.query(
           `INSERT INTO catalog_vehicles (make, model_name, model_code, year_from, year_to)
            VALUES ($1, $2, $3, $4, $5)
-           ON CONFLICT (make, model_code) DO UPDATE SET model_name = EXCLUDED.model_name
+           ON CONFLICT (make, model_code, variant_key) DO UPDATE SET model_name = EXCLUDED.model_name
            RETURNING id`,
           ['Toyota', m.model_name || '', modelCode, yearFrom, yearTo]
         );
@@ -561,7 +561,7 @@ server.post<{ Body: { partNumber: string; brand?: string; vehicles: any[] } }>(
         const insV = await pool.query(
           `INSERT INTO catalog_vehicles (make, model_name, model_code, year_from, year_to)
            VALUES ($1,$2,$3,$4,$5)
-           ON CONFLICT (make, model_code) DO UPDATE SET model_name=EXCLUDED.model_name
+           ON CONFLICT (make, model_code, variant_key) DO UPDATE SET model_name=EXCLUDED.model_name
            RETURNING id`,
           [make, modelName, codeKey, yearFrom, yearTo]);
         vehicleId = insV.rows[0].id;

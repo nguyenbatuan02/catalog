@@ -59,13 +59,14 @@ CAU_HINH = {
     #                                       Để nhầm là hỏng dữ liệu xe)
     #   Để None thì script lấy TÊN xe làm mã thay thế.
     #
-    #   ĐIỀN DANH SÁCH khi một mã dùng cho nhiều bản xe khác nhau.
-    #   Hay gặp ở Nissan: mã JJ10E dùng chung cho bản 2WD lẫn 4WD, bản ST
-    #   lẫn TI — gộp lại thì khách hỏi xe 2WD sẽ thấy cả phụ tùng 4WD.
-    #   Ghép thêm trường phân biệt để tách ra:
-    #       "model_code": ["model", "grade", "gearbox"]
-    #                                   →  "JJ10E-ST-M-CVT"
-    #   Trường nào rỗng thì tự bỏ qua. Chạy --soi để xem file có trường gì.
+    #   CỨ ĐỂ MỘT TRƯỜNG, đừng ghép. Một mã dùng chung cho nhiều bản xe
+    #   (Nissan: Z33 có cả COUPE lẫn CONVERTIBLE, AT lẫn MT) thì DB đã tự
+    #   tách nhờ cột sinh variant_key — xem 02_schema.sql. Mã cứ để ngắn
+    #   là "Z33" cho dễ tra và khớp VIN; muốn phân biệt thì điền các cột
+    #   THÔNG SỐ ở ngay dưới, chúng chính là thứ tạo nên variant_key.
+    #
+    #   (Vẫn nhận danh sách ["model","grade"] nếu bạn thực sự muốn mã ghép,
+    #    nhưng thường không cần nữa.)
     "model_code":   "model",
 
     # tầng 3 → các cột THÔNG SỐ XE. Để None nếu file không có.
@@ -74,8 +75,11 @@ CAU_HINH = {
     #       "engine":     "engine",     → MR20DE
     #       "gear_shift": "gearbox",    → M-CVT
     #       "specs_raw":  "options",    → SEAT TYPE:3 ROW SEATS; ...WHEEL DRIVE:2WD...
-    #   Điền mấy cột này thì nhân viên nhìn xe là biết máy gì, số gì,
-    #   không phải đoán — kể cả khi các bản xe bị gộp chung một mã.
+    #
+    #   ★ QUAN TRỌNG: 5 cột engine / transmission / drive_type / steering /
+    #     gear_shift (cùng với năm) chính là thứ DB dùng để PHÂN BIỆT các bản
+    #     xe trùng mã. Không điền thì mọi bản gộp làm một dòng.
+    #     specs_raw KHÔNG tham gia phân biệt, chỉ để xem.
     "vehicle_type": None,      # → vehicle_type   (car / truck / bus...)
     "engine":       None,      # → engine
     "transmission": None,      # → transmission
@@ -238,6 +242,18 @@ def lay(m, khoa):
         return " | ".join(phan) or None
     v = m.get(kh)
     return None if rong(v) else str(v).strip()
+
+
+def khoa_bien_the(nam_tu, nam_den, engine, transmission, drive_type, steering, gear_shift):
+    """Ghép các thông số phân biệt bản xe thành một chuỗi.
+
+    PHẢI khớp ĐÚNG công thức cột sinh variant_key trong deploy/sql/02_schema.sql:
+        upper(coalesce(year_from::text,'')||'|'||coalesce(year_to::text,'')||'|'
+              ||coalesce(engine,'')||'|'||...)
+    Lệch công thức là Python gộp một kiểu, DB gộp một kiểu → sai số lượng xe.
+    """
+    p = [nam_tu, nam_den, engine, transmission, drive_type, steering, gear_shift]
+    return "|".join("" if x is None else str(x) for x in p).upper()
 
 
 def lay_ma_xe(m, ten_xe):
@@ -483,7 +499,24 @@ def boc_tach(goc):
                 if dung_tam:
                     cb["model_thieu_ma"] += 1
 
-                khoa_xe = f"{make}|{ma_xe}"
+                # Thông số phân biệt — đọc TRƯỚC vì chúng tham gia vào khoá
+                ts = {
+                    "vehicle_type": cat(lay(m, "vehicle_type"), 50),
+                    "engine":       cat(lay(m, "engine"), 100),
+                    "transmission": cat(lay(m, "transmission"), 50),
+                    "drive_type":   cat(lay(m, "drive_type"), 20),
+                    "steering":     cat(lay(m, "steering"), 10),
+                    "gear_shift":   cat(lay(m, "gear_shift"), 50),
+                    "specs_raw":    lay(m, "specs_raw"),
+                }
+                nam_tu, nam_den = tach_nam(
+                    m.get(cfg["year_from_to"]) if cfg["year_from_to"] else None)
+
+                # Khoá phải giống hệt khoá UNIQUE của DB (make, model_code, variant_key),
+                # nếu không Python gộp một kiểu còn DB gộp một kiểu.
+                bt = khoa_bien_the(nam_tu, nam_den, ts["engine"], ts["transmission"],
+                                   ts["drive_type"], ts["steering"], ts["gear_shift"])
+                khoa_xe = f"{make}|{ma_xe}|{bt}"
 
                 # Chú thích bản xe — ghi lên dòng fitment
                 ghi_chu = None
@@ -491,9 +524,6 @@ def boc_tach(goc):
                 if kh_gc:
                     ghi_chu = " | ".join(str(m.get(k)).strip()
                                          for k in kh_gc if not rong(m.get(k))) or None
-                nam_tu, nam_den = tach_nam(
-                    m.get(cfg["year_from_to"]) if cfg["year_from_to"] else None)
-
                 if khoa_xe not in xe:
                     xe[khoa_xe] = {
                         "make": cat(make, 100),
@@ -502,38 +532,19 @@ def boc_tach(goc):
                         "year_from": nam_tu,
                         "year_to": nam_den,
                         "description": cat(None if rong(thi_truong) else str(thi_truong).strip(), 255),
-                        "vehicle_type": cat(lay(m, "vehicle_type"), 50),
-                        "engine": cat(lay(m, "engine"), 100),
-                        "transmission": cat(lay(m, "transmission"), 50),
-                        "drive_type": cat(lay(m, "drive_type"), 20),
-                        "steering": cat(lay(m, "steering"), 10),
-                        "gear_shift": cat(lay(m, "gear_shift"), 50),
-                        "specs_raw": lay(m, "specs_raw"),
+                        **ts,
                     }
                 else:
-                    # Đã gặp mã này rồi → NỚI RỘNG khoảng năm thay vì vứt bản sau.
-                    # File hay có cùng một mã xe lặp lại theo từng đời:
-                    #   KUN40L-GKMDYM  01.2005 - 02.2012
-                    #   KUN40L-GKMDYM  02.2012 - 03.2016
-                    # Gộp lại thành 2005 - 2016 mới đúng, giữ bản đầu là mất đời sau.
+                    # Cùng khoá = giống nhau cả mã lẫn năm lẫn thông số → thật sự
+                    # là một xe. Chỉ bù các ô mô tả còn trống, không đụng tới
+                    # phần tạo nên khoá.
                     cu = xe[khoa_xe]
-                    if nam_tu is not None:
-                        cu["year_from"] = (nam_tu if cu["year_from"] is None
-                                           else min(cu["year_from"], nam_tu))
-                    if nam_den is not None:
-                        cu["year_to"] = (nam_den if cu["year_to"] is None
-                                         else max(cu["year_to"], nam_den))
                     if rong(cu["model_name"]) and not rong(ten_xe):
                         cu["model_name"] = cat(str(ten_xe).strip(), 200)
-                    # Thông số: dòng đầu để trống thì lấy của dòng sau bù vào
-                    for k, gh in (("vehicle_type", 50), ("engine", 100),
-                                  ("transmission", 50), ("drive_type", 20),
-                                  ("steering", 10), ("gear_shift", 50),
-                                  ("specs_raw", None)):
-                        if rong(cu.get(k)):
-                            v = lay(m, k)
-                            if v:
-                                cu[k] = cat(v, gh) if gh else v
+                    if rong(cu["description"]) and not rong(thi_truong):
+                        cu["description"] = cat(str(thi_truong).strip(), 255)
+                    if rong(cu["specs_raw"]) and ts["specs_raw"]:
+                        cu["specs_raw"] = ts["specs_raw"]
 
                 # Ghi nhận MỌI lần gộp để báo lại — kể cả khi file có sẵn mã.
                 # (trước đây chỉ báo khi model thiếu mã nên gộp diễn ra im lặng)
@@ -686,29 +697,19 @@ def nap(duong_dan, chay_thu):
                      vehicle_type, engine, transmission, drive_type, steering,
                      gear_shift, specs_raw)
                 VALUES %s
-                ON CONFLICT (make, model_code) DO UPDATE SET
-                    model_name   = COALESCE(EXCLUDED.model_name,   catalog_vehicles.model_name),
-                    -- thông số: chỉ điền khi đang trống, không đè cái đã có
-                    vehicle_type = COALESCE(catalog_vehicles.vehicle_type, EXCLUDED.vehicle_type),
-                    engine       = COALESCE(catalog_vehicles.engine,       EXCLUDED.engine),
-                    transmission = COALESCE(catalog_vehicles.transmission, EXCLUDED.transmission),
-                    drive_type   = COALESCE(catalog_vehicles.drive_type,   EXCLUDED.drive_type),
-                    steering     = COALESCE(catalog_vehicles.steering,     EXCLUDED.steering),
-                    gear_shift   = COALESCE(catalog_vehicles.gear_shift,   EXCLUDED.gear_shift),
-                    specs_raw    = COALESCE(catalog_vehicles.specs_raw,    EXCLUDED.specs_raw),
-                    description  = COALESCE(catalog_vehicles.description,  EXCLUDED.description),
-                    -- Nới rộng khoảng năm thay vì đè. LEAST/GREATEST của Postgres
-                    -- tự bỏ qua NULL nên xe chưa có năm cũng an toàn.
-                    -- Nhờ vậy nạp lại file, hay nạp thêm file khác cùng mã xe,
-                    -- khoảng năm chỉ rộng ra chứ không mất.
-                    year_from  = LEAST(catalog_vehicles.year_from,  EXCLUDED.year_from),
-                    year_to    = GREATEST(catalog_vehicles.year_to, EXCLUDED.year_to),
-                    updated_at = now()
-                RETURNING id, make, model_code
-            """, hang_xe[i:i + 500], fetch=True)
+                ON CONFLICT (make, model_code, variant_key) DO UPDATE SET
+                    -- Khớp khoá nghĩa là mã, năm và toàn bộ thông số đã giống
+                    -- nhau → đúng là một xe. Chỉ bù mấy ô mô tả còn trống,
+                    -- không đụng vào phần tạo nên khoá.
+                    model_name  = COALESCE(catalog_vehicles.model_name,  EXCLUDED.model_name),
+                    description = COALESCE(catalog_vehicles.description, EXCLUDED.description),
+                    specs_raw   = COALESCE(catalog_vehicles.specs_raw,   EXCLUDED.specs_raw),
+                    updated_at  = now()
+                RETURNING id, make, model_code, variant_key
+            """, hang_xe[i:i + 400], fetch=True)
             for r in rows:
-                id_xe[f"{r[1]}|{r[2]}"] = r[0]
-            print(f"\r    {so_dep(min(i + 500, len(hang_xe)))}/{so_dep(len(hang_xe))}", end="")
+                id_xe[f"{r[1]}|{r[2]}|{r[3]}"] = r[0]
+            print(f"\r    {so_dep(min(i + 400, len(hang_xe)))}/{so_dep(len(hang_xe))}", end="")
         if hang_xe:
             print()
 

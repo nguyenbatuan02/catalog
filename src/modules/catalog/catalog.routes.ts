@@ -374,7 +374,7 @@ export async function catalogRoutes(fastify: FastifyInstance) {
     const res = await pool.query(`
       INSERT INTO catalog_vehicles (make,model_code,model_name,vehicle_type,year_from,year_to,odoo_ref)
       VALUES ($1,$2,$3,$4,$5,$6,$7)
-      ON CONFLICT (make,model_code) DO UPDATE SET
+      ON CONFLICT (make,model_code,variant_key) DO UPDATE SET
         model_name=COALESCE(EXCLUDED.model_name,catalog_vehicles.model_name),
         year_from=COALESCE(EXCLUDED.year_from,catalog_vehicles.year_from),
         year_to=COALESCE(EXCLUDED.year_to,catalog_vehicles.year_to),
@@ -414,7 +414,7 @@ export async function catalogRoutes(fastify: FastifyInstance) {
       const upRes = await pool.query(`
         INSERT INTO catalog_vehicles (make,model_code,model_name,vehicle_type,year_from,year_to,created_at,updated_at)
         VALUES ($1,$2,$3,'car',$4,$5,NOW(),NOW())
-        ON CONFLICT (make,model_code) DO UPDATE SET
+        ON CONFLICT (make,model_code,variant_key) DO UPDATE SET
           year_from=COALESCE(catalog_vehicles.year_from,EXCLUDED.year_from),
           year_to=COALESCE(catalog_vehicles.year_to,EXCLUDED.year_to), updated_at=NOW()
         RETURNING id, (xmax=0) AS inserted
@@ -442,7 +442,7 @@ export async function catalogRoutes(fastify: FastifyInstance) {
         await pool.query(`
           INSERT INTO catalog_vehicles (make,model_code,model_name,vehicle_type,year_from,year_to,engine,transmission,steering,gear_shift,drive_type,specs_raw,description,specs_fetched)
           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,NOW())
-          ON CONFLICT (make,model_code) DO UPDATE SET
+          ON CONFLICT (make,model_code,variant_key) DO UPDATE SET
             model_name=COALESCE(EXCLUDED.model_name,catalog_vehicles.model_name), year_from=EXCLUDED.year_from, year_to=EXCLUDED.year_to,
             engine=COALESCE(EXCLUDED.engine,catalog_vehicles.engine), transmission=COALESCE(EXCLUDED.transmission,catalog_vehicles.transmission),
             steering=COALESCE(EXCLUDED.steering,catalog_vehicles.steering), gear_shift=COALESCE(EXCLUDED.gear_shift,catalog_vehicles.gear_shift),
@@ -928,7 +928,7 @@ export async function catalogRoutes(fastify: FastifyInstance) {
       const vRes = await client.query(`
         INSERT INTO catalog_vehicles (make, model_code, model_name, vehicle_type, year_from, year_to, mfg_from, mfg_to, created_at, updated_at)
         VALUES ($1,$2,$3,'car',$4,$5,$6,$7,NOW(),NOW())
-        ON CONFLICT (make, model_code) DO UPDATE SET
+        ON CONFLICT (make, model_code, variant_key) DO UPDATE SET
           model_name = COALESCE(catalog_vehicles.model_name, EXCLUDED.model_name),
           year_from  = COALESCE(catalog_vehicles.year_from,  EXCLUDED.year_from),
           year_to    = COALESCE(catalog_vehicles.year_to,    EXCLUDED.year_to),
@@ -1056,7 +1056,7 @@ export async function catalogRoutes(fastify: FastifyInstance) {
       const vRes = await client.query(`
         INSERT INTO catalog_vehicles (make, model_code, model_name, vehicle_type, year_from, year_to, mfg_from, mfg_to, created_at, updated_at)
         VALUES ($1,$2,$3,'car',$4,$5,$6,$7,NOW(),NOW())
-        ON CONFLICT (make, model_code) DO UPDATE SET
+        ON CONFLICT (make, model_code, variant_key) DO UPDATE SET
           model_name = COALESCE(catalog_vehicles.model_name, EXCLUDED.model_name),
           year_from  = COALESCE(catalog_vehicles.year_from,  EXCLUDED.year_from),
           year_to    = COALESCE(catalog_vehicles.year_to,    EXCLUDED.year_to),
@@ -1226,7 +1226,7 @@ export async function catalogRoutes(fastify: FastifyInstance) {
         const veh = await client.query(`
           INSERT INTO catalog_vehicles (make, model_name, model_code, year_from, year_to, vehicle_type, created_at, updated_at)
           VALUES ($1,$2,$3,$4,$5,'car',NOW(),NOW())
-          ON CONFLICT (make, model_code) DO UPDATE SET
+          ON CONFLICT (make, model_code, variant_key) DO UPDATE SET
             model_name = COALESCE(catalog_vehicles.model_name, EXCLUDED.model_name),
             year_from  = LEAST(catalog_vehicles.year_from,  EXCLUDED.year_from),
             year_to    = GREATEST(catalog_vehicles.year_to, EXCLUDED.year_to),

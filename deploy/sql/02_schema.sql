@@ -96,7 +96,33 @@ CREATE TABLE catalog_vehicles (
   mfg_from      text,
   mfg_to        text,
 
-  CONSTRAINT catalog_vehicles_make_model_code_key UNIQUE (make, model_code)
+  -- ══ KHOÁ PHÂN BIỆT CÁC BẢN XE ═══════════════════════════════
+  -- Một mã model thường dùng chung cho nhiều bản xe khác nhau:
+  --   Nissan  Z33   CONVERTIBLE / AT      ← 3 bản, cùng mã Z33
+  --   Nissan  Z33   COUPE       / AT
+  --   Nissan  Z33   COUPE       / MT
+  --   Toyota  KUN40L-GKMDYM  2005-2012    ← 2 đời, cùng mã
+  --   Toyota  KUN40L-GKMDYM  2012-2016
+  -- Khoá chỉ gồm (make, model_code) thì chúng gộp làm một → mất dữ liệu,
+  -- và tra theo năm không còn chính xác (hỏi đời 2016 lại ra đồ đời 2005).
+  --
+  -- Cột này tự gộp các thông số phân biệt lại. KHÔNG hiện cho người dùng,
+  -- chỉ để chống trùng. COALESCE về chuỗi rỗng vì NULL <> NULL trong
+  -- UNIQUE — không có nó thì xe chưa điền thông số sẽ trùng thoải mái.
+  variant_key text GENERATED ALWAYS AS (
+    upper(
+      coalesce(year_from::text, '') || '|' ||
+      coalesce(year_to::text,   '') || '|' ||
+      coalesce(engine,          '') || '|' ||
+      coalesce(transmission,    '') || '|' ||
+      coalesce(drive_type,      '') || '|' ||
+      coalesce(steering,        '') || '|' ||
+      coalesce(gear_shift,      '')
+    )
+  ) STORED,
+
+  -- Hai xe chỉ trùng khi CÙNG hãng, CÙNG mã VÀ cùng toàn bộ thông số.
+  CONSTRAINT catalog_vehicles_key UNIQUE (make, model_code, variant_key)
 );
 
 

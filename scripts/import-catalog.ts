@@ -32,7 +32,7 @@ async function upsertVehicle(make: string, model_code: string, opts?: any): Prom
   const r = await client.query(`
     INSERT INTO catalog_vehicles (make,model_code,model_name,year_from,year_to,odoo_ref)
     VALUES ($1,$2,$3,$4,$5,$6)
-    ON CONFLICT (make,model_code) DO UPDATE SET
+    ON CONFLICT (make,model_code,variant_key) DO UPDATE SET
       model_name=COALESCE(EXCLUDED.model_name,catalog_vehicles.model_name),
       year_from=COALESCE(EXCLUDED.year_from,catalog_vehicles.year_from),
       year_to=COALESCE(EXCLUDED.year_to,catalog_vehicles.year_to),
