@@ -824,9 +824,11 @@ async function renderVDParts(){
 
 async function delFitmentAndRefresh(id){
   if(!confirm('Xóa liên kết này?')) return;
-  await req(`/fitments/${id}`,{method:'DELETE'});
+  try{ await req(`/fitments/${id}`,{method:'DELETE'}); }
+  catch(e){ alert('Xóa không được: '+(e.message||e)); return; }
   delete vehFitCache[currentVehId];
-  await renderVDParts(); await loadAll();
+  await renderVDParts();
+  loadAll().catch(()=>{});
 }
 
 function renderVDExtra(){
@@ -931,11 +933,19 @@ async function saveVehicle(){
   }catch(e){showAlert('v-alert',e.message,'err');}
 }
 
+// Xoá xong phải vẽ lại bảng NGAY. Trước đây chờ loadAll() — hàm này gọi
+// /stats (đếm toàn bộ, DB lớn mất hàng chục giây) và /fitments (sắp xếp cả
+// bảng) — nên dòng vừa xoá vẫn nằm trên màn hình rất lâu, trông như không
+// xoá được. Tệ hơn: một trong hai lỗi là loadAll() nhảy vào catch và bảng
+// KHÔNG BAO GIỜ được vẽ lại.
+// Giờ: xoá → vẽ lại bảng ngay → số liệu tổng cập nhật sau ở nền.
 async function delVehicle(id){
   if(!confirm('Xóa model xe này? Các liên kết phụ tùng sẽ bị xóa theo.')) return;
-  await req(`/vehicles/${id}`,{method:'DELETE'});
+  try{ await req(`/vehicles/${id}`,{method:'DELETE'}); }
+  catch(e){ alert('Xóa không được: '+(e.message||e)); return; }
   if(currentVehId===id){goPage('vehicles');currentVehId=null;}
-  await loadAll();
+  await renderV();
+  loadAll().catch(()=>{});
 }
 
 function openPForm(id=null){
@@ -980,7 +990,11 @@ async function saveProd(){
 
 async function delProd(id){
   if(!confirm('Xóa sản phẩm này?')) return;
-  await req(`/products/${id}`,{method:'DELETE'}); await loadAll();
+  try{ await req(`/products/${id}`,{method:'DELETE'}); }
+  catch(e){ alert('Xóa không được: '+(e.message||e)); return; }
+  products=products.filter(x=>x.id!==id);
+  renderP();
+  loadAll().catch(()=>{});
 }
 
 function openFitmentForm(prefilledVehId=null){
@@ -1037,8 +1051,12 @@ async function saveFitment(){
 
 async function delFitment(id,refreshDetail=false){
   if(!confirm('Xóa liên kết này?')) return;
-  await req(`/fitments/${id}`,{method:'DELETE'}); await loadAll();
-  if(refreshDetail&&currentVehId) renderVDParts();
+  try{ await req(`/fitments/${id}`,{method:'DELETE'}); }
+  catch(e){ alert('Xóa không được: '+(e.message||e)); return; }
+  fitments=fitments.filter(x=>x.id!==id);
+  renderF();
+  if(refreshDetail&&currentVehId){ delete vehFitCache[currentVehId]; renderVDParts(); }
+  loadAll().catch(()=>{});
 }
 
 function renderPager(elId,cur,total,cb){

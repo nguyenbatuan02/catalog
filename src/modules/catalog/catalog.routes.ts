@@ -485,8 +485,13 @@ export async function catalogRoutes(fastify: FastifyInstance) {
   // ============================================================
   // FITMENTS (giu nguyen)
   // ============================================================
-  fastify.get('/fitments', async (_, reply) => {
-    const res = await pool.query(`SELECT * FROM catalog_fitments ORDER BY created_at DESC LIMIT 2000`);
+  // Truoc day BO QUA limit, luon lay 2000 dong -> tren bang fitment lon
+  // (chuc trieu dong) phai sap xep ca bang moi tra ve duoc. Giao dien goi
+  // ham nay moi lan loadAll() nen moi thao tac them/xoa deu cho rat lau.
+  fastify.get<{ Querystring:{ limit?:string } }>('/fitments', async (req, reply) => {
+    const limit = Math.min(Math.max(parseInt(req.query.limit || '100') || 100, 1), 2000);
+    const res = await pool.query(
+      `SELECT * FROM catalog_fitments ORDER BY created_at DESC LIMIT $1`, [limit]);
     return reply.send(res.rows);
   });
 

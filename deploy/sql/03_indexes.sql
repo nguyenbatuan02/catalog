@@ -62,6 +62,11 @@ CREATE INDEX IF NOT EXISTS idx_vehicles_year ON catalog_vehicles (year_from, yea
 -- Trên bảng ~29 triệu dòng, bỏ 1 index thừa tiết kiệm cỡ 1 GB.
 CREATE INDEX IF NOT EXISTS idx_fit_veh ON catalog_fitments (vehicle_id);
 
+-- Giao diện gọi GET /fitments (sắp xếp theo created_at giảm dần) mỗi lần
+-- làm mới. Không có index này thì Postgres phải quét và sắp xếp CẢ BẢNG
+-- chỉ để lấy 100 dòng mới nhất — trên bảng chục triệu dòng là treo giao diện.
+CREATE INDEX IF NOT EXISTS idx_fit_created ON catalog_fitments (created_at DESC);
+
 
 -- ─── TỪ ĐỒNG NGHĨA ───────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_synonyms_name    ON catalog_synonyms (lower(product_name));
