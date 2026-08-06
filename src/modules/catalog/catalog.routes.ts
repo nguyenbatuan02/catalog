@@ -140,10 +140,11 @@ ${prodTags}
     SELECT
       pg.model_code, pg.model_name, pg.make, pg.year_from, pg.year_to,
       COUNT(pf.product_id)::int AS total_parts,
-      -- coverage_score của model_line (crawl job). JOIN theo model_name (= crawl_jobs.model_line), KHÔNG phải model_code.
-      (SELECT cj.coverage_score FROM catalog_crawl_jobs cj
-        WHERE cj.make = pg.make AND cj.model_line = pg.model_name AND cj.status = 'done'
-        ORDER BY cj.coverage_checked_at DESC NULLS LAST LIMIT 1) AS coverage_score,
+      -- coverage_score do hệ thống cào chấm, nằm ở catalog_crawl_jobs.
+      -- Ma trận độ phủ vốn chỉ cần products + fitments + vehicles, nên KHÔNG
+      -- đọc bảng đó nữa: DB nào không dựng hệ thống cào thì trang này vẫn chạy.
+      -- Vẫn trả về trường coverage_score (rỗng) để giao diện không phải sửa.
+      NULL::int AS coverage_score,
 ${boolAgg},
       (SELECT COUNT(*) FROM catalog_vehicles v
         WHERE v.make = $1 AND ($2::text IS NULL OR v.model_name ILIKE '%' || $2 || '%')) AS total

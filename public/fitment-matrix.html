@@ -248,7 +248,7 @@ function renderTable(rows) {
   h += '<th class="fix" rowspan="2">Model code</th>';
   h += '<th class="fix fix2" rowspan="2">Năm</th>';
   h += '<th class="fix fix3" rowspan="2">Tổng PT</th>';
-  h += '<th style="left:267px;z-index:3;min-width:60px;max-width:60px;background:#e8e8e8;text-align:center" rowspan="2" title="coverage_score: độ phủ 50 loại PT của model (tín hiệu tham khảo)">Score</th>';
+  h += '<th style="left:267px;z-index:3;min-width:60px;max-width:60px;background:#e8e8e8;text-align:center" rowspan="2" title="Điểm này do hệ thống cào chấm. Không chạy hệ thống cào thì luôn rỗng (—) — xem cột số phụ tùng và các cột ✓/✗ bên phải.">Score</th>';
   groups.forEach(g => {
     const cnt = COLS.filter(c => c.g === g).length;
     h += `<th colspan="${cnt}" class="grp">${g}</th>`;

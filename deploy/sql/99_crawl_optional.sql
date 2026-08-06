@@ -4,11 +4,14 @@ SET client_encoding = 'UTF8';
 -- ============================================================
 -- 99_crawl_optional.sql — BẢNG CỦA HỆ THỐNG CÀO (TUỲ CHỌN)
 -- ============================================================
--- Bạn nói không cần cào nữa vì data đã đủ → BÌNH THƯỜNG KHÔNG CẦN CHẠY FILE NÀY.
+-- KHÔNG CẦN CHẠY nếu bạn không dùng hệ thống cào.
 --
--- Chỉ chạy khi gặp một trong hai trường hợp:
---   1. Mở trang /dashboard bị lỗi 500 "relation catalog_crawl_... does not exist"
---   2. Sau này muốn bật lại đội worker cào bổ sung
+-- Trang /fitment-matrix (ma trận độ phủ) KHÔNG cần file này — nó chỉ đọc
+-- catalog_products / catalog_fitments / catalog_vehicles.
+--
+-- Chỉ chạy khi:
+--   1. Muốn bật lại đội worker cào bổ sung
+--   2. Muốn mở trang /dashboard (trang theo dõi tiến độ cào)
 --
 -- Các bảng này tạo ra sẽ RỖNG và gần như không tốn dung lượng.
 --   psql -U catalog_user -d catalog -f 99_crawl_optional.sql
