@@ -25,7 +25,9 @@ Phụ tùng KHÔNG bị xoá trừ khi thêm --kem-phu-tung-mo-coi.
 import sys, os, json, argparse
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from nap_json import cau_hinh_db, CAU_HINH, rong, so_dep   # dùng chung .env + cấu hình
+# Dùng chung .env, cấu hình VÀ cách suy ra mã xe với nap_json.py —
+# hai bên phải tính ra cùng một mã, lệch nhau là xoá sót.
+from nap_json import cau_hinh_db, CAU_HINH, rong, so_dep, lay_ma_xe
 
 try:
     sys.stdout.reconfigure(encoding="utf-8")
@@ -49,12 +51,10 @@ def doc_cap_tu_file(duong_dan):
         for c in b.get("car_types") or []:
             for m in c.get("models") or []:
                 ten = m.get(cfg["model_name"]) if cfg["model_name"] else None
-                ma = m.get(cfg["model_code"]) if cfg["model_code"] else None
-                if rong(ma):
-                    if rong(ten):
-                        continue
-                    ma = str(ten).strip()
-                cap.add((make, str(ma).strip().upper()))
+                ma, _ = lay_ma_xe(m, ten)
+                if ma is None:
+                    continue
+                cap.add((make, ma))
     return sorted(cap)
 
 
@@ -95,6 +95,15 @@ def main():
                      "(SELECT * FROM unnest(%s::text[], %s::text[]))")
         tham_so = [[c[0] for c in cap], [c[1] for c in cap]]
 
+        print(f"\nMã tính được từ file (theo CAU_HINH hiện tại, "
+              f"model_code = {CAU_HINH['model_code']!r}):")
+        for c in cap[:5]:
+            print(f"     {c[0]} | {c[1]}")
+        if len(cap) > 5:
+            print(f"     ... và {so_dep(len(cap) - 5)} mã nữa")
+        print("  Nhìn qua xem đây có đúng là MÃ XE không. Nếu ra tên xe")
+        print("  (kiểu ALTO, SWIFT) thì CAU_HINH đang sai so với lúc nạp.")
+
     # ── Đếm trước ────────────────────────────────────────────────────
     cur.execute(f"SELECT count(*) FROM catalog_vehicles WHERE {dieu_kien}", tham_so)
     so_xe = cur.fetchone()[0]
@@ -106,6 +115,21 @@ def main():
     print(f"\nSẽ xoá: {mo_ta}")
     print(f"   Xe      : {so_dep(so_xe)}")
     print(f"   Fitment : {so_dep(so_fit)}   (tự mất theo xe)")
+
+    # Tính từ file ra N mã mà DB chỉ khớp ít hơn hẳn → gần như chắc chắn
+    # CAU_HINH lúc nạp khác CAU_HINH bây giờ.
+    if a.tu_file and so_xe < len(cap):
+        thieu = len(cap) - so_xe
+        print(f"\n  ⚠  File ra {so_dep(len(cap))} mã nhưng DB chỉ khớp {so_dep(so_xe)} "
+              f"— lệch {so_dep(thieu)}.")
+        print("     Thường là do CAU_HINH trong nap_json.py đã đổi kể từ lúc nạp,")
+        print("     nên mã suy ra bây giờ khác mã đã lưu. Xoá kiểu này sẽ SÓT.")
+        cur.execute("SELECT make, count(*) FROM catalog_vehicles GROUP BY make ORDER BY 2 DESC LIMIT 5")
+        print("\n     Xe đang có trong DB theo hãng:")
+        for r in cur.fetchall():
+            print(f"       {r[0]:<20} {so_dep(r[1])} xe")
+        print("\n     → Muốn xoá cho hết thì dùng --make thay vì --tu-file, ví dụ:")
+        print(f"          python scripts/xoa_xe.py --make {cap[0][0]} --xoa-that")
 
     if so_xe:
         cur.execute(f"""SELECT make, model_code, model_name, year_from, year_to

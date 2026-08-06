@@ -58,8 +58,26 @@ CAU_HINH = {
     #                                       "LIGHT TRUCK" = loại xe.
     #                                       Để nhầm là hỏng dữ liệu xe)
     #   Để None thì script lấy TÊN xe làm mã thay thế.
-    #   Không chắc thì chạy --soi, nó liệt kê trường có sẵn trong file.
+    #
+    #   ĐIỀN DANH SÁCH khi một mã dùng cho nhiều bản xe khác nhau.
+    #   Hay gặp ở Nissan: mã JJ10E dùng chung cho bản 2WD lẫn 4WD, bản ST
+    #   lẫn TI — gộp lại thì khách hỏi xe 2WD sẽ thấy cả phụ tùng 4WD.
+    #   Ghép thêm trường phân biệt để tách ra:
+    #       "model_code": ["model", "grade", "gearbox"]
+    #                                   →  "JJ10E-ST-M-CVT"
+    #   Trường nào rỗng thì tự bỏ qua. Chạy --soi để xem file có trường gì.
     "model_code":   "model",
+
+    # tầng 3 → cột  catalog_fitments.notes   (ghi trên từng dòng nối xe–phụ tùng)
+    #   Dùng khi MỘT mã xe dùng chung cho nhiều bản (Nissan JJ10E có cả bản
+    #   2WD lẫn 4WD, ST lẫn TI). Thay vì tách mã ra cho dài loằng ngoằng,
+    #   giữ mã gộp "JJ10E" cho dễ tra, còn bản nào thì ghi vào đây:
+    #       "ghi_chu_ban_xe": ["grade", "gearbox", "options"]
+    #   → dòng fitment của cụm cầu sau mang chú thích
+    #     "ST | M-CVT | ...WHEEL DRIVE:4WD..."  → nhân viên biết chỉ hợp bản 4WD.
+    #   Phụ tùng dùng chung nhiều bản thì gộp hết chú thích lại.
+    #   Để None nếu không cần.
+    "ghi_chu_ban_xe": None,
 
     # tầng 3 → HAI cột  year_from  VÀ  year_to
     #   Đây là ánh xạ 1 → 2: một trường JSON, script bóc số năm ra rồi
@@ -192,6 +210,33 @@ def rong(v):
     return v is None or str(v).strip() == ""
 
 
+def lay_ma_xe(m, ten_xe):
+    """Suy ra mã xe từ một model trong file. Trả về (mã, có_phải_lấy_từ_tên).
+
+    CAU_HINH["model_code"] nhận 3 kiểu:
+        "model"                        → lấy đúng trường đó
+        ["model","grade","gearbox"]    → ghép các trường lại bằng dấu -
+                                         (dùng khi 1 mã dùng cho nhiều bản xe)
+        None                           → không có mã, lấy tên xe làm mã
+
+    Dùng chung cho cả nap_json.py và xoa_xe.py để hai bên luôn tính ra
+    cùng một mã — lệch nhau là xoá sót.
+    """
+    kh = CAU_HINH["model_code"]
+    ma = None
+    if isinstance(kh, (list, tuple)):
+        phan = [str(m.get(k)).strip() for k in kh if not rong(m.get(k))]
+        ma = "-".join(phan) if phan else None
+    elif kh:
+        ma = m.get(kh)
+
+    if rong(ma):
+        if rong(ten_xe):
+            return (None, False)
+        return (str(ten_xe).strip().upper(), True)
+    return (str(ma).strip().upper(), False)
+
+
 def cat(s, n):
     return None if s is None else str(s)[:n]
 
@@ -260,6 +305,20 @@ def soi(duong_dan):
     loi = 0
     for cot, obj, tang in kiem:
         truong = CAU_HINH[cot]
+        if isinstance(truong, (list, tuple)):
+            # model_code ghép từ nhiều trường → kiểm từng trường một
+            co = [k for k in obj if not isinstance(obj[k], (dict, list))]
+            thieu = [k for k in truong if k not in obj]
+            mau = "-".join(str(obj.get(k)).strip() for k in truong if not rong(obj.get(k)))
+            if thieu:
+                loi += 1
+                print(f"  ✗  {cot:<12} ← ghép {'+'.join(truong)}")
+                print(f"     {'':<12}   thiếu trường: {', '.join(thieu)}")
+                print(f"     {'':<12}   trường có sẵn: {', '.join(co)}")
+            else:
+                print(f"  ✓  {cot:<12} ← ghép {'+'.join(truong):<14} {tang}  = "
+                      f"{json.dumps(mau, ensure_ascii=False)[:38]}")
+            continue
         if truong is None:
             print(f"  ○  {cot:<12} = None            (bỏ qua)")
         elif truong in obj:
@@ -278,7 +337,7 @@ def soi(duong_dan):
         print("\n  ✓ Cấu hình khớp hết. Chạy tiếp:")
         print(f'      python scripts/nap_json.py "{tep}" --thu')
 
-    if CAU_HINH["model_code"] and CAU_HINH["model_code"] in md:
+    if isinstance(CAU_HINH["model_code"], str) and CAU_HINH["model_code"] in md:
         print(f'\n  ⚠  KIỂM TRA BẰNG MẮT: model_code đang lấy từ trường '
               f'"{CAU_HINH["model_code"]}" = '
               f'{json.dumps(md.get(CAU_HINH["model_code"]), ensure_ascii=False)}')
@@ -304,12 +363,9 @@ def kiem_trung_model(ds):
         for c in b.get("car_types") or []:
             for m in c.get("models") or []:
                 ten = m.get(cfg["model_name"]) if cfg["model_name"] else None
-                ma = m.get(cfg["model_code"]) if cfg["model_code"] else None
-                if rong(ma):
-                    if rong(ten):
-                        continue
-                    ma = str(ten).strip()
-                ma = str(ma).strip().upper()
+                ma, _ = lay_ma_xe(m, ten)
+                if ma is None:
+                    continue
                 nhan = str(m.get(cfg["year_from_to"]) or "").strip() if cfg["year_from_to"] else ""
                 dem.setdefault(f"{make}|{ma}", []).append(nhan or "(không có năm)")
 
@@ -372,7 +428,8 @@ def boc_tach(goc):
     cfg = CAU_HINH
     ds = goc if isinstance(goc, list) else [goc]
 
-    xe, phu_tung, cap_noi = {}, {}, set()
+    xe, phu_tung = {}, {}
+    cap_noi = {}   # (ref, khoa_xe) → set các chú thích bản xe
     cb = {"model_thieu_ma": 0, "part_thieu_ma": 0, "part_thieu_ten": 0,
           "tong_model_trong_file": 0}
     gop = {}   # khoa_xe → danh sách các model gốc đã dồn vào đó
@@ -389,18 +446,21 @@ def boc_tach(goc):
             for m in c.get("models") or []:
                 cb["tong_model_trong_file"] += 1
                 ten_xe = m.get(cfg["model_name"]) if cfg["model_name"] else None
-                ma_xe = m.get(cfg["model_code"]) if cfg["model_code"] else None
 
-                dung_tam = False
-                if rong(ma_xe):
-                    if rong(ten_xe):
-                        continue
-                    ma_xe = str(ten_xe).strip().upper()
-                    dung_tam = True
+                ma_xe, dung_tam = lay_ma_xe(m, ten_xe)
+                if ma_xe is None:
+                    continue
+                if dung_tam:
                     cb["model_thieu_ma"] += 1
 
-                ma_xe = str(ma_xe).strip().upper()
                 khoa_xe = f"{make}|{ma_xe}"
+
+                # Chú thích bản xe — ghi lên dòng fitment
+                ghi_chu = None
+                kh_gc = cfg.get("ghi_chu_ban_xe")
+                if kh_gc:
+                    ghi_chu = " | ".join(str(m.get(k)).strip()
+                                         for k in kh_gc if not rong(m.get(k))) or None
                 nam_tu, nam_den = tach_nam(
                     m.get(cfg["year_from_to"]) if cfg["year_from_to"] else None)
 
@@ -484,7 +544,11 @@ def boc_tach(goc):
                                 if rong(cu["ten_goc"]) and ten_goc:
                                     cu["ten_goc"] = ten_goc
 
-                            cap_noi.add((ref, khoa_xe))
+                            kh = (ref, khoa_xe)
+                            if kh not in cap_noi:
+                                cap_noi[kh] = set()
+                            if ghi_chu:
+                                cap_noi[kh].add(ghi_chu)
 
     cb["gop"] = {k: v for k, v in gop.items() if len(v) > 1}
     return xe, phu_tung, cap_noi, cb
@@ -621,16 +685,18 @@ def nap(duong_dan, chay_thu):
         # 3) FITMENT
         print("  [3/3] Fitment")
         cap, hong = [], 0
-        for ref, khoa_xe in cap_noi:
+        for (ref, khoa_xe), ghi_chus in cap_noi.items():
             pid, vid = id_pt.get(ref), id_xe.get(khoa_xe)
             if pid and vid:
-                cap.append((pid, vid))
+                # Phụ tùng dùng chung nhiều bản xe → gộp hết chú thích lại
+                gc = " / ".join(sorted(ghi_chus))[:1000] if ghi_chus else None
+                cap.append((pid, vid, gc))
             else:
                 hong += 1
         da_chen = 0
         for i in range(0, len(cap), 1000):
             rows = execute_values(cur, """
-                INSERT INTO catalog_fitments (product_id, vehicle_id)
+                INSERT INTO catalog_fitments (product_id, vehicle_id, notes)
                 VALUES %s
                 ON CONFLICT (product_id, vehicle_id) DO NOTHING
                 RETURNING id
