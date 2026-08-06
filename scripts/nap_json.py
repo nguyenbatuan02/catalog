@@ -317,7 +317,11 @@ def soi(duong_dan):
             if not isinstance(v, (dict, list)):
                 print(f"    {k:<24} = {json.dumps(v, ensure_ascii=False)[:64]}")
 
-    tong, dem = 0, {}
+    # Quét TẤT CẢ model, không chỉ model đầu: trường như engine/gearbox hay
+    # vắng ở model đời cũ, nhìn mỗi model đầu là tưởng file không có.
+    # Với mỗi trường lấy luôn 1 giá trị mẫu + đếm số giá trị khác nhau —
+    # đủ để biết trường nào dùng làm mã xe / thông số phân biệt được.
+    tong, dem, mau, khac = 0, {}, {}, {}
     for b in ds:
         for c in b.get("car_types") or []:
             for m in c.get("models") or []:
@@ -325,13 +329,24 @@ def soi(duong_dan):
                 for k, v in m.items():
                     if isinstance(v, (dict, list)):
                         continue
-                    dem[k] = dem.get(k, 0) + (0 if rong(v) else 1)
+                    if rong(v):
+                        continue
+                    dem[k] = dem.get(k, 0) + 1
+                    mau.setdefault(k, str(v).strip())
+                    khac.setdefault(k, set()).add(str(v).strip())
 
-    print(f"\n[Độ phủ trường ở tầng model] — tổng {so_dep(tong)} model")
+    print(f"\n[Các trường ở tầng model] — tổng {so_dep(tong)} model")
+    print(f"    {'trường':<18}{'có':>5} {'khác nhau':>10}   giá trị mẫu")
+    print("    " + "-" * 62)
     for k, v in sorted(dem.items(), key=lambda x: -x[1]):
         pc = round(v * 100 / tong) if tong else 0
-        canh = "  ← thiếu ở nhiều model" if pc < 100 else ""
-        print(f"    {k:<24} {pc:>3}%  ({so_dep(v)}/{so_dep(tong)}){canh}")
+        sk = len(khac.get(k, ()))
+        gt = mau.get(k, "")
+        if k.lower() in ("url", "href"):
+            gt = "(đường dẫn)"
+        print(f"    {k:<18}{str(pc)+'%':>5} {so_dep(sk):>10}   {gt[:38]}")
+    print(f"\n    Cột 'khác nhau' = số giá trị phân biệt. Trường nào gần bằng")
+    print(f"    {so_dep(tong)} (tổng số model) thì hợp làm mã xe hoặc thông số phân biệt.")
 
     # ── Đối chiếu CAU_HINH đang đặt với file này ──
     print("\n" + "-" * 68)
@@ -412,8 +427,22 @@ def kiem_trung_model(ds):
                 ma, _ = lay_ma_xe(m, ten)
                 if ma is None:
                     continue
-                nhan = str(m.get(cfg["year_from_to"]) or "").strip() if cfg["year_from_to"] else ""
-                dem.setdefault(f"{make}|{ma}", []).append(nhan or "(không có năm)")
+                # Khoá phải giống HỆT boc_tach: mã + năm + thông số phân biệt.
+                # Trước đây chỗ này chỉ gộp theo make|model_code nên báo sai
+                # hẳn — Porsche 101 model bảo còn 4 xe, trong khi nạp thật ra
+                # gần đủ 101 vì engine/transmission đã tách chúng ra.
+                nam_tu, nam_den = tach_nam(
+                    m.get(cfg["year_from_to"]) if cfg["year_from_to"] else None)
+                bt = khoa_bien_the(nam_tu, nam_den,
+                                   lay(m, "engine"), lay(m, "transmission"),
+                                   lay(m, "drive_type"), lay(m, "steering"),
+                                   lay(m, "gear_shift"))
+                nhan = " / ".join(x for x in (
+                    str(m.get(cfg["year_from_to"]) or "").strip() if cfg["year_from_to"] else "",
+                    lay(m, "engine"), lay(m, "transmission"),
+                    lay(m, "drive_type"), lay(m, "steering"), lay(m, "gear_shift"),
+                ) if x) or "(không có thông số)"
+                dem.setdefault(f"{make}|{ma}|{bt}", []).append(nhan)
 
     print("\n" + "-" * 68)
     print("KIỂM TRA TRÙNG MÃ XE")
@@ -422,18 +451,21 @@ def kiem_trung_model(ds):
     # 1) Trùng ngay trong file
     trung = {k: v for k, v in dem.items() if len(v) > 1}
     tong_dong = sum(len(v) for v in dem.values())
+    print(f"  {so_dep(tong_dong)} dòng trong file  →  {so_dep(len(dem))} xe trong DB")
+    print("  (hai dòng chỉ gộp khi TRÙNG CẢ mã, năm lẫn thông số phân biệt)")
     if trung:
         thua = sum(len(v) - 1 for v in trung.values())
-        print(f"  ⚠  TRONG FILE: {so_dep(len(trung))} mã lặp lại "
-              f"→ {so_dep(tong_dong)} dòng chỉ ra {so_dep(len(dem))} xe "
-              f"({so_dep(thua)} dòng dồn lại)")
-        print("     Không mất phụ tùng — tất cả gắn vào cùng xe, khoảng năm nới rộng.")
+        print(f"\n  ⚠  {so_dep(len(trung))} xe bị trùng hoàn toàn → {so_dep(thua)} dòng dồn lại")
+        print("     Không mất phụ tùng — tất cả gắn vào cùng xe.")
+        print("     Muốn tách ra thì map thêm cột thông số (engine / transmission /")
+        print("     drive_type / steering / gear_shift) trong CAU_HINH.")
         for k, v in list(trung.items())[:5]:
-            print(f"       {k}  ×{len(v)}   {' | '.join(v[:3])}")
+            ma = "|".join(k.split("|")[:2])
+            print(f"       {ma}  ×{len(v)}   {v[0][:52]}")
         if len(trung) > 5:
-            print(f"       ... và {so_dep(len(trung) - 5)} mã nữa")
+            print(f"       ... và {so_dep(len(trung) - 5)} xe nữa")
     else:
-        print(f"  ✓ TRONG FILE: {so_dep(len(dem))} mã, không mã nào lặp lại")
+        print("  ✓ Không dòng nào bị gộp — mỗi dòng thành một xe riêng")
 
     # 2) Đã có sẵn trong DB chưa
     try:
@@ -441,14 +473,16 @@ def kiem_trung_model(ds):
         tt = cau_hinh_db()
         conn = psycopg2.connect(**tt)
         cur = conn.cursor()
-        cap = [tuple(k.split("|", 1)) for k in dem]
+        # Khoá 3 phần: make | model_code | variant_key — so đúng khoá UNIQUE của DB
+        cap = [k.split("|", 2) for k in dem]
         cur.execute("""
             SELECT v.make, v.model_code, v.model_name, v.year_from, v.year_to
             FROM catalog_vehicles v
-            JOIN (SELECT * FROM unnest(%s::text[], %s::text[]) AS t(mk, mc)) t
-              ON t.mk = v.make AND t.mc = v.model_code
+            JOIN (SELECT * FROM unnest(%s::text[], %s::text[], %s::text[])
+                    AS t(mk, mc, vk)) t
+              ON t.mk = v.make AND t.mc = v.model_code AND t.vk = v.variant_key
             ORDER BY v.model_code
-        """, ([c[0] for c in cap], [c[1] for c in cap]))
+        """, ([c[0] for c in cap], [c[1] for c in cap], [c[2] for c in cap]))
         co_roi = cur.fetchall()
         conn.close()
 
