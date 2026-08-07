@@ -240,6 +240,20 @@ def rong(v):
     return v is None or str(v).strip() == ""
 
 
+def gop_tang(c, m):
+    """Gộp trường của tầng 2 (car_types) với tầng 3 (models) thành một chỗ tra.
+
+    "description" (thị trường) mỗi file nằm một tầng khác nhau:
+        Toyota / Suzuki : car_type  ở tầng 2
+        Mercedes        : market + description ở tầng 3
+    Gộp lại thì khai báo kiểu nào cũng đọc được. Trùng tên thì tầng 3
+    thắng, vì nó cụ thể hơn cho từng xe.
+    """
+    r = {k: v for k, v in c.items() if not isinstance(v, (dict, list))}
+    r.update(m)
+    return r
+
+
 def lay(m, khoa):
     """Đọc một giá trị từ model theo cấu hình.
     Cấu hình nhận tên trường ("engine") hoặc danh sách (["grade","gearbox"]
@@ -368,15 +382,18 @@ def soi(duong_dan):
     print("CẤU HÌNH ĐANG ĐẶT CÓ KHỚP FILE NÀY KHÔNG?")
     print("-" * 68)
 
+    # description tra trong chuỗi GỘP tầng 2 + tầng 3: mỗi file để thị trường
+    # một tầng khác nhau (Toyota: car_type ở tầng 2; Mercedes: market ở tầng 3)
+    ct_md = gop_tang(ct, md)
     kiem = [
-        ("make",         b0, "tầng 1"),
-        ("description",  ct, "tầng 2"),
-        ("model_name",   md, "tầng 3"),
-        ("model_code",   md, "tầng 3"),
-        ("year_from_to", md, "tầng 3"),
-        ("ma_phu_tung",  pt, "tầng 6"),
-        ("name_vi",      pt, "tầng 6"),
-        ("name",         pt, "tầng 6"),
+        ("make",         b0,    "tầng 1"),
+        ("description",  ct_md, "tầng 2+3"),
+        ("model_name",   md,    "tầng 3"),
+        ("model_code",   md,    "tầng 3"),
+        ("year_from_to", md,    "tầng 3"),
+        ("ma_phu_tung",  pt,    "tầng 6"),
+        ("name_vi",      pt,    "tầng 6"),
+        ("name",         pt,    "tầng 6"),
     ]
     loi = 0
     for cot, obj, tang in kiem:
@@ -437,9 +454,11 @@ def kiem_trung_model(ds):
             continue
         make = str(make).strip()
         for c in b.get("car_types") or []:
-            tt_goc = c.get(cfg["description"]) if cfg["description"] else None
-            thi_truong = cat(None if rong(tt_goc) else str(tt_goc).strip(), 255)
-            for m in c.get("models") or []:
+            # thi_truong đọc trong VÒNG LẶP model (xem dưới) vì trường có thể
+            # nằm ở tầng 3, không phải lúc nào cũng ở tầng 2.
+            for m0 in c.get("models") or []:
+                m = gop_tang(c, m0)
+                thi_truong = cat(lay(m, "description"), 255)
                 ten = m.get(cfg["model_name"]) if cfg["model_name"] else None
                 ma, _ = lay_ma_xe(m, ten)
                 if ma is None:
@@ -539,13 +558,16 @@ def boc_tach(goc):
         make = str(make).strip()
 
         for c in b.get("car_types") or []:
-            tt_goc = c.get(cfg["description"]) if cfg["description"] else None
-            # Cắt sẵn đúng như lúc ghi DB (varchar 255) — vì thị trường tham gia
-            # vào khoá, lệch một ký tự là Python và DB gộp khác nhau.
-            thi_truong = cat(None if rong(tt_goc) else str(tt_goc).strip(), 255)
+            # thi_truong đọc trong VÒNG LẶP model (xem dưới) vì trường có thể
+            # nằm ở tầng 3, không phải lúc nào cũng ở tầng 2.
 
-            for m in c.get("models") or []:
+            for m0 in c.get("models") or []:
                 cb["tong_model_trong_file"] += 1
+                # Gộp tầng 2 + tầng 3 để cấu hình trỏ vào tầng nào cũng đọc được
+                m = gop_tang(c, m0)
+                # Cắt 255 đúng như lúc ghi DB — thị trường nằm trong khoá,
+                # lệch một ký tự là Python và DB gộp khác nhau
+                thi_truong = cat(lay(m, "description"), 255)
                 ten_xe = m.get(cfg["model_name"]) if cfg["model_name"] else None
 
                 ma_xe, dung_tam = lay_ma_xe(m, ten_xe)
