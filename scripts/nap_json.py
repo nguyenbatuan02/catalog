@@ -109,11 +109,11 @@ CAU_HINH = {
     #       "prod_range"   : "1950 - 1959"       → 1950 và 1959
     #       "manufactured" : "1996"              → 1996 và 1996
     #
-    #   2) HAI trường riêng — điền danh sách, thứ tự TỪ trước ĐẾN sau:
+    #   2) Trường riêng — điền DANH SÁCH, thứ tự TỪ trước ĐẾN sau:
     #       ["model_year_from", "model_year_to"]  → 2017 và 2026
-    #      Trường thứ hai rỗng thì year_to = year_from (xe coi như chỉ
-    #      sản xuất đúng năm đó). Xe còn đang sản xuất mà muốn khớp mọi
-    #      năm về sau thì để cả hai trống, đừng điền mỗi năm bắt đầu.
+    #       ["model_year_from"]                   → 2017 và (trống)
+    #      Chỉ có năm bắt đầu thì year_to ĐỂ TRỐNG → xe khớp mọi năm về
+    #      sau, đúng với xe còn đang sản xuất.
     #
     #   3) None → cả hai cột để trống, xe khớp MỌI năm.
     #      An toàn hơn điền sai: điền sai là xe bị loại oan, khách hỏi
@@ -238,6 +238,32 @@ def tach_nam(s):
 
 def rong(v):
     return v is None or str(v).strip() == ""
+
+
+def lay_nam(m):
+    """Đọc year_from / year_to theo CAU_HINH["year_from_to"].
+
+    "prod_range"                → "1950 - 1959"  → (1950, 1959)
+    ["nam_tu", "nam_den"]       → hai trường riêng, mỗi vế bóc riêng
+    ["nam_tu"]                  → (1950, None) — CHỈ có năm bắt đầu thì
+                                  year_to ĐỂ TRỐNG, không gán bằng year_from.
+                                  Gán bằng nhau là sai: xe sản xuất từ 2017
+                                  đến nay sẽ chỉ khớp đúng 2017, khách hỏi
+                                  đời 2023 không ra hàng.
+    """
+    kh = CAU_HINH.get("year_from_to")
+    if not isinstance(kh, (list, tuple)):
+        return tach_nam(m.get(kh) if kh else None)
+
+    def mot(k):
+        if not k:
+            return None
+        g = re.findall(r"\d{4}", str(m.get(k) or ""))
+        n = int(g[0]) if g else None
+        return n if n and 1900 <= n <= 2100 else None
+
+    return (mot(kh[0] if len(kh) > 0 else None),
+            mot(kh[1] if len(kh) > 1 else None))
 
 
 def gop_tang(c, m):
@@ -467,8 +493,7 @@ def kiem_trung_model(ds):
                 # Trước đây chỗ này chỉ gộp theo make|model_code nên báo sai
                 # hẳn — Porsche 101 model bảo còn 4 xe, trong khi nạp thật ra
                 # gần đủ 101 vì engine/transmission đã tách chúng ra.
-                nam_tu, nam_den = tach_nam(
-                    lay(m, "year_from_to"))
+                nam_tu, nam_den = lay_nam(m)
                 bt = khoa_bien_the(nam_tu, nam_den,
                                    lay(m, "engine"), lay(m, "transmission"),
                                    lay(m, "drive_type"), lay(m, "steering"),
@@ -586,8 +611,7 @@ def boc_tach(goc):
                     "gear_shift":   cat(lay(m, "gear_shift"), 50),
                     "specs_raw":    lay(m, "specs_raw"),
                 }
-                nam_tu, nam_den = tach_nam(
-                    lay(m, "year_from_to"))
+                nam_tu, nam_den = lay_nam(m)
 
                 # Khoá phải giống hệt khoá UNIQUE của DB (make, model_code, variant_key),
                 # nếu không Python gộp một kiểu còn DB gộp một kiểu.
