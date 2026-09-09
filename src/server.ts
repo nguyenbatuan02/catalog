@@ -13,6 +13,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const INDEX_HTML = join(__dirname, '..', 'index.html');
 const DASHBOARD_HTML = join(__dirname, '..', 'public', 'dashboard.html');
 const FITMENT_MATRIX_HTML = join(__dirname, '..', 'public', 'fitment-matrix.html');
+const AUTOVIETHUB_HTML = join(__dirname, '..', 'public', 'autoviethub.html');
 
 const server = Fastify({
   bodyLimit: 10 * 1024 * 1024, // 10MB — cho phép upload ảnh base64
@@ -100,6 +101,28 @@ async function serveDashboard(_req: any, reply: any) {
 server.get('/dashboard', serveDashboard);
 server.get('/dashboard.html', serveDashboard);
 
+// Tải file worker cho máy phụ. Phục vụ THẲNG file gốc ở thư mục dự án, không
+// copy sang public/ — copy thì mỗi lần sửa worker lại phải nhớ đồng bộ, máy phụ
+// dễ chạy bản cũ mà không biết. Chỉ 2 file này, whitelist cứng.
+const FILE_WORKER: Record<string, string> = {
+  'worker_substitutes.mjs': join(__dirname, '..', 'worker_substitutes.mjs'),
+  'worker_xe.mjs'         : join(__dirname, '..', 'worker_xe.mjs'),
+  'CHAY_WORKER.bat'       : join(__dirname, '..', 'CHAY_WORKER.bat'),
+};
+server.get<{ Params: { ten: string } }>('/tai-ve/:ten', async (req, reply) => {
+  const duongDan = FILE_WORKER[req.params.ten];
+  if (!duongDan) return reply.status(404).send({ error: 'Không có file này' });
+  try {
+    const noiDung = await readFile(duongDan, 'utf8');
+    return reply
+      .type('text/plain; charset=utf-8')
+      .header('Content-Disposition', `attachment; filename="${req.params.ten}"`)
+      .send(noiDung);
+  } catch (e: any) {
+    return reply.status(500).send({ error: 'Không đọc được file: ' + e.message });
+  }
+});
+
 // Dashboard ma trận phủ sóng phụ tùng — phục vụ CÙNG origin với API (port 3001) nên fetch
 // tương đối '/api/v1/catalog/fitment-matrix' không dính CORS. Đọc file động mỗi request (sửa không cần restart).
 // Mở tại: http://<host>:3001/fitment-matrix  hoặc  /fitment-matrix.html
@@ -113,6 +136,20 @@ async function serveFitmentMatrix(_req: any, reply: any) {
 }
 server.get('/fitment-matrix', serveFitmentMatrix);
 server.get('/fitment-matrix.html', serveFitmentMatrix);
+
+// AutoVietHub — frontend bán hàng, cùng origin với API (port 3001) nên fetch
+// tương đối '/api/v1/catalog/...' và '/api/ai/chat' không dính CORS.
+// Mở tại: http://<host>:3001/autoviethub  hoặc  /autoviethub.html
+async function serveAutoVietHub(_req: any, reply: any) {
+  try {
+    const html = await readFile(AUTOVIETHUB_HTML, 'utf8');
+    return reply.type('text/html; charset=utf-8').send(html);
+  } catch (e: any) {
+    return reply.status(500).send({ error: 'Không đọc được autoviethub.html: ' + e.message });
+  }
+}
+server.get('/autoviethub', serveAutoVietHub);
+server.get('/autoviethub.html', serveAutoVietHub);
 
 // ============================================================
 // Health check

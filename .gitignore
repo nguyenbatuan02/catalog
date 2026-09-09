@@ -75,3 +75,10 @@ scripts/diagnose-output.txt
 bravo-export/
 scripts/bao_cao_chi_tiet_phu_tung.py
 scripts/export_fitment_report.py
+.pw-profile/
+
+# File nháp lúc dò dữ liệu (danh sách mã, kết quả cào thử, sổ .done)
+tmp_*
+
+# Bản biên dịch của scripts/*.ts — build ra, không commit
+scripts/*.js

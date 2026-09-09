@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tiến độ cào — Catalog</title>
+<style>
+  :root {
+    --nen: #f6f7f9; --the: #fff; --chu: #1a1d21; --mo: #6b7280;
+    --vien: #e5e7eb; --xanh: #2563eb; --luc: #16a34a; --cam: #d97706; --do: #dc2626;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --nen: #0f1115; --the: #181b21; --chu: #e6e8eb; --mo: #9aa3af;
+      --vien: #2a2f37; --xanh: #60a5fa; --luc: #4ade80; --cam: #fbbf24; --do: #f87171;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 20px; background: var(--nen); color: var(--chu);
+    font: 15px/1.5 -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .bọc { max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 21px; margin: 0 0 4px; }
+  .phụ { color: var(--mo); font-size: 13px; margin-bottom: 20px; }
+  .thẻ {
+    background: var(--the); border: 1px solid var(--vien); border-radius: 10px;
+    padding: 18px; margin-bottom: 16px;
+  }
+  .thẻ h2 { font-size: 16px; margin: 0 0 14px; display: flex; justify-content: space-between; align-items: baseline; }
+  .tỉlệ { font-weight: 400; color: var(--mo); font-size: 13px; }
+  .thanh { height: 8px; background: var(--vien); border-radius: 4px; overflow: hidden; margin-bottom: 14px; }
+  .thanh i { display: block; height: 100%; background: var(--luc); transition: width .4s; }
+  .số { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; }
+  .ô { }
+  .ô b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; }
+  .ô span { color: var(--mo); font-size: 12px; }
+  .luc b { color: var(--luc); } .cam b { color: var(--cam); } .do b { color: var(--do); }
+  table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--vien); }
+  th { color: var(--mo); font-weight: 500; }
+  td.n { text-align: right; font-variant-numeric: tabular-nums; }
+  .sống { color: var(--luc); } .chết { color: var(--mo); }
+  .lỗi { color: var(--do); font-size: 13px; }
+  .hd { color: var(--mo); font-size: 13px; margin: 10px 0 0; }
+  .hd li { margin: 3px 0; }
+  .hd code {
+    background: var(--nen); border: 1px solid var(--vien); border-radius: 4px;
+    padding: 1px 5px; font-size: 12px; word-break: break-all;
+  }
+  .tải { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  .tải a {
+    display: inline-block; padding: 9px 14px; border-radius: 8px;
+    background: var(--xanh); color: #fff; text-decoration: none;
+    font-size: 14px; font-weight: 500;
+  }
+  .tải a:hover { opacity: .88; }
+  .nạp {
+    display: flex; gap: 9px; align-items: center; flex-wrap: wrap;
+    margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--vien);
+    font-size: 13px; color: var(--mo);
+  }
+  .nạp select, .nạp button {
+    font: inherit; padding: 6px 9px; border-radius: 7px;
+    border: 1px solid var(--vien); background: var(--the); color: var(--chu);
+  }
+  .nạp button { background: var(--xanh); color: #fff; border-color: transparent; cursor: pointer; font-weight: 500; }
+  .nạp button:hover:not(:disabled) { opacity: .88; }
+  .nạp button:disabled { opacity: .5; cursor: default; }
+  #kq-nạp.ok { color: var(--luc); }
+  #kq-nạp.er { color: var(--do); }
+  footer { color: var(--mo); font-size: 12px; text-align: center; margin-top: 20px; }
+</style>
+</head>
+<body>
+<div class="bọc">
+  <h1>Tiến độ cào PartSouq</h1>
+  <div class="phụ">Tự làm mới mỗi 10 giây · <span id="lúc">đang tải…</span></div>
+
+  <div class="thẻ">
+    <h2>Mã thay thế (Substitutes) <span class="tỉlệ" id="tl-the"></span></h2>
+    <div class="thanh"><i id="bar-the" style="width:0"></i></div>
+    <div class="số" id="so-the"></div>
+    <table id="w-the"></table>
+
+    <div class="nạp">
+      <label>Nạp thêm
+        <select id="sl">
+          <option value="10000">10.000 mã</option>
+          <option value="50000" selected>50.000 mã</option>
+          <option value="100000">100.000 mã</option>
+        </select>
+      </label>
+      <label>
+        <select id="ut">
+          <option value="fitment" selected>ưu tiên SP đã có xe</option>
+          <option value="tat-ca">không ưu tiên</option>
+        </select>
+      </label>
+      <button id="nút-nạp">Nạp vào hàng đợi</button>
+      <span id="kq-nạp"></span>
+    </div>
+  </div>
+
+  <div class="thẻ">
+    <h2>Cào xe — Nhóm 2 Product.xlsx <span class="tỉlệ" id="tl-xe"></span></h2>
+    <div class="thanh"><i id="bar-xe" style="width:0"></i></div>
+    <div class="số" id="so-xe"></div>
+    <table id="w-xe"></table>
+  </div>
+
+  <div class="thẻ">
+    <h2>Chạy thêm máy để cào nhanh hơn</h2>
+    <p class="hd">Tải 2 file này về <b>cùng một thư mục</b> trên máy Windows bất kỳ, rồi nhấp đúp <code>CHAY_WORKER.bat</code>.</p>
+    <div class="tải">
+      <a href="/tai-ve/CHAY_WORKER.bat" download>⬇ CHAY_WORKER.bat</a>
+      <a href="/tai-ve/worker_substitutes.mjs" download>⬇ worker_substitutes.mjs</a>
+    </div>
+    <ol class="hd">
+      <li>File .bat tự cài <code>playwright</code>, tự mở Chrome và tự đặt tên worker theo tên máy.</li>
+      <li>Lần đầu nếu Chrome hiện captcha Cloudflare thì giải giúp <b>một lần</b>, sau đó không hỏi nữa.</li>
+      <li>Worker chết vì bất kỳ lý do gì cũng tự bật lại sau 10 giây. Muốn dừng hẳn thì đóng cửa sổ.</li>
+      <li>Máy mới sẽ tự hiện thành một dòng trong bảng worker ở trên.</li>
+    </ol>
+    <p class="hd">Máy Mac/Linux: <code>npm i playwright</code> → <code>google-chrome --remote-debugging-port=9222 &amp;</code> → <code>node worker_substitutes.mjs --server http://161.248.80.33:3001 --worker-id ten-may</code></p>
+  </div>
+
+  <footer>Worker sống = có hoạt động trong 5 phút gần đây</footer>
+</div>
+
+<script>
+const API = '/api/v1/catalog/crawl';
+const n = (x) => (Number(x) || 0).toLocaleString('vi-VN');
+
+// Worker coi là "sống" nếu nộp kết quả trong 5 phút gần đây.
+const SONG_MS = 5 * 60 * 1000;
+const lucTruoc = (t) => {
+  if (!t) return { chữ: '—', sống: false };
+  const ms = Date.now() - new Date(t).getTime();
+  const p = Math.floor(ms / 60000);
+  return {
+    chữ: p < 1 ? 'vừa xong' : p < 60 ? p + ' phút trước' : Math.floor(p / 60) + ' giờ trước',
+    sống: ms < SONG_MS,
+  };
+};
+
+function gomTrangThai(rows) {
+  const g = { pending: 0, claimed: 0, done: 0, error: 0 };
+  for (const r of rows || []) g[r.status] = Number(r.count) || 0;
+  g.tổng = g.pending + g.claimed + g.done + g.error;
+  return g;
+}
+
+function veThanh(idBar, idTl, g) {
+  const pct = g.tổng ? (100 * g.done / g.tổng) : 0;
+  document.getElementById(idBar).style.width = pct.toFixed(1) + '%';
+  document.getElementById(idTl).textContent = `${n(g.done)} / ${n(g.tổng)} · ${pct.toFixed(1)}%`;
+}
+
+function veWorker(id, ws, cotCuoi) {
+  const el = document.getElementById(id);
+  if (!ws || !ws.length) { el.innerHTML = ''; return; }
+  el.innerHTML =
+    `<tr><th>Worker</th><th class="n">Đã cào</th><th class="n">${cotCuoi.nhãn}</th><th>Hoạt động</th></tr>` +
+    ws.map((w) => {
+      const t = lucTruoc(w.last_seen);
+      return `<tr>
+        <td>${w.worker_id}</td>
+        <td class="n">${n(w.done_count)}</td>
+        <td class="n">${n(w[cotCuoi.khoá])}</td>
+        <td class="${t.sống ? 'sống' : 'chết'}">${t.sống ? '● ' : '○ '}${t.chữ}</td>
+      </tr>`;
+    }).join('');
+}
+
+async function tai() {
+  try {
+    const [the, xe] = await Promise.all([
+      fetch(API + '/substitutes/stats').then((r) => r.json()),
+      fetch(API + '/xe/stats').then((r) => r.json()),
+    ]);
+
+    // --- Mã thay thế ---
+    const gT = gomTrangThai(the.summary);
+    const maThe = (the.summary || []).reduce((s, r) => s + (Number(r.total_found) || 0), 0);
+    veThanh('bar-the', 'tl-the', gT);
+    document.getElementById('so-the').innerHTML = `
+      <div class="ô luc"><b>${n(maThe)}</b><span>mã thế thu được</span></div>
+      <div class="ô"><b>${n(gT.done)}</b><span>đã cào</span></div>
+      <div class="ô cam"><b>${n(gT.pending)}</b><span>còn chờ</span></div>
+      <div class="ô"><b>${n(gT.claimed)}</b><span>đang cào</span></div>`;
+    veWorker('w-the', the.workers, { khoá: 'total_found', nhãn: 'Mã thế' });
+
+    // --- Cào xe ---
+    const gX = gomTrangThai(xe.summary);
+    const spNap = (xe.summary || []).reduce((s, r) => s + (Number(r.so_sp_nap) || 0), 0);
+    const soXe  = (xe.summary || []).reduce((s, r) => s + (Number(r.so_xe) || 0), 0);
+    veThanh('bar-xe', 'tl-xe', gX);
+    document.getElementById('so-xe').innerHTML = `
+      <div class="ô luc"><b>${n(spNap)}</b><span>SP đã nạp</span></div>
+      <div class="ô"><b>${n(soXe)}</b><span>xe thu được</span></div>
+      <div class="ô"><b>${n(gX.done)}</b><span>đã cào</span></div>
+      <div class="ô cam"><b>${n(gX.pending)}</b><span>còn chờ</span></div>
+      <div class="ô"><b>${n(xe.phong_cho?.con_cho)}</b><span>còn ở phòng chờ</span></div>`;
+    veWorker('w-xe', xe.workers, { khoá: 'so_sp_nap', nhãn: 'SP nạp' });
+
+    document.getElementById('lúc').textContent =
+      'cập nhật ' + new Date().toLocaleTimeString('vi-VN');
+  } catch (e) {
+    document.getElementById('lúc').innerHTML =
+      '<span class="lỗi">không nối được server: ' + e.message + '</span>';
+  }
+}
+
+// --- Nạp thêm mã vào hàng đợi ---
+const nút = document.getElementById('nút-nạp');
+const kq  = document.getElementById('kq-nạp');
+
+nút.addEventListener('click', async () => {
+  const soLuong = Number(document.getElementById('sl').value);
+  const uuTien  = document.getElementById('ut').value;
+
+  // Nạp là thao tác ghi DB và chạy vài chục giây — hỏi lại trước khi làm.
+  if (!confirm(`Nạp thêm ${n(soLuong)} mã vào hàng đợi?`)) return;
+
+  nút.disabled = true;
+  kq.className = '';
+  kq.textContent = 'đang nạp, có thể mất vài chục giây…';
+  try {
+    const r = await fetch(API + '/substitutes/seed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ so_luong: soLuong, uu_tien: uuTien }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+    kq.className = 'ok';
+    kq.textContent = `đã nạp ${n(d.da_nap)} mã (${d.giay}s)`;
+    tai();
+  } catch (e) {
+    kq.className = 'er';
+    kq.textContent = 'lỗi: ' + e.message;
+  } finally {
+    nút.disabled = false;
+  }
+});
+
+tai();
+setInterval(tai, 10000);
+</script>
+</body>
+</html>

@@ -17,8 +17,11 @@ import { getBravoPricing, mergeWithPricing } from '../../shared/bravo.js';
 
 // Cac cot can thiet cho search — KHONG include compatible_vehicles / alternatives
 // De tranh 2 correlated subquery cua VIEW chay cho moi san pham
+// name_vi PHAI co o day — thieu no thi moi endpoint dung PRODUCT_COLS (by-code,
+// by-multi-code, by-vin, by-model, clarify...) deu tra ve KHONG co ten tieng
+// Viet, frontend chi con p.name (tieng Anh) de hien thi du DB da co san ban dich.
 const PRODUCT_COLS = `
-  p.id, p.name, p.internal_ref, p.oem_code, p.is_for_sale,
+  p.id, p.name, p.name_vi, p.name_vi_cho, p.internal_ref, p.oem_code, p.is_for_sale,
   p.product_type, p.brand, p.unit, p.notes, p.created_at, p.updated_at
 `.trim();
 
@@ -164,7 +167,8 @@ ${bitExpr}
     CROSS JOIN LATERAL (
       SELECT lower(COALESCE(p.search_text,'') || ' ' ||
                    COALESCE(p.name,'')        || ' ' ||
-                   COALESCE(p.name_vi,'')) AS txt
+                   COALESCE(p.name_vi,'')     || ' ' ||
+                   COALESCE(p.name_vi_cho,'')) AS txt
     ) t
     WHERE ($1::text IS NULL OR f.vehicle_id IN
              (SELECT id FROM catalog_vehicles WHERE make = $1))
@@ -193,8 +197,6 @@ export async function catalogRoutes(fastify: FastifyInstance) {
   function chuanHoaChinhTa(s: string): string {
     let t = s.toLowerCase();
     const cap: [string, string][] = [
-      ['giảm xóc', 'giảm sóc'],
-      ['giam xoc', 'giam soc'],
       ['bố thắng', 'má phanh'],
       ['bo thang', 'ma phanh'],
       ['thắng', 'phanh'],
@@ -219,21 +221,46 @@ export async function catalogRoutes(fastify: FastifyInstance) {
     return [...new Set([partName, ...names, ...syns])];
   }
 
-  // Tim san pham thay the theo oem — query thang catalog_products, khong qua VIEW
+  // Tim san pham thay the theo ma OE — query thang catalog_products, khong qua VIEW
+  //
+  // Truoc day loc "p.oem_code = ANY(oemCodes)" va LUON tra ve [] — khong phai
+  // vi du lieu ban ma vi logic: file PartSouq la catalog chinh hang nen
+  // oem_code = internal_ref o moi dong, ma ref_norm co UNIQUE index. Vay
+  // "san pham KHAC co cung oem_code" khong ton tai duoc.
+  //
+  // Quan he ma-thay-the la 1-N nen no nam o bang catalog_oem_codes
+  // (migrations/016). Bat cau qua do theo HAI huong, join bang oem_norm/ref_norm
+  // (cung cong thuc chuan hoa) nen khop ca khi dinh dang dau gach khac nhau:
+  // "13201-39225-B0" = "1320139225B0".
+  //   1. Hai san pham cung tro toi mot ma OE  → la hang tuong duong cua nhau
+  //   2. Ma OE tro THANG toi internal_ref cua san pham khac → hang chinh hang
+  //      ung voi ma do (huong gia tri nhat: ra dung mon hang co the ban)
   async function findAlternativesByOem(results: any[]): Promise<any[]> {
     if (!results.length) return [];
-    const oemCodes = [...new Set(results.map((r:any) => r.oem_code).filter(Boolean))];
-    if (!oemCodes.length) return [];
-    const existingIds = results.map((r:any) => r.id);
+    const ids = results.map((r:any) => r.id);
+    // Hai nhanh phai tach bang UNION, KHONG duoc gop bang OR trong dieu kien
+    // JOIN: OR chan planner dung index, no roi ve nested-loop 1.5tr vong
+    // → 22 giay (da do bang EXPLAIN ANALYZE). Tach ra thi moi nhanh an
+    // index rieng (idx_oem_codes_norm / uq_products_ref_norm) → vai ms.
     const res = await pool.query(`
-      SELECT DISTINCT ON (name) ${PRODUCT_COLS}
-      FROM catalog_products p
-      WHERE p.oem_code = ANY($1::text[])
-        AND p.id != ALL($2::uuid[])
+      WITH ma AS (
+        SELECT DISTINCT oem_norm FROM catalog_oem_codes
+         WHERE product_id = ANY($1::uuid[]) AND oem_norm IS NOT NULL
+      ), ung_vien AS (
+        SELECT dst.product_id AS id FROM catalog_oem_codes dst
+          JOIN ma ON ma.oem_norm = dst.oem_norm
+        UNION
+        SELECT p2.id FROM catalog_products p2
+          JOIN ma ON ma.oem_norm = p2.ref_norm
+      )
+      SELECT DISTINCT ON (p.name) ${PRODUCT_COLS}
+      FROM ung_vien u
+      JOIN catalog_products p ON p.id = u.id
+      WHERE p.id != ALL($1::uuid[])
         AND p.is_for_sale = TRUE
-      ORDER BY name, internal_ref
+      ORDER BY p.name, p.internal_ref
       LIMIT 5
-    `, [oemCodes, existingIds]);
+    `, [ids]);
     return res.rows;
   }
 
@@ -276,13 +303,48 @@ export async function catalogRoutes(fastify: FastifyInstance) {
       const { q, page='1', limit='20', product_type, brand, is_for_sale } = req.query;
       const off = (parseInt(page)-1) * parseInt(limit);
       const conds = ['1=1']; const vals: any[] = []; let i = 1;
-      if (q) { conds.push(`(unaccent_immutable(p.name) ILIKE unaccent_immutable($${i}) OR p.internal_ref ILIKE $${i} OR p.oem_code ILIKE $${i})`); vals.push(`%${q}%`); i+=1; }
+      // Tìm cả 3 cột tên: name (gốc, thường tiếng Anh), name_vi (kỹ thuật) và
+      // name_vi_cho (tên chợ). Khách gõ kiểu nào — "brake pad", "má phanh" hay
+      // "bố thắng" — đều phải ra cùng một món.
+      if (q) { conds.push(`(unaccent_immutable(p.name) ILIKE unaccent_immutable($${i}) OR unaccent_immutable(p.name_vi) ILIKE unaccent_immutable($${i}) OR unaccent_immutable(p.name_vi_cho) ILIKE unaccent_immutable($${i}) OR p.internal_ref ILIKE $${i} OR p.oem_code ILIKE $${i})`); vals.push(`%${q}%`); i+=1; }
       if (product_type) { conds.push(`p.product_type=$${i++}`); vals.push(product_type); }
-      if (brand) { conds.push(`p.brand ILIKE $${i++}`); vals.push(`%${brand}%`); }
+      // So khớp CHÍNH XÁC bằng "=" — brand luôn gửi đúng tên hãng lấy từ /stats
+      // (VD "Hyundai"), không cần dò gần đúng. idx_products_brand là btree thường,
+      // "=" mới tận dụng được index; ILIKE (không phân biệt hoa/thường) hay
+      // ILIKE '%...%' đều không dùng được index này trên 5.4tr dòng → buộc quét.
+      if (brand) { conds.push(`p.brand = $${i++}`); vals.push(brand); }
       if (is_for_sale!==undefined) { conds.push(`p.is_for_sale=$${i++}`); vals.push(is_for_sale==='true'); }
       const w = conds.join(' AND ');
+      // LIMIT/OFFSET NGAY trên catalog_products trước (bảng ~5.4tr dòng), rồi mới đếm
+      // fitment cho ĐÚNG các dòng đã LIMIT bằng subquery tương quan — RẺ (chỉ chạy
+      // trên vài chục dòng của trang hiện tại).
+      // TRƯỚC: LEFT JOIN catalog_fitments (64tr dòng) + GROUP BY toàn bộ tập kết quả
+      // RỒI MỚI LIMIT → Postgres phải join+sort/group HẾT trước khi cắt trang, tốn
+      // temp file khổng lồ trên đĩa → "No space left on device" khi bảng đã lớn.
+      // Có q (tìm theo tên/mã): ÉP lọc bằng MATERIALIZED trước rồi mới sort+limit —
+      // không có nó, Postgres hay chọn "quét theo index (is_for_sale,name), lọc dần
+      // từng dòng", với từ khoá hiếm phải quét oan hàng trăm nghìn dòng mới đủ LIMIT.
+      // KHÔNG q (duyệt thường): NGƯỢC LẠI — dùng thẳng index (is_for_sale,name) cho
+      // ORDER BY+LIMIT (đọc đúng vài chục dòng, dừng sớm). Bọc MATERIALIZED ở đây sẽ
+      // ép vật liệu hoá gần hết ~5.4tr dòng is_for_sale=true trước khi LIMIT — CHẬM
+      // hơn hẳn (đã đo: 0.6s → 8-9s) — nên 2 trường hợp phải tách câu SQL riêng.
+      const dataSql = q ? `
+          WITH matched AS MATERIALIZED (
+            SELECT p.* FROM catalog_products p WHERE ${w}
+          )
+          SELECT m.*, (SELECT COUNT(*)::int FROM catalog_fitments f WHERE f.product_id = m.id) AS fitment_count
+          FROM matched m
+          ORDER BY m.name
+          LIMIT $${i} OFFSET $${i+1}
+        ` : `
+          SELECT p.*, (SELECT COUNT(*)::int FROM catalog_fitments f WHERE f.product_id = p.id) AS fitment_count
+          FROM catalog_products p
+          WHERE ${w}
+          ORDER BY p.name
+          LIMIT $${i} OFFSET $${i+1}
+        `;
       const [rows, cnt] = await Promise.all([
-        pool.query(`SELECT p.*, COUNT(f.id)::int fitment_count FROM catalog_products p LEFT JOIN catalog_fitments f ON f.product_id=p.id WHERE ${w} GROUP BY p.id ORDER BY p.name LIMIT $${i} OFFSET $${i+1}`, [...vals, parseInt(limit), off]),
+        pool.query(dataSql, [...vals, parseInt(limit), off]),
         pool.query(`SELECT COUNT(*)::int total FROM catalog_products p WHERE ${w}`, vals),
       ]);
       return reply.send({ data:rows.rows, total:cnt.rows[0].total, page:parseInt(page), limit:parseInt(limit), totalPages:Math.ceil(cnt.rows[0].total/parseInt(limit)) });
@@ -520,6 +582,7 @@ export async function catalogRoutes(fastify: FastifyInstance) {
     const res = await pool.query(`
       SELECT f.id AS fitment_id, f.notes,
              p.id, p.name, COALESCE(p.name_vi,'') as name_vi,
+             COALESCE(p.name_vi_cho,'') as name_vi_cho,
              p.internal_ref, p.oem_code, p.product_type, p.brand, p.unit, p.is_for_sale
       FROM catalog_fitments f JOIN catalog_products p ON p.id=f.product_id
       WHERE f.vehicle_id=$1 ORDER BY p.name
@@ -735,36 +798,51 @@ export async function catalogRoutes(fastify: FastifyInstance) {
   // ============================================================
   // SEARCH BY MODEL — query thang catalog_products, bo VIEW
   // ============================================================
-  fastify.get<{ Querystring:{make:string; model?:string; year?:string; part:string; customer_code?:string} }>(
+  fastify.get<{ Querystring:{make:string; model?:string; year?:string; part:string; customer_code?:string; vehicle_id?:string} }>(
     '/search/by-model', async (req, reply) => {
-      const { make, model, year, part, customer_code } = req.query;
+      const { make, model, year, part, customer_code, vehicle_id } = req.query;
       if (!make||!part) return reply.status(400).send({ error: 'Thiếu make hoặc part' });
       const yearNum = year ? parseInt(year) : null;
-      console.log(`[by-model] make=${make} model=${model} year=${yearNum} part=${part}`);
+      console.log(`[by-model] make=${make} model=${model} year=${yearNum} part=${part} vehicle_id=${vehicle_id||''}`);
 
       const allPartNames = await resolvePartName(part);
-      const BASE = 5;
-      const partILIKE = allPartNames.map((_:string, i:number) => `unaccent_immutable(p.name) ILIKE unaccent_immutable($${BASE+i})`).join(' OR ');
+      const BASE = 6;
+      // Tìm cả 3 cột tên — khách gõ tiếng Anh, tên kỹ thuật hay tên chợ đều ra.
+      const partILIKE = allPartNames.map((_:string, i:number) =>
+        `(unaccent_immutable(p.name) ILIKE unaccent_immutable($${BASE+i}) OR unaccent_immutable(p.name_vi) ILIKE unaccent_immutable($${BASE+i}) OR unaccent_immutable(p.name_vi_cho) ILIKE unaccent_immutable($${BASE+i}))`
+      ).join(' OR ');
       const partParams = allPartNames.map((n:string) => `%${n}%`);   // chỉ %name% cho ILIKE (bỏ params của nhánh %)
-      const fixedParams = [`%${make}%`, model ? `%${model}%` : null, yearNum, allPartNames[0]||part];
+      // Nếu đã biết chắc vehicle_id (VD: từ tra VIN) thì join thẳng theo id,
+      // bỏ qua so khớp mờ make/model — tránh miss khi model_name/model_code
+      // chưa được điền đầy đủ trong catalog_vehicles.
+      const fixedParams = [`%${make}%`, model ? `%${model}%` : null, yearNum, allPartNames[0]||part, vehicle_id || null];
       const allParams   = [...fixedParams, ...partParams];
 
       // Query thang catalog_products — khong qua VIEW
       const rows = (await pool.query(`
         SELECT DISTINCT ON (p.id) ${PRODUCT_COLS},
-          similarity(unaccent(p.name), unaccent($4)) sim,
+          GREATEST(
+            similarity(unaccent(p.name), unaccent($4)),
+            similarity(unaccent(COALESCE(p.name_vi,'')), unaccent($4)),
+            similarity(unaccent(COALESCE(p.name_vi_cho,'')), unaccent($4))
+          ) sim,
           v.model_name AS matched_model_name, v.make AS matched_make,
           v.year_from AS matched_year_from, v.year_to AS matched_year_to
         FROM catalog_products p
         JOIN catalog_fitments f ON f.product_id = p.id
         JOIN catalog_vehicles v ON v.id = f.vehicle_id
-        WHERE v.make ILIKE $1
-          AND ($2::TEXT IS NULL OR v.model_name ILIKE $2 OR v.model_name ILIKE REPLACE($2,'%','')||'%'
-               OR v.model_code ILIKE $2
-               OR similarity(unaccent(COALESCE(v.model_name,'')), unaccent(REPLACE($2,'%',''))) > 0.3
-               OR similarity(unaccent(v.model_code), unaccent(REPLACE($2,'%',''))) > 0.3)
-          AND ($3::INT IS NULL OR v.year_from IS NULL OR v.year_from <= $3)
-          AND ($3::INT IS NULL OR v.year_to   IS NULL OR v.year_to   >= $3)
+        WHERE (
+          $5::UUID IS NOT NULL AND v.id = $5::UUID
+          OR $5::UUID IS NULL AND (
+            v.make ILIKE $1
+            AND ($2::TEXT IS NULL OR v.model_name ILIKE $2 OR v.model_name ILIKE REPLACE($2,'%','')||'%'
+                 OR v.model_code ILIKE $2
+                 OR similarity(unaccent(COALESCE(v.model_name,'')), unaccent(REPLACE($2,'%',''))) > 0.3
+                 OR similarity(unaccent(v.model_code), unaccent(REPLACE($2,'%',''))) > 0.3)
+            AND ($3::INT IS NULL OR v.year_from IS NULL OR v.year_from <= $3)
+            AND ($3::INT IS NULL OR v.year_to   IS NULL OR v.year_to   >= $3)
+          )
+        )
           AND p.is_for_sale = TRUE
           AND (${partILIKE})
         ORDER BY p.id, sim DESC LIMIT 50
@@ -1675,5 +1753,340 @@ export async function catalogRoutes(fastify: FastifyInstance) {
       const r = await pool.query(sql, params);
       return reply.send({ data: r.rows });
     } catch (e:any) { fastify.log.error('[coverage-insufficient] ' + e.message); return reply.status(500).send({ error: e.message }); }
+  });
+
+  // ============================================================
+  // CRAWL SUBSTITUTES (Phân tán đa máy)
+  // ============================================================
+  // 1) Claim batch: Worker lấy 1 lô mã cần cào và khóa lại (tránh trùng)
+  fastify.get<{ Querystring: { worker_id?: string; limit?: string } }>(
+    '/crawl/substitutes/claim', async (req, reply) => {
+      const workerId = (req.query.worker_id || 'unknown').trim();
+      const limit = Math.min(Math.max(parseInt(req.query.limit || '50') || 50, 1), 200);
+
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        // Chọn các mã:
+        //  - status = 'pending'
+        //  - HOẶC status = 'claimed' mà quá 15 phút chưa xong (worker chết/rớt mạng -> reclaim)
+        const qRes = await client.query(`
+          WITH ung_vien AS (
+            SELECT ref_norm
+            FROM crawl_substitutes_queue
+            WHERE status = 'pending'
+               OR (status = 'claimed' AND claimed_at < NOW() - INTERVAL '15 minutes')
+            ORDER BY claimed_at ASC NULLS FIRST
+            LIMIT $1
+            FOR UPDATE SKIP LOCKED
+          )
+          UPDATE crawl_substitutes_queue q
+          SET status = 'claimed',
+              worker_id = $2,
+              claimed_at = NOW()
+          FROM ung_vien u
+          WHERE q.ref_norm = u.ref_norm
+          RETURNING q.ref_norm, q.ma_goc
+        `, [limit, workerId]);
+
+        await client.query('COMMIT');
+        return reply.send({ ok: true, worker_id: workerId, count: qRes.rows.length, items: qRes.rows });
+      } catch (e: any) {
+        await client.query('ROLLBACK').catch(() => {});
+        fastify.log.error('[substitutes/claim] ' + e.message);
+        return reply.status(500).send({ error: e.message });
+      } finally {
+        client.release();
+      }
+    }
+  );
+
+  // 2) Submit result: Worker nộp kết quả 1 mã
+  fastify.post<{ Body: { worker_id?: string; ma_goc: string; substitutes: any[]; error?: string } }>(
+    '/crawl/substitutes/submit', async (req, reply) => {
+      const { worker_id = 'unknown', ma_goc, substitutes = [], error } = req.body || {};
+      if (!ma_goc) return reply.status(400).send({ error: 'Thiếu ma_goc' });
+
+      const normGoc = ma_goc.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+
+        if (error) {
+          await client.query(`
+            UPDATE crawl_substitutes_queue
+            SET status = 'error', error_msg = $2, completed_at = NOW()
+            WHERE ref_norm = $1
+          `, [normGoc, error]);
+          await client.query('COMMIT');
+          return reply.send({ ok: true, status: 'error' });
+        }
+
+        // Tìm product_id
+        const spRes = await client.query(
+          'SELECT id FROM catalog_products WHERE ref_norm = $1 LIMIT 1',
+          [normGoc]
+        );
+        let inserted = 0;
+        if (spRes.rows.length && substitutes.length) {
+          const productId = spRes.rows[0].id;
+          for (const sub of substitutes) {
+            const subCode = (sub.so || sub.part_number || '').trim();
+            const subNorm = subCode.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+            if (!subCode || !subNorm || subNorm === normGoc) continue;
+
+            const res = await client.query(`
+              INSERT INTO catalog_oem_codes (product_id, oem_code, make, source)
+              VALUES ($1, $2, $3, 'partsouq:substitutes')
+              ON CONFLICT (product_id, oem_code) DO NOTHING
+            `, [productId, subCode, sub.make || null]);
+            inserted += (res.rowCount || 0);
+          }
+        }
+
+        // Đánh dấu hoàn thành trong queue
+        await client.query(`
+          UPDATE crawl_substitutes_queue
+          SET status = 'done',
+              total_found = $2,
+              completed_at = NOW(),
+              error_msg = NULL
+          WHERE ref_norm = $1
+        `, [normGoc, substitutes.length]);
+
+        await client.query('COMMIT');
+        return reply.send({ ok: true, ma_goc, substitutes_found: substitutes.length, oem_codes_inserted: inserted });
+      } catch (e: any) {
+        await client.query('ROLLBACK').catch(() => {});
+        fastify.log.error('[substitutes/submit] ' + e.message);
+        return reply.status(500).send({ error: e.message });
+      } finally {
+        client.release();
+      }
+    }
+  );
+
+  // 2b) Nạp thêm mã vào hàng đợi (bấm từ trang /tien-do-cao.html)
+  //     uu_tien='fitment' (mặc định) → chỉ lấy SP đã gắn xe: mã thế tìm được
+  //     dùng được NGAY trong luồng tra cứu theo xe, thay vì nằm chờ.
+  //     Dùng EXISTS chứ không JOIN — chỉ cần biết CÓ fitment hay không, không cần đếm.
+  fastify.post<{ Body: { so_luong?: number; uu_tien?: string } }>(
+    '/crawl/substitutes/seed', async (req, reply) => {
+      const soLuong = Math.min(Math.max(Number(req.body?.so_luong) || 10000, 100), 200000);
+      const uuTien = req.body?.uu_tien === 'tat-ca' ? 'tat-ca' : 'fitment';
+      const locFitment = uuTien === 'fitment'
+        ? 'AND EXISTS (SELECT 1 FROM catalog_fitments f WHERE f.product_id = p.id)' : '';
+      try {
+        const t0 = Date.now();
+        const r = await pool.query(`
+          INSERT INTO crawl_substitutes_queue (ref_norm, ma_goc, status)
+          SELECT p.ref_norm, p.internal_ref, 'pending'
+          FROM catalog_products p
+          WHERE p.is_for_sale = TRUE AND p.ref_norm IS NOT NULL
+            AND (p.internal_ref ~ '^[0-9]{5}-[0-9A-Z]{5}'
+              OR p.internal_ref ~ '^[0-9A-Z]{5}-[0-9A-Z]{5}')
+            ${locFitment}
+            AND NOT EXISTS (SELECT 1 FROM crawl_substitutes_queue q WHERE q.ref_norm = p.ref_norm)
+          LIMIT $1
+          ON CONFLICT (ref_norm) DO NOTHING
+        `, [soLuong]);
+        return reply.send({ ok: true, da_nap: r.rowCount || 0, uu_tien: uuTien,
+                            giay: Math.round((Date.now() - t0) / 100) / 10 });
+      } catch (e: any) {
+        fastify.log.error('[substitutes/seed] ' + e.message);
+        return reply.status(500).send({ error: e.message });
+      }
+    }
+  );
+
+  // 3) Queue stats: Xem tiến độ cào Substitutes
+  fastify.get('/crawl/substitutes/stats', async (_req, reply) => {
+    try {
+      const [stRes, wkRes] = await Promise.all([
+        pool.query(`
+          SELECT status, count(*)::int as count, sum(total_found)::int as total_found
+          FROM crawl_substitutes_queue
+          GROUP BY status
+        `),
+        pool.query(`
+          SELECT worker_id, count(*)::int as done_count, sum(total_found)::int as total_found, max(completed_at) as last_seen
+          FROM crawl_substitutes_queue
+          WHERE status = 'done'
+          GROUP BY worker_id
+          ORDER BY done_count DESC
+        `),
+      ]);
+      return reply.send({
+        summary: stRes.rows,
+        workers: wkRes.rows,
+      });
+    } catch (e: any) {
+      fastify.log.error('[substitutes/stats] ' + e.message);
+      return reply.status(500).send({ error: e.message });
+    }
+  });
+
+  // ============================================================
+  // CRAWL XE cho Nhóm 2 Product.xlsx (Hướng A: cào xe TRƯỚC, nạp SP sau)
+  // Sản phẩm nằm ở phòng chờ product_cho_nap. Mã gốc nào PartSouq trả về xe
+  // thì mới nạp sản phẩm + fitment; mã không có xe thì nằm lại, không nạp.
+  // ============================================================
+
+  // 1) Worker xin lô mã gốc cần cào xe
+  fastify.get<{ Querystring: { worker_id?: string; limit?: string } }>(
+    '/crawl/xe/claim', async (req, reply) => {
+      const workerId = (req.query.worker_id || 'unknown').trim();
+      const limit = Math.min(Math.max(parseInt(req.query.limit || '20') || 20, 1), 200);
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        const r = await client.query(`
+          WITH ung_vien AS (
+            SELECT oem_norm FROM crawl_xe_queue
+            WHERE status = 'pending'
+               OR (status = 'claimed' AND claimed_at < NOW() - INTERVAL '15 minutes')
+            ORDER BY claimed_at ASC NULLS FIRST
+            LIMIT $1
+            FOR UPDATE SKIP LOCKED
+          )
+          UPDATE crawl_xe_queue q
+          SET status='claimed', worker_id=$2, claimed_at=NOW()
+          FROM ung_vien u WHERE q.oem_norm = u.oem_norm
+          RETURNING q.oem_norm, q.oem_code
+        `, [limit, workerId]);
+        await client.query('COMMIT');
+        return reply.send({ ok: true, worker_id: workerId, count: r.rows.length, items: r.rows });
+      } catch (e: any) {
+        await client.query('ROLLBACK').catch(() => {});
+        fastify.log.error('[xe/claim] ' + e.message);
+        return reply.status(500).send({ error: e.message });
+      } finally { client.release(); }
+    }
+  );
+
+  // 2) Worker nộp danh sách xe → upsert xe, nạp SP từ phòng chờ, tạo fitment
+  fastify.post<{ Body: { worker_id?: string; oem_code: string; vehicles?: any[]; error?: string } }>(
+    '/crawl/xe/submit', async (req, reply) => {
+      const { worker_id = 'unknown', oem_code, vehicles = [], error } = req.body || {};
+      if (!oem_code) return reply.status(400).send({ error: 'Thiếu oem_code' });
+      const oemNorm = oem_code.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+
+        if (error) {
+          await client.query(
+            `UPDATE crawl_xe_queue SET status='error', error_msg=$2, completed_at=NOW() WHERE oem_norm=$1`,
+            [oemNorm, error]);
+          await client.query('COMMIT');
+          return reply.send({ ok: true, status: 'error' });
+        }
+
+        // Không có xe → đánh dấu xong, KHÔNG nạp sản phẩm (tránh SP mồ côi)
+        if (!vehicles.length) {
+          await client.query(
+            `UPDATE crawl_xe_queue SET status='done', so_xe=0, so_sp_nap=0, completed_at=NOW(), error_msg=NULL
+             WHERE oem_norm=$1`, [oemNorm]);
+          await client.query('COMMIT');
+          return reply.send({ ok: true, vehicles: 0, products_loaded: 0, fitments: 0 });
+        }
+
+        // a) Upsert xe
+        const vehicleIds: string[] = [];
+        for (const v of vehicles) {
+          const make = (v.make || '').trim();
+          const code = (v.modelCode || v.model_code || '').trim();
+          if (!make || !code) continue;
+          const year = parseInt(v.year) || null;
+          const vr = await client.query(`
+            INSERT INTO catalog_vehicles
+              (make, model_code, model_name, vehicle_type, year_from, year_to, engine, transmission, description, created_at, updated_at)
+            VALUES ($1,$2,$3,'car',$4,$4,$5,$6,$7,NOW(),NOW())
+            ON CONFLICT (make, model_code, variant_key) DO UPDATE SET
+              model_name = COALESCE(catalog_vehicles.model_name, EXCLUDED.model_name),
+              updated_at = NOW()
+            RETURNING id
+          `, [make, code, v.modelName || v.model_name || null, year,
+              v.engine || null, v.trans || v.transmission || null, v.market || null]);
+          vehicleIds.push(vr.rows[0].id);
+        }
+
+        // b) Nạp sản phẩm chờ có mã gốc này vào catalog_products
+        const spRes = await client.query(`
+          INSERT INTO catalog_products
+            (id, name, name_vi, internal_ref, oem_code, is_for_sale, product_type, notes, created_at, updated_at)
+          SELECT gen_random_uuid(), c.ten, c.ten, c.internal_ref, NULL, TRUE,
+                 'aftermarket', 'nguon: Product.xlsx (nhom2)', NOW(), NOW()
+          FROM product_cho_nap c
+          WHERE c.oem_norm = $1 AND NOT c.da_nap
+          ON CONFLICT (ref_norm) WHERE ref_norm IS NOT NULL DO NOTHING
+          RETURNING id
+        `, [oemNorm]);
+        const productIds = spRes.rows.map((r: any) => r.id);
+
+        // c) Ghi mã OE + fitment cho các sản phẩm vừa nạp
+        let fitments = 0;
+        if (productIds.length) {
+          await client.query(`
+            INSERT INTO catalog_oem_codes (product_id, oem_code, make, source)
+            SELECT id, $2, NULL, 'Product.xlsx:Mã gốc'
+            FROM unnest($1::uuid[]) AS t(id)
+            ON CONFLICT (product_id, oem_code) DO NOTHING
+          `, [productIds, oem_code]);
+
+          if (vehicleIds.length) {
+            const fr = await client.query(`
+              INSERT INTO catalog_fitments (id, product_id, vehicle_id, notes, created_at)
+              SELECT gen_random_uuid(), p.id, v.id, 'nguon: Product.xlsx (cao xe)', NOW()
+              FROM unnest($1::uuid[]) AS p(id)
+              CROSS JOIN unnest($2::uuid[]) AS v(id)
+              ON CONFLICT (product_id, vehicle_id) DO NOTHING
+            `, [productIds, vehicleIds]);
+            fitments = fr.rowCount || 0;
+          }
+
+          await client.query(
+            `UPDATE product_cho_nap SET da_nap=TRUE, nap_luc=NOW() WHERE oem_norm=$1 AND NOT da_nap`,
+            [oemNorm]);
+        }
+
+        await client.query(`
+          UPDATE crawl_xe_queue
+          SET status='done', so_xe=$2, so_sp_nap=$3, completed_at=NOW(), error_msg=NULL
+          WHERE oem_norm=$1
+        `, [oemNorm, vehicleIds.length, productIds.length]);
+
+        await client.query('COMMIT');
+        return reply.send({ ok: true, oem_code, vehicles: vehicleIds.length,
+                            products_loaded: productIds.length, fitments });
+      } catch (e: any) {
+        await client.query('ROLLBACK').catch(() => {});
+        fastify.log.error('[xe/submit] ' + e.message);
+        return reply.status(500).send({ error: e.message });
+      } finally { client.release(); }
+    }
+  );
+
+  // 3) Tiến độ
+  fastify.get('/crawl/xe/stats', async (_req, reply) => {
+    try {
+      const [q, w, c] = await Promise.all([
+        pool.query(`SELECT status, count(*)::int AS count, sum(so_xe)::int AS so_xe,
+                           sum(so_sp_nap)::int AS so_sp_nap
+                    FROM crawl_xe_queue GROUP BY status`),
+        pool.query(`SELECT worker_id, count(*)::int AS done_count, sum(so_sp_nap)::int AS so_sp_nap,
+                           max(completed_at) AS last_seen
+                    FROM crawl_xe_queue WHERE status='done'
+                    GROUP BY worker_id ORDER BY done_count DESC`),
+        pool.query(`SELECT count(*) FILTER (WHERE da_nap)::int AS da_nap,
+                           count(*) FILTER (WHERE NOT da_nap)::int AS con_cho
+                    FROM product_cho_nap`),
+      ]);
+      return reply.send({ summary: q.rows, workers: w.rows, phong_cho: c.rows[0] });
+    } catch (e: any) {
+      fastify.log.error('[xe/stats] ' + e.message);
+      return reply.status(500).send({ error: e.message });
+    }
   });
 }

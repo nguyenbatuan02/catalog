@@ -67,6 +67,11 @@ CAU_HINH = {
     #
     #   (Vẫn nhận danh sách ["model","grade"] nếu bạn thực sự muốn mã ghép,
     #    nhưng thường không cần nữa.)
+    #
+    #   Muốn GÁN CỐ ĐỊNH cùng 1 mã cho MỌI xe trong file (không đọc JSON,
+    #   VD file chỉ có đúng 1 model mà bạn biết sẵn mã) — điền TUPLE 2 phần
+    #   tử, phần tử đầu là None (dấu hiệu "không phải tên trường"):
+    #       "model_code": (None, "LRE201412")
     "model_code":   "model",
 
     # tầng 3 → các cột THÔNG SỐ XE. Để None nếu file không có.
@@ -81,11 +86,11 @@ CAU_HINH = {
     #     xe trùng mã. Không điền thì mọi bản gộp làm một dòng.
     #     specs_raw KHÔNG tham gia phân biệt, chỉ để xem.
     "vehicle_type": None,      # → vehicle_type   (car / truck / bus...)
-    "engine":       None,      # → engine
-    "transmission": None,      # → transmission
-    "drive_type":   None,      # → drive_type     (2WD / 4WD)
-    "steering":     None,      # → steering       (LHD / RHD)
-    "gear_shift":   None,      # → gear_shift     (AT / MT / CVT)
+    "engine":       "description",      # → engine
+    "transmission": "options",      # → transmission
+    "drive_type":   "carline",      # → drive_type     (2WD / 4WD)
+    "steering":     "drive",      # → steering       (LHD / RHD)
+    "gear_shift":   "gearbox",      # → gear_shift     (AT / MT / CVT)
     "specs_raw":    None,      # → specs_raw      (chuỗi thông số gốc, để nguyên)
 
     # tầng 3 → cột  catalog_fitments.notes   (ghi trên từng dòng nối xe–phụ tùng)
@@ -109,26 +114,47 @@ CAU_HINH = {
     #       "prod_range"   : "1950 - 1959"       → 1950 và 1959
     #       "manufactured" : "1996"              → 1996 và 1996
     #
-    #   2) Trường riêng — điền DANH SÁCH, thứ tự TỪ trước ĐẾN sau:
+    #   2) HAI trường riêng — điền danh sách, thứ tự TỪ trước ĐẾN sau:
     #       ["model_year_from", "model_year_to"]  → 2017 và 2026
-    #       ["model_year_from"]                   → 2017 và (trống)
-    #      Chỉ có năm bắt đầu thì year_to ĐỂ TRỐNG → xe khớp mọi năm về
-    #      sau, đúng với xe còn đang sản xuất.
+    #      Trường thứ hai rỗng (model đó không có, hoặc giá trị rỗng) thì
+    #      year_to = TRỐNG (xe coi như còn sản xuất tới nay, khớp mọi năm
+    #      về sau) — KHÔNG lấy bằng year_from.
     #
     #   3) None → cả hai cột để trống, xe khớp MỌI năm.
     #      An toàn hơn điền sai: điền sai là xe bị loại oan, khách hỏi
     #      không ra hàng.
-    "year_from_to": "prod_period",
+    #
+    #   4) Một trường + None LITERAL (không phải tên trường) — chỉ có
+    #      năm bắt đầu, còn sản xuất tới nay, không biết năm kết thúc:
+    #       ["manufactured", None]  → year_from = 1996, year_to = TRỐNG
+    #      (khác dạng 2: dạng 2 là 2 TÊN TRƯỜNG thật, "None" ở đây không
+    #       tra trong JSON, chỉ là dấu hiệu "để year_to trống luôn").
+    #
+    #   5) HAI SỐ NGUYÊN literal — gán CỨNG cùng 1 khoảng năm cho MỌI xe
+    #      trong file, KHÔNG đọc trường nào trong JSON cả. Dùng khi file
+    #      không ghi năm nhưng bạn biết chắc khoảng sản xuất:
+    #       [1987, 2006]     → mọi xe year_from=1987, year_to=2006
+    #       [1987, None]     → mọi xe year_from=1987, year_to=TRỐNG
+    #      (khác dạng 4: dạng 4 vẫn ĐỌC 1 trường JSON làm year_from, dạng
+    #       này cả hai số đều gán cứng, không đụng tới JSON).
+    "year_from_to": ["prod_period"],
 
     # ─────────────────────────────────────────────────────────────────
     #  BẢNG PHỤ TÙNG  →  catalog_products
     # ─────────────────────────────────────────────────────────────────
 
     # tầng 6 → HAI cột  internal_ref  VÀ  oem_code
-    #   Cũng là ánh xạ 1 → 2: cùng một mã ghi vào cả hai cột.
-    #     internal_ref = mã sản phẩm, KHÔNG được trùng (khoá chống trùng)
-    #     oem_code     = mã hãng xe, được phép trùng (hàng tương đương)
-    #   File cào chỉ có một mã nên hai cột bằng nhau — bình thường.
+    #   Ánh xạ 1 → 2: cùng một mã ghi vào cả hai cột, và ĐÚNG là phải vậy.
+    #   File PartSouq là catalog CHÍNH HÃNG nên mã ở đây là mã của HÃNG XE
+    #   (12325-21050 Toyota, 1UA2-67-333 Mazda) — với hàng genuine thì mã nội
+    #   bộ CHÍNH LÀ mã OEM. Hai cột bằng nhau là hệ quả của nguồn dữ liệu,
+    #   không phải lỗi nạp.
+    #     internal_ref = khoá chống trùng (UNIQUE qua ref_norm)
+    #     oem_code     = cùng giá trị, giữ lại cho route search
+    #   MÃ THAY THẾ của hãng khác (Denso, Bosch, hãng xe khác) KHÔNG nằm ở
+    #   đây — file JSON không có. Chúng thuộc bảng catalog_oem_codes (1-N,
+    #   migrations/016), nạp từ nguồn khác. Vì vậy đừng tìm cách nhét mã
+    #   tương đương vào oem_code: một cột varchar chỉ chứa được một mã.
     #   Phụ tùng không có mã thì BỊ BỎ QUA, script đếm và báo lại.
     "ma_phu_tung":  "number",
 
@@ -224,46 +250,30 @@ def chuan_hoa_ma(s):
 
 
 def tach_nam(s):
-    """'08.2009 - 06.2012' → (2009, 2012) ; '1996' → (1996, 1996) ; None → (None, None)"""
     if not s:
         return (None, None)
-    nam = re.findall(r"\d{4}", str(s))
+    s = str(s).strip()
+    nam = re.findall(r"\d{4}", s)
     if not nam:
         return (None, None)
     ok = lambda n: n if 1900 <= n <= 2100 else None
     tu = ok(int(nam[0]))
-    den = ok(int(nam[-1])) if len(nam) > 1 else tu
+
+    # Nếu có dấu "-" hoặc "..." sau năm đầu → có ý định ghi khoảng
+    # nhưng năm kết thúc trống → xe còn sản xuất → year_to = None
+    co_khoang = bool(re.search(r"\d{4}\s*[-–]\s*(\.\.\.|$|\s*$)", s))
+    if len(nam) >= 2:
+        den = ok(int(nam[-1]))
+    elif co_khoang:
+        den = None   # "03.2023 - ..." → còn sản xuất
+    else:
+        den = tu     # "1996" → chỉ 1 năm
+
     return (tu, den)
 
 
 def rong(v):
     return v is None or str(v).strip() == ""
-
-
-def lay_nam(m):
-    """Đọc year_from / year_to theo CAU_HINH["year_from_to"].
-
-    "prod_range"                → "1950 - 1959"  → (1950, 1959)
-    ["nam_tu", "nam_den"]       → hai trường riêng, mỗi vế bóc riêng
-    ["nam_tu"]                  → (1950, None) — CHỈ có năm bắt đầu thì
-                                  year_to ĐỂ TRỐNG, không gán bằng year_from.
-                                  Gán bằng nhau là sai: xe sản xuất từ 2017
-                                  đến nay sẽ chỉ khớp đúng 2017, khách hỏi
-                                  đời 2023 không ra hàng.
-    """
-    kh = CAU_HINH.get("year_from_to")
-    if not isinstance(kh, (list, tuple)):
-        return tach_nam(m.get(kh) if kh else None)
-
-    def mot(k):
-        if not k:
-            return None
-        g = re.findall(r"\d{4}", str(m.get(k) or ""))
-        n = int(g[0]) if g else None
-        return n if n and 1900 <= n <= 2100 else None
-
-    return (mot(kh[0] if len(kh) > 0 else None),
-            mot(kh[1] if len(kh) > 1 else None))
 
 
 def gop_tang(c, m):
@@ -294,6 +304,38 @@ def lay(m, khoa):
     return None if rong(v) else str(v).strip()
 
 
+def lay_nam(m):
+    """Tính (year_from, year_to) cho tầng 3 theo CAU_HINH["year_from_to"].
+
+    Xử lý riêng 3 dạng danh sách 2 phần tử (xem CAU_HINH dạng 2, 4, 5):
+      - ["a", "b"]    (2 tên trường JSON thật) → year_from từ "a", year_to
+        từ "b"; model nào thiếu/rỗng "b" thì year_to = None (KHÔNG lấy
+        bằng year_from — mỗi model trong file tự quyết theo dữ liệu nó có).
+      - ["a", None]   (None là LITERAL, không phải tên trường) → year_from
+        từ "a", year_to LUÔN None cho MỌI model (áp dụng tĩnh, không đọc
+        JSON để tìm trường "b").
+      - [1987, 2006]  (2 SỐ NGUYÊN literal, không phải tên trường) →
+        year_from=1987, year_to=2006 CỐ ĐỊNH cho MỌI model trong file,
+        không đọc JSON. Dùng khi file không ghi năm nhưng biết chắc
+        khoảng sản xuất. year_to có thể để None: [1987, None].
+    """
+    kh = CAU_HINH.get("year_from_to")
+    if isinstance(kh, (list, tuple)) and len(kh) == 2:
+        if isinstance(kh[0], int):
+            return (kh[0], kh[1] if isinstance(kh[1], int) else None)
+        if isinstance(kh[0], str):
+            tu, _ = tach_nam(m.get(kh[0]))
+            if kh[1] is None:
+                return (tu, None)
+            if isinstance(kh[1], str):
+                v2 = m.get(kh[1])
+                if rong(v2):
+                    return (tu, None)
+                den, _ = tach_nam(v2)
+                return (tu, den)
+    return tach_nam(lay(m, "year_from_to"))
+
+
 def khoa_bien_the(nam_tu, nam_den, engine, transmission, drive_type, steering,
                   gear_shift, thi_truong):
     """Ghép các thông số phân biệt bản xe thành một chuỗi.
@@ -314,18 +356,27 @@ def khoa_bien_the(nam_tu, nam_den, engine, transmission, drive_type, steering,
 def lay_ma_xe(m, ten_xe):
     """Suy ra mã xe từ một model trong file. Trả về (mã, có_phải_lấy_từ_tên).
 
-    CAU_HINH["model_code"] nhận 3 kiểu:
+    CAU_HINH["model_code"] nhận 4 kiểu:
         "model"                        → lấy đúng trường đó
         ["model","grade","gearbox"]    → ghép các trường lại bằng dấu -
                                          (dùng khi 1 mã dùng cho nhiều bản xe)
         None                           → không có mã, lấy tên xe làm mã
+        (None, "LRE201412")            → GÁN CỐ ĐỊNH mã này cho MỌI xe
+                                         trong file, không đọc JSON (None
+                                         ở đây là DẤU HIỆU "không phải tên
+                                         trường", giống cách dùng ở
+                                         year_from_to — KHÔNG được nhầm với
+                                         list ["a","b"] vốn là 2 tên trường
+                                         thật để ghép).
 
     Dùng chung cho cả nap_json.py và xoa_xe.py để hai bên luôn tính ra
     cùng một mã — lệch nhau là xoá sót.
     """
     kh = CAU_HINH["model_code"]
     ma = None
-    if isinstance(kh, (list, tuple)):
+    if isinstance(kh, tuple) and len(kh) == 2 and kh[0] is None and isinstance(kh[1], str):
+        ma = kh[1]
+    elif isinstance(kh, (list, tuple)):
         phan = [str(m.get(k)).strip() for k in kh if not rong(m.get(k))]
         ma = "-".join(phan) if phan else None
     elif kh:
@@ -424,6 +475,26 @@ def soi(duong_dan):
     loi = 0
     for cot, obj, tang in kiem:
         truong = CAU_HINH[cot]
+        if cot == "year_from_to" and isinstance(truong, (list, tuple)) \
+                and len(truong) == 2 and isinstance(truong[0], int):
+            print(f"  ○  {cot:<12} = {truong!r}  (gán CỐ ĐỊNH cho mọi xe, không đọc JSON)")
+            continue
+        if cot == "year_from_to" and isinstance(truong, (list, tuple)) \
+                and len(truong) == 2 and isinstance(truong[0], str) and truong[1] is None:
+            tf = truong[0]
+            if tf in obj:
+                gt = json.dumps(obj.get(tf), ensure_ascii=False)[:38]
+                print(f"  ✓  {cot:<12} ← {tf:<14} {tang}  = {gt}  (year_to LUÔN trống)")
+            else:
+                loi += 1
+                co = [k for k in obj if not isinstance(obj[k], (dict, list))]
+                print(f"  ✗  {cot:<12} ← {tf:<14} {tang}  KHÔNG CÓ TRƯỜNG NÀY")
+                print(f"     {'':<12}   trường có sẵn: {', '.join(co)}")
+            continue
+        if isinstance(truong, tuple) and len(truong) == 2 \
+                and truong[0] is None and isinstance(truong[1], str):
+            print(f"  ○  {cot:<12} = {truong[1]!r}  (gán CỐ ĐỊNH cho mọi xe, không đọc JSON)")
+            continue
         if isinstance(truong, (list, tuple)):
             # model_code ghép từ nhiều trường → kiểm từng trường một
             co = [k for k in obj if not isinstance(obj[k], (dict, list))]
@@ -521,11 +592,11 @@ def kiem_trung_model(ds):
         print("     Không mất phụ tùng — tất cả gắn vào cùng xe.")
         print("     Muốn tách ra thì map thêm cột thông số (engine / transmission /")
         print("     drive_type / steering / gear_shift) trong CAU_HINH.")
-        for k, v in list(trung.items())[:5]:
+        for k, v in trung.items():
             ma = "|".join(k.split("|")[:2])
-            print(f"       {ma}  ×{len(v)}   {v[0][:52]}")
-        if len(trung) > 5:
-            print(f"       ... và {so_dep(len(trung) - 5)} xe nữa")
+            print(f"       {ma}  ×{len(v)}")
+            for nhan in v:
+                print(f"           - {nhan}")
     else:
         print("  ✓ Không dòng nào bị gộp — mỗi dòng thành một xe riêng")
 
@@ -670,11 +741,13 @@ def boc_tach(goc):
                             ten = p.get(cfg["name"]) if cfg["name"] else None
                             ten_vi = p.get(cfg["name_vi"]) if cfg["name_vi"] else None
 
-                            # TÊN CHÍNH: ưu tiên name_vi, rỗng mới dùng name.
-                            # Cột `name` là cột app dùng để TÌM KIẾM, nên để tiếng
-                            # Việt ở đây thì khách gõ tiếng Việt mới ra kết quả.
-                            hien_thi = (str(ten_vi).strip() if not rong(ten_vi)
-                                        else str(ten).strip() if not rong(ten) else None)
+                            # `name` GIỮ NGUYÊN TÊN GỐC, không bao giờ ghi tiếng Việt
+                            # đè lên. Trước đây đổ name_vi vào đây cho dễ tìm kiếm,
+                            # nhưng backend giờ đã ILIKE cả name/name_vi/name_vi_cho
+                            # nên không cần nữa — mà việc đè đã xoá mất tên gốc của
+                            # 682k dòng, khiến không ánh xạ lại được theo tên
+                            # (scripts/nap_ten_viet.mjs join trên chính cột này).
+                            hien_thi = str(ten).strip() if not rong(ten) else None
                             if not hien_thi:
                                 # Không có tên nào cả — hay gặp với bu lông, ốc vít
                                 # tiêu chuẩn (PartSouq không kèm mô tả).
@@ -699,7 +772,8 @@ def boc_tach(goc):
                                 cu = phu_tung[ref]
                                 if rong(cu["name_vi"]) and not rong(ten_vi):
                                     cu["name_vi"] = str(ten_vi).strip()
-                                    cu["name"] = cat(str(ten_vi).strip(), 500)
+                                if rong(cu["name"]) and not rong(ten):
+                                    cu["name"] = cat(str(ten).strip(), 500)
                                 if rong(cu["ten_goc"]) and ten_goc:
                                     cu["ten_goc"] = ten_goc
 

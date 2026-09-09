@@ -1,11 +1,13 @@
 /**
- * vin-lookup.ts v3
- * CHI tra cache DB. Khong dung WebSocket nua.
- * Neu cache khong co → tra ve vehicles rong, de index.html
- * tu goi extension PartSouq (chrome.runtime.sendMessage).
+ * vin-lookup.ts v4
+ * Tra cache DB truoc. Cache miss → TU DONG cao PartSouq server-side qua
+ * scripts/vin.py (undetected_chromedriver — ne duoc chan Cloudflare vi gia
+ * lap trinh duyet that). Khong con phu thuoc extension client nua — khach
+ * khong can cai gi ca, server tu lam het.
  */
 
 import pg from 'pg';
+import { spawn } from 'node:child_process';
 
 const pool = new pg.Pool({
   host    : process.env.DB_HOST     || 'localhost',
@@ -19,7 +21,7 @@ export interface VinResult {
   vin        : string;
   vin_prefix : string;
   vehicles   : VinVehicle[];
-  source     : 'cache' | 'extension' | 'manual';
+  source     : 'cache' | 'live-scrape' | 'extension' | 'manual';
   error?     : string;
 }
 
@@ -128,7 +130,61 @@ async function matchWithCatalog(vehicles: VinVehicle[]): Promise<VinVehicle[]> {
 }
 
 // ============================================================
-// MAIN LOOKUP — chi tra cache DB
+// CAO LIVE server-side — spawn scripts/vin.py (undetected_chromedriver).
+// CHI 1 phien Chrome chay cung luc (queue) — mo nhieu cua so that dong
+// thoi rat ton tai nguyen server va de bi Cloudflare nghi ngo hon.
+// ============================================================
+interface VinScrapeResult {
+  ok: boolean;
+  brand?: string;
+  year?: string;
+  name?: string;
+  model_code?: string;
+  error?: string;
+}
+
+const VIN_PY_PATH = 'C:/Users/Administrator/Desktop/data/vin.py';
+const PYTHON_BIN   = 'python';
+let vinScrapeQueue: Promise<any> = Promise.resolve();
+
+function scrapeVinLiveRaw(vin: string, timeoutMs = 75000): Promise<VinScrapeResult> {
+  return new Promise((resolve) => {
+    const proc = spawn(PYTHON_BIN, [VIN_PY_PATH, vin]);
+    let stdout = '';
+    let stderr = '';
+    const timer = setTimeout(() => {
+      proc.kill();
+      resolve({ ok: false, error: 'Timeout tra VIN (quá 75s)' });
+    }, timeoutMs);
+
+    proc.stdout.on('data', (d) => { stdout += d.toString(); });
+    proc.stderr.on('data', (d) => { stderr += d.toString(); });
+    proc.on('close', () => {
+      clearTimeout(timer);
+      const lines = stdout.trim().split('\n').filter(Boolean);
+      const lastLine = lines[lines.length - 1];
+      try {
+        resolve(JSON.parse(lastLine));
+      } catch {
+        resolve({ ok: false, error: `Không đọc được kết quả scrape: ${(stderr || stdout).slice(0, 300)}` });
+      }
+    });
+    proc.on('error', (e) => {
+      clearTimeout(timer);
+      resolve({ ok: false, error: `Không chạy được vin.py: ${e.message}` });
+    });
+  });
+}
+
+// Xep hang — request sau doi request truoc xong moi chay, tranh mo nhieu Chrome cung luc.
+function scrapeVinLive(vin: string): Promise<VinScrapeResult> {
+  const run = vinScrapeQueue.then(() => scrapeVinLiveRaw(vin));
+  vinScrapeQueue = run.catch(() => {});
+  return run;
+}
+
+// ============================================================
+// MAIN LOOKUP — tra cache truoc, cache miss thi tu dong cao live
 // ============================================================
 export async function lookupVin(vin: string): Promise<VinResult> {
   const vinClean  = vin.toUpperCase().replace(/\s/g, '');
@@ -140,16 +196,37 @@ export async function lookupVin(vin: string): Promise<VinResult> {
     return { vin: vinClean, vin_prefix: vinPrefix, vehicles: cached, source: 'cache' };
   }
 
-  // Khong co trong cache — tra ve rong, KHONG bao loi
-  // index.html se tu goi extension PartSouq de tra
-  console.log(`[VIN] Cache miss: ${vinClean}`);
-  return { vin: vinClean, vin_prefix: vinPrefix, vehicles: [], source: 'cache' };
+  console.log(`[VIN] Cache miss: ${vinClean} — cào live qua PartSouq...`);
+  const scraped = await scrapeVinLive(vinClean);
+  if (scraped.ok && scraped.model_code) {
+    const matched = await saveVinFromScraper(vinClean, [{
+      model_code: scraped.model_code,
+      make      : scraped.brand || '',
+      model_name: scraped.name || '',
+      year      : scraped.year ? parseInt(scraped.year) : null,
+      vehicle_id: null,
+    }]);
+    console.log(`[VIN] Cào live thành công: ${vinClean} -> ${scraped.brand} ${scraped.name} (${scraped.model_code})`);
+    return { vin: vinClean, vin_prefix: vinPrefix, vehicles: matched, source: 'live-scrape' };
+  }
+
+  console.log(`[VIN] Cào live thất bại: ${vinClean} — ${scraped.error}`);
+  return { vin: vinClean, vin_prefix: vinPrefix, vehicles: [], source: 'cache', error: scraped.error };
 }
 
 // ============================================================
-// SAVE — luu ket qua tu extension PartSouq vao cache
-// Goi tu endpoint /vin/save khi extension scrape xong
+// SAVE — luu ket qua cao duoc (live scrape hoac extension) vao cache
 // ============================================================
+export async function saveVinFromScraper(
+  vin: string, vehicles: VinVehicle[]
+): Promise<VinVehicle[]> {
+  const vinClean = vin.toUpperCase().replace(/\s/g, '');
+  const matched  = await matchWithCatalog(vehicles);
+  await saveCache(vinClean, matched, 'live-scrape');
+  return matched;
+}
+
+// Giu lai ten cu — /vin/save (extension client, neu sau nay co ai cai) van goi duoc.
 export async function saveVinFromExtension(
   vin: string, vehicles: VinVehicle[]
 ): Promise<VinVehicle[]> {

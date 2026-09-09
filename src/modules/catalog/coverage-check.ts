@@ -109,12 +109,13 @@ export interface CoverageResult { score: number; missing: string[]; missingRequi
 // Tính coverage cho 1 model_line (gộp phụ tùng TẤT CẢ xe có model_name = modelLine).
 export async function checkCoverage(pool: Pool, make: string, modelLine: string): Promise<CoverageResult> {
   const client = await pool.connect();
-  let combined: string[] = [];   // mỗi phần tử = "name name_vi" (đã LOWER)
+  let combined: string[] = [];   // mỗi phần tử = "name name_vi name_vi_cho" (đã LOWER)
   try {
     await client.query('BEGIN');
     await client.query("SET LOCAL statement_timeout = '25s'");   // không giữ connection (chung với worker) quá lâu
     const { rows } = await client.query(`
-      SELECT DISTINCT LOWER(cp.name) AS name, LOWER(COALESCE(cp.name_vi, '')) AS name_vi
+      SELECT DISTINCT LOWER(cp.name) AS name, LOWER(COALESCE(cp.name_vi, '')) AS name_vi,
+             LOWER(COALESCE(cp.name_vi_cho, '')) AS name_vi_cho
       FROM catalog_fitments cf
       JOIN catalog_vehicles cv ON cv.id = cf.vehicle_id
       JOIN catalog_products cp ON cp.id = cf.product_id
@@ -122,7 +123,7 @@ export async function checkCoverage(pool: Pool, make: string, modelLine: string)
         AND cp.name IS NOT NULL AND cp.name NOT LIKE '***%' AND LENGTH(cp.name) > 5
     `, [make, modelLine]);
     await client.query('COMMIT');
-    combined = rows.map((r: any) => `${r.name} ${r.name_vi}`);
+    combined = rows.map((r: any) => `${r.name} ${r.name_vi} ${r.name_vi_cho}`);
   } catch (e) {
     try { await client.query('ROLLBACK'); } catch {}
     throw e;

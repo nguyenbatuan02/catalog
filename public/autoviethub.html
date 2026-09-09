@@ -1,0 +1,3694 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>AutoViet Hub — Kết nối ngành xe, Vì cộng đồng Việt</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #f4f7fb;
+  --bg2:     #eaf0f9;
+  --bg3:     #dde8f5;
+  --surface: #ffffff;
+  --surface2:#f0f5fc;
+  --border:  rgba(59,130,246,0.12);
+  --border2: rgba(59,130,246,0.22);
+  --accent:  #2563eb;
+  --accent2: #3B82F6;
+  --accent-dim: rgba(37,99,235,0.10);
+  --accent-glow: rgba(37,99,235,0.20);
+  --teal:    #0891b2;
+  --teal-dim: rgba(8,145,178,0.10);
+  --text:    #0f172a;
+  --text2:   #475569;
+  --text3:   #94a3b8;
+  --red:     #dc2626;
+  --green:   #059669;
+  --blue:    #0891b2;
+  --navy: #1e3a5f;
+  --blue-light: #eff6ff;
+  --r: 8px;
+  --r2: 14px;
+  --r3: 20px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+h1,h2,h3,h4,h5 { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+
+/* ── LOGO ── */
+.nav-logo-wrap {
+  display: flex; align-items: center; gap: 12px; text-decoration: none; flex-shrink: 0;
+}
+.nav-logo-svg { width: 34px; height: 34px; flex-shrink: 0; }
+.nav-logo-texts { display: flex; flex-direction: column; line-height: 1.15; }
+.nav-logo-name {
+  font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 17px; letter-spacing: -0.3px;
+}
+.nav-logo-name .ln { color: var(--navy); }
+.nav-logo-name .lv { color: var(--teal); }
+.nav-logo-name .lh { color: var(--accent); }
+.nav-logo-tagline { font-size: 9.5px; color: var(--text3); letter-spacing: 0.3px; }
+
+/* ── ABOUT PAGE SECTIONS ── */
+.about-hero-section {
+  background: linear-gradient(180deg, #eef4fe 0%, #f4f7fb 100%);
+  padding: 5rem 2.5rem 4rem;
+}
+.about-hero-inner {
+  max-width: 1100px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 400px; gap: 4rem; align-items: center;
+}
+.about-hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(8,145,178,0.08); border: 1px solid rgba(8,145,178,0.25);
+  color: var(--teal); font-size: 12px; font-weight: 500; letter-spacing: 1px;
+  padding: 5px 14px; border-radius: 100px; text-transform: uppercase; margin-bottom: 1.5rem;
+}
+.about-hero-h1 {
+  font-family: 'Instrument Serif', Georgia, serif; font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 400; line-height: 1.15; letter-spacing: -0.5px;
+  color: var(--navy); margin-bottom: 1.25rem;
+}
+.about-hero-h1 em { font-style: italic; color: var(--accent); }
+.about-hero-p { font-size: 1rem; color: var(--text2); line-height: 1.75; margin-bottom: 2rem; max-width: 500px; }
+.about-ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn-about-primary {
+  background: var(--accent); color: #fff; border: none;
+  padding: 13px 28px; border-radius: var(--r); font-size: 14px; font-weight: 600;
+  cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: all .2s;
+}
+.btn-about-primary:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37,99,235,0.25); }
+.btn-about-secondary {
+  background: transparent; color: var(--text);
+  border: 1.5px solid var(--border2); padding: 13px 28px; border-radius: var(--r);
+  font-size: 14px; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: all .2s;
+}
+.btn-about-secondary:hover { border-color: var(--accent); color: var(--accent); }
+.about-hero-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r3); padding: 1.75rem; box-shadow: 0 4px 24px rgba(37,99,235,0.08);
+}
+.about-card-title {
+  font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 0.95rem;
+  color: var(--navy); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 8px;
+}
+.about-card-title::before { content:''; display:block; width:8px; height:8px; border-radius:50%; background:var(--teal); }
+.about-feat-list { display: flex; flex-direction: column; gap: 10px; }
+.about-feat-row {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--bg); border-radius: var(--r); padding: 13px 15px;
+}
+.about-feat-icon {
+  width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+}
+.about-feat-icon.blue { background: var(--blue-light); }
+.about-feat-icon.teal { background: rgba(8,145,178,0.08); }
+.about-feat-icon.green { background: #f0fdf4; }
+.about-feat-label { font-size: 11px; color: var(--text2); }
+.about-feat-val { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 13px; color: var(--navy); }
+
+.about-divider { height: 4px; background: linear-gradient(90deg, var(--accent), var(--teal), transparent); }
+
+.about-stats-bar { background: var(--navy); padding: 2.5rem; }
+.about-stats-inner {
+  max-width: 1100px; margin: 0 auto;
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 1.5rem; text-align: center;
+}
+.ab-stat strong {
+  display: block; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 2.2rem; font-weight: 800;
+  color: #fff; line-height: 1;
+}
+.ab-stat strong em { font-style: normal; color: #67e8f9; }
+.ab-stat span { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 4px; display: block; }
+
+.about-story { padding: 4.5rem 2.5rem; max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; }
+.ab-section-label { font-size: 11px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: var(--teal); margin-bottom: 1rem; }
+.about-story h2 { font-family: 'Instrument Serif', Georgia, serif; font-size: 2rem; font-weight: 400; color: var(--navy); line-height: 1.2; letter-spacing: 0; margin-bottom: 1.25rem; }
+.about-story p { color: var(--text2); margin-bottom: 0.875rem; font-size: 0.9rem; line-height: 1.7; }
+.about-blockquote { border-left: 3px solid var(--accent); padding-left: 1.25rem; font-family: 'Instrument Serif', Georgia, serif; font-size: 1.1rem; color: var(--navy); font-style: italic; line-height: 1.7; margin: 1.25rem 0; }
+.about-check-list { display: flex; flex-direction: column; gap: 9px; margin-top: 1.25rem; }
+.about-check-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text2); }
+.about-check-item::before { content: '✓'; color: var(--teal); font-weight: 700; font-size: 14px; flex-shrink: 0; }
+
+.about-values-section { background: var(--surface); padding: 4.5rem 2.5rem; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.about-values-inner { max-width: 1100px; margin: 0 auto; }
+.about-values-header { text-align: center; margin-bottom: 2.5rem; }
+.about-values-header h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.85rem; font-weight: 800; color: var(--navy); margin-bottom: 0.75rem; }
+.about-values-header p { color: var(--text2); max-width: 540px; margin: 0 auto; font-size: 0.9rem; }
+.about-values-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem; }
+.ab-value-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r2); padding: 1.5rem; transition: all .2s; }
+.ab-value-card:hover { border-color: var(--accent); box-shadow: 0 4px 16px rgba(37,99,235,0.08); }
+.ab-value-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; margin-bottom: 0.875rem; }
+.ab-value-card h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 1rem; color: var(--navy); margin-bottom: 0.4rem; }
+.ab-value-card p { font-size: 0.825rem; color: var(--text2); line-height: 1.6; }
+
+.about-how-section { padding: 4.5rem 2.5rem; max-width: 1100px; margin: 0 auto; }
+.about-how-section h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.85rem; font-weight: 800; color: var(--navy); margin-bottom: 0.625rem; }
+.about-how-section .ab-lead { color: var(--text2); margin-bottom: 2.5rem; max-width: 580px; font-size: 0.9rem; }
+.ab-steps-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1.1rem; }
+.ab-step-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r2); padding: 1.375rem; }
+.ab-step-num { font-family: 'Plus Jakarta Sans', sans-serif; font-variant-numeric: tabular-nums; font-size: 2.2rem; font-weight: 800; color: #e0eaff; line-height: 1; margin-bottom: 0.625rem; }
+.ab-step-card h4 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 0.9rem; color: var(--navy); margin-bottom: 0.4rem; }
+.ab-step-card p { font-size: 0.8rem; color: var(--text2); line-height: 1.55; }
+
+.about-audience-section { background: linear-gradient(135deg, var(--navy) 0%, #1a3a6b 100%); padding: 4.5rem 2.5rem; }
+.ab-audience-inner { max-width: 1100px; margin: 0 auto; }
+.ab-audience-inner h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.85rem; font-weight: 800; color: #fff; margin-bottom: 0.625rem; text-align: center; }
+.ab-audience-inner .ab-sub { color: rgba(255,255,255,0.55); text-align: center; margin-bottom: 2.5rem; font-size: 0.9rem; }
+.ab-audience-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.1rem; }
+.ab-audience-card { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: var(--r2); padding: 1.5rem; transition: all .2s; }
+.ab-audience-card:hover { background: rgba(255,255,255,0.12); border-color: rgba(103,232,249,0.4); }
+.ab-audience-icon { font-size: 1.85rem; margin-bottom: 0.875rem; }
+.ab-audience-card h4 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 0.95rem; color: #fff; margin-bottom: 0.4rem; }
+.ab-audience-card p { font-size: 0.825rem; color: rgba(255,255,255,0.55); line-height: 1.55; }
+
+.about-cta-section { padding: 4.5rem 2.5rem; max-width: 700px; margin: 0 auto; text-align: center; }
+.about-cta-section h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 2rem; font-weight: 800; color: var(--navy); margin-bottom: 0.875rem; line-height: 1.2; }
+.about-cta-section p { color: var(--text2); font-size: 0.95rem; margin-bottom: 1.75rem; }
+.ab-cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.btn-big-blue { background: var(--accent); color: #fff; border: none; padding: 14px 32px; border-radius: var(--r); font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: all .2s; }
+.btn-big-blue:hover { background: var(--accent2); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(37,99,235,0.28); }
+.btn-big-outline { background: transparent; color: var(--text); border: 1.5px solid var(--border2); padding: 14px 32px; border-radius: var(--r); font-size: 14px; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: all .2s; }
+.btn-big-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── FOOTER ── */
+.site-footer { background: var(--navy); padding: 2.5rem; padding-bottom: max(2.5rem, env(safe-area-inset-bottom)); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+.footer-brand-name { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 16px; color: #fff; }
+.footer-brand-name span { color: #67e8f9; }
+.footer-brand-tag { font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 3px; }
+.footer-nav { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.footer-nav a { color: rgba(255,255,255,0.45); text-decoration: none; font-size: 13px; transition: color .2s; }
+.footer-nav a:hover { color: #fff; }
+.footer-copy { font-size: 11px; color: rgba(255,255,255,0.25); }
+
+@media (max-width: 768px) {
+  .about-hero-inner { grid-template-columns: 1fr; }
+  .about-hero-card { display: none; }
+  .about-story { grid-template-columns: 1fr; gap: 2rem; padding: 2.5rem 1.25rem; }
+  .about-values-grid, .ab-audience-grid { grid-template-columns: 1fr; }
+  .ab-steps-grid { grid-template-columns: repeat(2,1fr); }
+  .about-stats-inner { grid-template-columns: repeat(2,1fr); }
+  .site-footer { flex-direction: column; text-align: center; }
+  .footer-nav { justify-content: center; }
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #e2e8f0; }
+::-webkit-scrollbar-thumb { background: #93c5fd; border-radius: 2px; }
+
+/* ── NAVBAR ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(59,130,246,0.15);
+  height: 64px;
+  display: flex; align-items: center;
+  padding: 0 2rem;
+  gap: 2rem;
+}
+.nav-logo {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--teal);
+  letter-spacing: -0.5px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.nav-logo span { color: var(--text2); font-weight: 400; }
+.nav-links {
+  display: flex; gap: 0.25rem; align-items: center;
+  flex: 1;
+}
+.nav-links a {
+  color: var(--text2); text-decoration: none; font-size: 14px;
+  padding: 6px 14px; border-radius: var(--r);
+  transition: all .2s;
+}
+.nav-links a:hover, .nav-links a.active { color: var(--accent); background: var(--surface2); }
+.nav-right { display: flex; gap: 8px; align-items: center; margin-left: auto; }
+.btn-cart {
+  position: relative;
+  background: var(--surface); border: 1px solid var(--border2);
+  color: var(--text); padding: 8px 16px; border-radius: var(--r);
+  font-size: 13px; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: all .2s; white-space: nowrap; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.btn-cart:hover { border-color: var(--accent); color: var(--accent); }
+.cart-badge {
+  position: absolute; top: -6px; right: -6px;
+  background: var(--accent); color: #fff;
+  font-size: 10px; font-weight: 700;
+  width: 18px; height: 18px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.btn-primary {
+  background: var(--accent); color: #fff;
+  border: none; padding: 8px 20px; border-radius: var(--r);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: 0;
+  transition: all .2s;
+}
+.btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+
+/* ── PAGE SYSTEM ── */
+.page { display: none; padding-top: 64px; min-height: 100vh; }
+.page.active { display: block; }
+
+/* ══════════════════════════════════
+   PAGE: HOME
+══════════════════════════════════ */
+.hero {
+  min-height: calc(100vh - 64px);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: 4rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+.hero-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 90% 60% at 50% 0%, rgba(37,99,235,0.07) 0%, rgba(8,145,178,0.04) 55%, transparent 80%);
+  pointer-events: none;
+}
+.hero-grid {
+  position: absolute; inset: 0; opacity: 0.06;
+  background-image: linear-gradient(rgba(59,130,246,0.15) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(59,130,246,0.15) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+}
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(8,145,178,0.08); border: 1px solid rgba(8,145,178,0.25);
+  color: var(--teal); font-size: 12px; font-weight: 500; letter-spacing: 1.5px;
+  padding: 6px 16px; border-radius: 100px; text-transform: uppercase; letter-spacing: 1px;
+  margin-bottom: 2rem;
+  animation: fadeUp .6s ease both;
+}
+.hero h1 {
+  font-size: clamp(2.8rem, 7vw, 5.5rem);
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-weight: 400; line-height: 1.08; letter-spacing: -1px;
+  max-width: 900px; color: #0f172a;
+  animation: fadeUp .6s .1s ease both;
+}
+.hero h1 em { font-style: italic; color: var(--accent); }
+.hero p {
+  color: #475569; font-size: 1.1rem; margin: 1.5rem 0 2.5rem;
+  max-width: 580px; line-height: 1.7;
+  animation: fadeUp .6s .2s ease both;
+}
+.hero-ctas {
+  display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+  animation: fadeUp .6s .3s ease both;
+}
+.btn-hero-primary {
+  background: var(--accent); color: #fff;
+  border: none; padding: 14px 32px; border-radius: var(--r2);
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: all .2s;
+}
+.btn-hero-primary:hover { background: var(--accent2); transform: translateY(-2px); box-shadow: 0 8px 24px var(--accent-glow); }
+.btn-hero-secondary {
+  background: transparent; color: var(--text);
+  border: 1.5px solid var(--border2); padding: 14px 32px; border-radius: var(--r2);
+  font-size: 15px; font-weight: 500; cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: all .2s;
+}
+.btn-hero-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+.hero-stats {
+  display: flex; gap: 3rem; margin-top: 4rem; flex-wrap: wrap; justify-content: center;
+  animation: fadeUp .6s .4s ease both;
+}
+.hero-stat strong { display: block; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 2rem; font-weight: 800; color: var(--accent); }
+.hero-stat span { font-size: 13px; color: #64748b; }
+
+/* VIN QUICK SEARCH */
+.vin-quick {
+  padding: 3rem 2rem;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.vin-quick-inner {
+  max-width: 800px; margin: 0 auto; text-align: center;
+}
+.vin-quick h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+.vin-quick p { color: var(--text2); font-size: 14px; margin-bottom: 1.5rem; }
+.vin-input-row {
+  display: flex; gap: 10px;
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: var(--r2); padding: 6px 6px 6px 20px;
+  transition: border-color .2s;
+}
+.vin-input-row:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.10); }
+.vin-input-row input {
+  flex: 1; background: none; border: none; outline: none;
+  color: var(--text); font-size: 16px; font-family: 'DM Mono', 'Courier New', monospace;
+  letter-spacing: 2px; text-transform: uppercase;
+}
+.vin-input-row input::placeholder { color: var(--text3); letter-spacing: 1px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; }
+.vin-input-row button {
+  background: var(--accent); color: #fff; border: none;
+  padding: 10px 24px; border-radius: 10px; font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; cursor: pointer;
+  transition: all .2s; white-space: nowrap;
+}
+.vin-input-row button:hover { background: var(--accent2); }
+
+/* FEATURED CATEGORIES */
+.section { padding: 4rem 2rem; max-width: 1200px; margin: 0 auto; }
+.section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 2rem; }
+.section-header h2 { font-family: 'Instrument Serif', Georgia, serif; font-size: 1.9rem; font-weight: 400; }
+.section-header a { color: var(--accent); font-size: 13px; text-decoration: none; font-weight: 500; }
+.section-header a:hover { text-decoration: underline; }
+
+.categories-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px;
+}
+.cat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r2); padding: 1.5rem 1rem; text-align: center;
+  cursor: pointer; transition: all .2s; text-decoration: none; color: var(--text);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.cat-card:hover { border-color: var(--teal); background: var(--surface2); transform: translateY(-3px); }
+.cat-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+.cat-card h4 { font-size: 13px; font-weight: 600; margin-bottom: 4px; font-family: 'Plus Jakarta Sans', sans-serif; }
+.cat-card span { font-size: 11px; color: var(--text3); }
+
+/* PRODUCT GRID */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
+  gap: 16px;
+}
+.product-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r2); overflow: hidden; cursor: pointer;
+  transition: all .25s; position: relative;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.product-card:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: 0 8px 24px rgba(37,99,235,0.15); }
+.product-img {
+  height: 160px; background: linear-gradient(135deg, #eef3fc, #dde8f5);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 3.5rem; border-bottom: 1px solid var(--border);
+  position: relative;
+}
+.product-badge {
+  position: absolute; top: 10px; left: 10px;
+  background: var(--accent); color: #fff;
+  font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 100px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.product-badge.sale { background: var(--red); color: #fff; }
+.product-body { padding: 1rem; }
+.product-brand { font-size: 11px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+.product-name { font-weight: 600; font-size: 14px; line-height: 1.4; margin-bottom: 8px; }
+.product-compat { font-size: 11px; color: var(--text2); margin-bottom: 10px; }
+.product-footer { display: flex; align-items: center; justify-content: space-between; }
+.product-price { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 16px; color: var(--teal); }
+.product-price-old { font-size: 12px; color: var(--text3); text-decoration: line-through; }
+.btn-add-cart {
+  background: var(--accent-dim); border: 1px solid rgba(59,130,246,0.25);
+  color: var(--accent); padding: 6px 14px; border-radius: var(--r);
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif; transition: all .2s;
+}
+.btn-add-cart:hover { background: var(--accent); color: #fff; }
+
+/* ══════════════════════════════════
+   PAGE: VIN LOOKUP
+══════════════════════════════════ */
+.vin-page { padding: 2rem; max-width: 1000px; margin: 0 auto; }
+.vin-page h1 { font-family: 'Instrument Serif', Georgia, serif; font-size: 2.5rem; font-weight: 400; margin-bottom: 0.5rem; }
+.vin-page > p { color: var(--text2); margin-bottom: 2.5rem; }
+
+.vin-lookup-card {
+  background: var(--surface); border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border-radius: var(--r3); padding: 2rem; margin-bottom: 2rem;
+}
+.vin-lookup-card h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 1.5rem; }
+.vin-big-input {
+  background: #fff; border: 2px solid var(--border2);
+  border-radius: var(--r2); padding: 16px 20px; width: 100%;
+  color: var(--text); font-size: 20px; font-family: 'DM Mono', 'Courier New', monospace;
+  letter-spacing: 3px; text-transform: uppercase; outline: none;
+  transition: border-color .2s; margin-bottom: 1rem;
+}
+.vin-big-input:focus { border-color: var(--accent); }
+.vin-char-counter { font-size: 12px; color: var(--text3); margin-bottom: 1rem; }
+.vin-char-counter span { color: var(--accent); font-weight: 600; }
+.vin-examples { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.vin-ex-btn {
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--text2); padding: 4px 12px; border-radius: 100px; font-size: 12px;
+  cursor: pointer; font-family: 'DM Mono', monospace; letter-spacing: 1px;
+  transition: all .2s;
+}
+.vin-ex-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.vin-result {
+  background: var(--surface); border: 1px solid var(--border); box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  border-radius: var(--r2); overflow: hidden; margin-top: 1.5rem;
+}
+.vin-result-header {
+  background: linear-gradient(135deg, rgba(59,130,246,0.10), transparent);
+  border-bottom: 1px solid var(--border);
+  padding: 1.5rem; display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;
+}
+.vin-car-icon { font-size: 4rem; }
+.vin-car-info h2 { font-size: 1.5rem; font-weight: 700; }
+.vin-car-info p { color: var(--text2); font-size: 13px; }
+.vin-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.vin-badge {
+  background: #f0f5fc; border: 1px solid rgba(59,130,246,0.2);
+  color: #475569; font-size: 11px; padding: 3px 10px; border-radius: 100px;
+}
+.vin-badge.ok { background: rgba(103,232,249,0.08); border-color: rgba(103,232,249,0.25); color: var(--teal); }
+
+.vin-specs-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0;
+}
+.vin-spec {
+  padding: 1rem 1.5rem; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--surface);
+}
+.vin-spec:last-child { border-right: none; }
+.vin-spec label { font-size: 11px; color: #94a3b8; letter-spacing: 0.5px; display: block; margin-bottom: 4px; }
+.vin-spec strong { font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+.vin-suggested { padding: 1.5rem; }
+.vin-suggested h3 { font-size: 1rem; font-weight: 600; margin-bottom: 1.5rem; }
+.suggested-parts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(200px,100%), 1fr)); gap: 12px; }
+.part-chip {
+  background: var(--surface); border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border-radius: var(--r); padding: 0.875rem 1rem;
+  display: flex; align-items: center; gap: 10px; cursor: pointer;
+  transition: all .2s;
+}
+.part-chip:hover { border-color: var(--accent); background: var(--surface2); }
+.part-chip .icon { font-size: 1.5rem; }
+.part-chip-info { flex: 1; }
+.part-chip-info strong { font-size: 13px; display: block; font-family: 'Plus Jakarta Sans', sans-serif; }
+.part-chip-info span { font-size: 11px; color: var(--text2); }
+.part-chip-price { font-size: 12px; color: var(--teal); font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+/* ══════════════════════════════════
+   PAGE: CATALOG
+══════════════════════════════════ */
+.catalog-layout {
+  display: flex; gap: 2rem; padding: 2rem; max-width: 1300px; margin: 0 auto;
+}
+.catalog-sidebar {
+  width: 240px; flex-shrink: 0;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r2); padding: 1.25rem; height: fit-content;
+}
+.catalog-sidebar h3 {
+  font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--text3); margin-bottom: 1rem; margin-top: 1.5rem;
+}
+.catalog-sidebar h3:first-child { margin-top: 0; }
+.filter-group { display: flex; flex-direction: column; gap: 4px; }
+.filter-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: var(--r); cursor: pointer;
+  transition: background .15s; font-size: 13px; color: var(--text2);
+}
+.filter-item:hover { background: var(--surface2); color: var(--accent); }
+.filter-item.active { background: var(--accent-dim); color: var(--accent); font-weight: 500; }
+.filter-item input[type=checkbox], .filter-item input[type=radio] { accent-color: var(--accent); flex-shrink: 0; }
+.filter-item > span:first-of-type { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.filter-count { flex-shrink: 0; margin-left: 8px; padding-left: 8px; font-size: 11px; color: var(--text3); }
+
+.catalog-main { flex: 1; min-width: 0; }
+.catalog-toolbar {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.catalog-toolbar input {
+  flex: 1; min-width: 200px;
+  background: #fff; border: 1px solid var(--border2); box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border-radius: var(--r); padding: 9px 14px; color: var(--text);
+  font-size: 14px; outline: none; transition: border-color .2s;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.catalog-toolbar input:focus { border-color: var(--accent); }
+.catalog-toolbar select {
+  background: #fff; border: 1px solid var(--border2); box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border-radius: var(--r); padding: 9px 14px; color: var(--text);
+  font-size: 13px; outline: none; cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.catalog-count { color: var(--text3); font-size: 13px; white-space: nowrap; }
+
+/* ══════════════════════════════════
+   PAGE: AI CHAT
+══════════════════════════════════ */
+.chat-layout {
+  display: flex; height: calc(100vh - 64px); min-height: 500px;
+}
+.chat-sidebar {
+  width: 280px; flex-shrink: 0;
+  background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; padding: 1.5rem;
+  overflow-y: auto;
+}
+.chat-sidebar h3 { font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text3); margin-bottom: 1rem; }
+.chat-context-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r2); padding: 1rem; margin-bottom: 1rem;
+}
+.chat-context-card .label { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+.chat-context-card strong { font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; }
+.chat-quick-btns { display: flex; flex-direction: column; gap: 6px; }
+.quick-btn {
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text2); padding: 10px 14px; border-radius: var(--r);
+  font-size: 13px; cursor: pointer; text-align: left;
+  font-family: 'Plus Jakarta Sans', sans-serif; transition: all .2s; line-height: 1.4;
+}
+.quick-btn:hover { border-color: var(--accent); color: var(--text); }
+
+.chat-main {
+  flex: 1; display: flex; flex-direction: column; min-width: 0;
+}
+.chat-header {
+  padding: 1rem 1.5rem; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+}
+.ai-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, #3B82F6, #67E8F9);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.chat-header-info strong { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; display: block; }
+.chat-header-info span { font-size: 12px; color: var(--green); }
+.online-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); display: inline-block; margin-right: 4px; animation: pulse 2s infinite; }
+
+.chat-messages {
+  flex: 1; overflow-y: auto; padding: 1.5rem;
+  display: flex; flex-direction: column; gap: 1rem;
+}
+.msg { display: flex; gap: 10px; max-width: 80%; }
+.msg.user { flex-direction: row-reverse; align-self: flex-end; }
+.msg-avatar {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 14px;
+}
+.msg.ai .msg-avatar { background: linear-gradient(135deg, #3B82F6, #67E8F9); }
+.msg.user .msg-avatar { background: var(--surface2); border: 1px solid var(--border2); }
+.msg-bubble {
+  padding: 0.875rem 1.125rem; border-radius: 16px; font-size: 14px; line-height: 1.6;
+}
+.msg.ai .msg-bubble {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-bottom-left-radius: 4px;
+}
+.msg.user .msg-bubble {
+  background: var(--accent-dim); border: 1px solid rgba(59,130,246,0.30);
+  border-bottom-right-radius: 4px;
+}
+.msg-time { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+.msg.user .msg-time { text-align: right; }
+
+/* Tin nhắn AI có kèm danh sách sản phẩm — nới rộng hơn mức 80% mặc định,
+   card catalog to (thiết kế cho lưới nhiều cột) nhét vào bong bóng hẹp chỉ
+   đủ 1 cột, card lại cao → nhìn như 1 cột dọc hẹp xấu. Dùng list gọn riêng. */
+.msg.wide { max-width: 95%; }
+.chat-product-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.chat-product-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: 10px; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--border); transition: border-color .15s;
+}
+.chat-product-item:hover { border-color: var(--accent); }
+.chat-product-icon {
+  width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0;
+  background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 16px;
+}
+.chat-product-info { flex: 1; min-width: 0; }
+.chat-product-name {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.chat-product-meta { font-size: 11px; color: var(--text3); margin-top: 1px; }
+.chat-product-right { text-align: right; flex-shrink: 0; }
+.chat-product-price { font-size: 13px; font-weight: 700; color: var(--accent); white-space: nowrap; }
+.chat-product-add {
+  margin-top: 4px; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 6px;
+  background: var(--accent-dim); border: 1px solid rgba(59,130,246,0.25); color: var(--accent); cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.typing-indicator { display: flex; gap: 4px; align-items: center; padding: 10px 0; }
+.typing-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: bounce 1.2s infinite; }
+.typing-dot:nth-child(2) { animation-delay: .2s; }
+.typing-dot:nth-child(3) { animation-delay: .4s; }
+
+.chat-input-area {
+  padding: 1rem 1.5rem; border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+.chat-input-row {
+  display: flex; gap: 10px;
+  background: #fff; border: 1px solid var(--border2); box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  border-radius: var(--r2); padding: 8px 8px 8px 16px;
+  transition: border-color .2s;
+}
+.chat-input-row:focus-within { border-color: var(--accent); }
+.chat-input-row input {
+  flex: 1; background: none; border: none; outline: none;
+  color: var(--text); font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.chat-input-row input::placeholder { color: var(--text3); }
+.btn-send {
+  background: var(--accent); color: #fff; border: none;
+  width: 36px; height: 36px; border-radius: 10px;
+  cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center;
+  transition: all .2s; flex-shrink: 0;
+}
+.btn-send:hover { background: var(--accent2); }
+
+.product-card-msg {
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: var(--r); padding: 10px 14px; margin-top: 8px;
+  display: flex; gap: 10px; align-items: center; cursor: pointer;
+  transition: border-color .2s;
+}
+.product-card-msg:hover { border-color: var(--accent); }
+.product-card-msg .pcm-icon { font-size: 1.5rem; }
+.product-card-msg .pcm-name { font-weight: 600; font-size: 13px; font-family: 'Plus Jakarta Sans', sans-serif; }
+.product-card-msg .pcm-price { font-size: 12px; color: var(--accent); }
+
+/* ══════════════════════════════════
+   PAGE: CART
+══════════════════════════════════ */
+.cart-page { padding: 2rem; max-width: 1100px; margin: 0 auto; }
+.cart-page h1 { font-family: 'Instrument Serif', Georgia, serif; font-size: 2.2rem; font-weight: 400; margin-bottom: 2rem; }
+.cart-layout { display: grid; grid-template-columns: 1fr 340px; gap: 2rem; }
+.cart-items { display: flex; flex-direction: column; gap: 12px; }
+.cart-item {
+  background: var(--surface); border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  border-radius: var(--r2); padding: 1.25rem;
+  display: flex; gap: 1rem; align-items: center;
+}
+.cart-item-icon { font-size: 2.5rem; background: var(--bg3); border-radius: var(--r); padding: 12px; }
+.cart-item-info { flex: 1; }
+.cart-item-info .brand { font-size: 11px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; }
+.cart-item-info .name { font-weight: 600; font-size: 15px; font-family: 'Plus Jakarta Sans', sans-serif; }
+.cart-item-info .compat { font-size: 12px; color: var(--text2); }
+.cart-item-right { text-align: right; }
+.cart-qty-ctrl { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.qty-btn { background: #f0f5fc; border: 1px solid var(--border2); color: var(--text); width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+.qty-btn:hover { border-color: var(--accent); color: var(--accent); }
+.qty-num { font-size: 14px; font-weight: 600; min-width: 24px; text-align: center; }
+.cart-item-price { font-size: 18px; font-weight: 700; color: var(--teal); font-family: 'Plus Jakarta Sans', sans-serif; }
+.remove-btn { color: #94a3b8; font-size: 12px; cursor: pointer; background: none; border: none; transition: color .2s; font-family: 'Plus Jakarta Sans', sans-serif; }
+.remove-btn:hover { color: var(--red); }
+
+.cart-summary {
+  background: var(--surface); border: 1px solid var(--border); box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  border-radius: var(--r2); padding: 1.5rem; height: fit-content;
+  position: sticky; top: 80px;
+}
+.cart-summary h3 { font-size: 1rem; font-weight: 600; margin-bottom: 1.5rem; }
+.summary-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 10px; color: var(--text2); }
+.summary-row.total { color: var(--text); font-weight: 700; font-size: 16px; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px; }
+.summary-row .val { font-family: 'Plus Jakarta Sans', sans-serif; }
+.summary-row.total .val { color: var(--teal); font-size: 1.5rem; }
+.btn-checkout {
+  width: 100%; background: var(--accent); color: #fff;
+  border: none; padding: 14px; border-radius: var(--r2);
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif; margin-top: 1.5rem;
+  transition: all .2s;
+}
+.btn-checkout:hover { background: var(--accent2); }
+.btn-quote {
+  width: 100%; background: transparent; color: var(--text);
+  border: 1px solid var(--border2); padding: 10px; border-radius: var(--r2);
+  font-size: 13px; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; margin-top: 8px;
+  transition: all .2s;
+}
+.btn-quote:hover { border-color: var(--accent); color: var(--accent); }
+
+/* QUOTE REQUEST MODAL */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 2000;
+  background: rgba(15,23,42,0.55); backdrop-filter: blur(12px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 2rem;
+  opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--surface); border: 1px solid var(--border2); box-shadow: 0 24px 80px rgba(0,0,0,0.15);
+  border-radius: var(--r3); padding: 2rem; width: 100%; max-width: 480px;
+  max-height: 90vh; overflow-y: auto;
+}
+.modal h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+.modal p { color: var(--text2); font-size: 14px; margin-bottom: 1.5rem; }
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; font-size: 12px; color: var(--text3); margin-bottom: 6px; letter-spacing: 0.5px; }
+.form-group input, .form-group textarea, .form-group select {
+  width: 100%; background: var(--surface); border: 1px solid var(--border2);
+  border-radius: var(--r); padding: 10px 14px; color: var(--text);
+  font-size: 14px; outline: none; transition: border-color .2s;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--accent); }
+.form-group textarea { resize: vertical; min-height: 80px; }
+.modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 1.5rem; }
+.btn-cancel {
+  background: transparent; border: 1px solid var(--border2); color: var(--text2);
+  padding: 10px 20px; border-radius: var(--r); cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; transition: all .2s;
+}
+.btn-cancel:hover { border-color: var(--text); color: var(--text); }
+
+/* ══════════════════════════════════
+   TOASTS & UTILS
+══════════════════════════════════ */
+.toast-area {
+  position: fixed; bottom: 24px; right: 24px; z-index: 3000;
+  display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+}
+.toast {
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-left: 3px solid var(--accent);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  border-radius: var(--r); padding: 12px 18px;
+  font-size: 13px; color: var(--text);
+  transform: translateX(120%); transition: transform .3s ease;
+  pointer-events: all;
+}
+.toast.show { transform: translateX(0); }
+.toast.error { border-left-color: var(--red); }
+
+.empty-state {
+  text-align: center; padding: 4rem 2rem; color: var(--text2);
+}
+.empty-state .icon { font-size: 4rem; margin-bottom: 1rem; }
+.empty-state h3 { font-size: 1.25rem; font-weight: 600; color: #1e40af; margin-bottom: 0.5rem; }
+
+/* ══════════════════════════════════
+   SELECT YOUR VEHICLE WIDGET
+══════════════════════════════════ */
+.syv-widget {
+  background: var(--surface); border: 1px solid var(--border2); box-shadow: 0 2px 8px rgba(37,99,235,0.08);
+  border-radius: var(--r2);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.syv-header {
+  background: var(--accent);
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.syv-header span { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 700; color: #fff; }
+.syv-body { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+#syv-selects { display: flex; flex-direction: column; gap: 10px; }
+.syv-select {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+  padding: 9px 12px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  outline: none;
+  cursor: pointer;
+  transition: border-color .2s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239896a0' stroke-width='2'%3E%3Cpolyline points='6,9 12,15 18,9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+.syv-select:focus { border-color: var(--accent); }
+.syv-select:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-syv-apply {
+  width: 100%; background: var(--accent); color: #fff;
+  border: none; padding: 10px; border-radius: var(--r);
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif; transition: all .2s;
+}
+.btn-syv-apply:hover { background: var(--accent2); }
+.btn-syv-apply:disabled { opacity: 0.4; cursor: not-allowed; }
+.syv-active-badge {
+  background: rgba(5,150,105,0.08);
+  border: 1px solid rgba(5,150,105,0.25);
+  border-radius: var(--r);
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--green);
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.syv-active-badge strong { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; }
+.syv-clear-btn {
+  background: none; border: none; color: var(--text3); cursor: pointer;
+  font-size: 14px; padding: 0 4px; transition: color .15s; flex-shrink: 0;
+}
+.syv-clear-btn:hover { color: var(--red); }
+
+/* Validate Fitment button in PD modal */
+.btn-validate-fitment {
+  background: rgba(59,130,246,0.10);
+  border: 1px solid rgba(59,130,246,0.35);
+  color: var(--accent);
+  padding: 10px 16px; border-radius: var(--r2);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif; transition: all .2s;
+  display: flex; align-items: center; gap: 6px; white-space: nowrap;
+}
+.btn-validate-fitment:hover { background: rgba(59,130,246,0.15); }
+.btn-validate-fitment.matched {
+  background: rgba(71,201,126,0.1);
+  border-color: rgba(71,201,126,0.4);
+  color: var(--green);
+}
+.btn-validate-fitment.unmatched {
+  background: rgba(232,71,71,0.1);
+  border-color: rgba(232,71,71,0.4);
+  color: var(--red);
+}
+.fitment-status-banner {
+  border-radius: var(--r); padding: 12px 16px; margin-bottom: 1rem;
+  font-size: 13px; display: flex; align-items: flex-start; gap: 10px;
+}
+.fitment-status-banner.matched {
+  background: rgba(71,201,126,0.08); border: 1px solid rgba(71,201,126,0.25); color: #7de0b0;
+}
+.fitment-status-banner.unmatched {
+  background: rgba(232,71,71,0.08); border: 1px solid rgba(232,71,71,0.25); color: #f09090;
+}
+.fitment-status-banner.info {
+  background: rgba(71,144,232,0.08); border: 1px solid rgba(71,144,232,0.25); color: #7ab4f0;
+}
+/* highlight matched fitment entry */
+.fitment-entry.highlighted {
+  background: rgba(71,201,126,0.06);
+  border-radius: var(--r);
+  margin: -4px; padding: 4px;
+  border-left: 3px solid var(--accent);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  padding-left: 10px;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes bounce {
+  0%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-6px); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.spin { animation: spin 1s linear infinite; display: inline-block; }
+
+/* ══════════════════════════════════
+   PRODUCT DETAIL MODAL
+══════════════════════════════════ */
+.pd-overlay {
+  position: fixed; inset: 0; z-index: 2500;
+  background: rgba(15,23,42,0.55); backdrop-filter: blur(12px);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 2rem 1rem; overflow-y: auto;
+  opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.pd-overlay.open { opacity: 1; pointer-events: all; }
+.pd-modal {
+  background: var(--surface); border: 1px solid var(--border2);
+  box-shadow: 0 24px 80px rgba(0,0,0,0.18);
+  border-radius: var(--r3); width: 100%; max-width: 900px;
+  overflow: hidden; position: relative;
+  transform: translateY(20px); transition: transform .25s;
+}
+.pd-overlay.open .pd-modal { transform: translateY(0); }
+
+.pd-close {
+  position: absolute; top: 16px; right: 16px; z-index: 10;
+  background: var(--surface2); border: 1px solid var(--border2);
+  color: var(--text2); width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 16px; transition: all .2s;
+}
+.pd-close:hover { background: var(--red); color: #fff; border-color: var(--red); }
+
+/* top hero */
+.pd-hero {
+  display: grid; grid-template-columns: 280px 1fr;
+  border-bottom: 1px solid var(--border);
+}
+.pd-img-box {
+  background: linear-gradient(135deg, #eef3fc, #dde8f5); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 2.5rem; gap: 1rem;
+}
+.pd-img-box .main-icon { font-size: 6rem; }
+.pd-img-thumbs { display: flex; gap: 8px; }
+.pd-thumb {
+  width: 40px; height: 40px; border-radius: var(--r); background: var(--surface);
+  border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center;
+  font-size: 1.25rem; cursor: pointer; transition: border-color .2s;
+}
+.pd-thumb.active, .pd-thumb:hover { border-color: var(--accent); }
+
+.pd-info { padding: 1.75rem; }
+.pd-brand-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.pd-brand-tag {
+  background: var(--accent-dim); border: 1px solid rgba(59,130,246,0.25);
+  color: var(--accent); font-size: 11px; padding: 3px 12px; border-radius: 100px;
+  font-weight: 600; letter-spacing: 0.5px;
+}
+.pd-oem { font-size: 12px; color: var(--text3); font-family: monospace; letter-spacing: 1px; }
+.pd-name { font-size: 1.5rem; font-weight: 700; line-height: 1.3; margin-bottom: 0.75rem; }
+.pd-compat-row {
+  background: rgba(37,99,235,0.06); border: 1px solid rgba(37,99,235,0.15);
+  border-radius: var(--r); padding: 8px 14px; font-size: 13px;
+  color: #1d4ed8; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 8px;
+}
+.pd-price-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 1.5rem; }
+.pd-price { font-size: 2rem; font-weight: 800; color: var(--teal); font-family: 'Plus Jakarta Sans', sans-serif; }
+.pd-price-old { font-size: 1rem; color: var(--text3); text-decoration: line-through; }
+.pd-save {
+  background: rgba(232,71,71,0.12); border: 1px solid rgba(232,71,71,0.25);
+  color: var(--red); font-size: 11px; padding: 3px 10px; border-radius: 100px; font-weight: 700;
+}
+.pd-stock { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--green); margin-bottom: 1.25rem; }
+.pd-stock-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+.pd-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn-pd-cart {
+  flex: 1; background: var(--accent); color: #fff; border: none;
+  padding: 12px 24px; border-radius: var(--r2);
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif; transition: all .2s;
+}
+.btn-pd-cart:hover { background: var(--accent2); color: #fff; }
+.btn-pd-quote {
+  background: transparent; border: 1px solid var(--border2); color: var(--text);
+  padding: 12px 18px; border-radius: var(--r2); font-size: 14px; cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif; transition: all .2s;
+}
+.btn-pd-quote:hover { border-color: var(--accent); color: var(--accent); }
+.btn-pd-ai {
+  background: rgba(71,201,126,0.1); border: 1px solid rgba(71,201,126,0.25); color: var(--green);
+  padding: 12px 18px; border-radius: var(--r2); font-size: 14px; cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif; transition: all .2s;
+}
+.btn-pd-ai:hover { background: rgba(71,201,126,0.2); }
+
+/* TABS */
+.pd-tabs {
+  display: flex; border-bottom: 1px solid var(--border);
+  background: var(--surface2); overflow-x: auto;
+}
+.pd-tab {
+  padding: 14px 24px; font-size: 14px; font-weight: 500; cursor: pointer;
+  color: var(--text2); border-bottom: 2px solid transparent;
+  white-space: nowrap; transition: all .2s; font-family: 'Plus Jakarta Sans', sans-serif;
+  flex-shrink: 0;
+}
+.pd-tab:hover { color: var(--text); }
+.pd-tab.active { color: var(--teal); border-bottom-color: var(--teal); }
+.pd-tab-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--surface2); color: var(--text3);
+  font-size: 11px; min-width: 20px; height: 18px; border-radius: 100px;
+  padding: 0 6px; margin-left: 6px; font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.pd-tab.active .pd-tab-count { background: var(--teal-dim); color: var(--teal); }
+
+.pd-tab-content { display: none; padding: 2rem; background: var(--surface); }
+.pd-tab-content.active { display: block; }
+
+/* Description tab */
+.pd-desc-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;
+}
+.pd-feature-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.pd-feature-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; line-height: 1.5; }
+.pd-feature-list li::before { content:'✓'; color: var(--green); font-weight: 700; flex-shrink: 0; margin-top:1px; }
+.pd-warning {
+  background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.15);
+  border-radius: var(--r); padding: 12px 16px; font-size: 13px; color: var(--text2);
+  display: flex; gap: 10px; align-items: flex-start;
+}
+
+/* Specs tab */
+.specs-table { width: 100%; border-collapse: collapse; }
+.specs-table tr { border-bottom: 1px solid var(--border); }
+.specs-table tr:last-child { border-bottom: none; }
+.specs-table td { padding: 12px 16px; font-size: 14px; }
+.specs-table td:first-child { color: var(--text2); width: 40%; font-size: 13px; background: var(--surface2); }
+.specs-table td:last-child { font-weight: 500; }
+.specs-section-head {
+  background: var(--bg3); padding: 8px 16px;
+  font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text3);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Fitment tab */
+.fitment-search-row {
+  display: flex; gap: 10px; margin-bottom: 1.5rem; flex-wrap: wrap;
+}
+.fitment-search-row input, .fitment-search-row select {
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: var(--r); padding: 9px 14px; color: var(--text);
+  font-size: 13px; outline: none; font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: border-color .2s;
+}
+.fitment-search-row input { flex: 1; min-width: 180px; }
+.fitment-search-row input:focus, .fitment-search-row select:focus { border-color: var(--accent); }
+.fitment-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.fitment-group { }
+.fitment-group-title {
+  font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 0.75rem;
+  padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  display: flex; align-items: center; gap: 8px;
+}
+.fitment-group-title .brand-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--teal); flex-shrink: 0;
+}
+.fitment-entry {
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.fitment-entry:last-child { border-bottom: none; }
+.fitment-entry-title {
+  font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.fitment-entry-sub { font-size: 12px; color: var(--text2); line-height: 1.5; }
+.fitment-entry-note { font-size: 12px; color: var(--teal); font-weight: 600; margin-top: 2px; }
+.fitment-empty { text-align: center; padding: 2rem; color: var(--text3); font-size: 14px; }
+
+/* Alternatives tab */
+.alt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.alt-card {
+  background: var(--surface); border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  border-radius: var(--r2); overflow: hidden; cursor: pointer;
+  transition: all .2s;
+}
+.alt-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.alt-card-img { height: 100px; background: linear-gradient(135deg, #eef3fc, #dde8f5); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; border-bottom: 1px solid var(--border); position: relative; }
+.alt-badge {
+  position: absolute; top: 8px; right: 8px;
+  font-size: 10px; padding: 2px 8px; border-radius: 100px; font-weight: 700;
+}
+.alt-badge.cheaper { background: rgba(71,201,126,0.15); color: var(--green); border: 1px solid rgba(71,201,126,0.3); }
+.alt-badge.premium { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(59,130,246,0.25); }
+.alt-badge.oem { background: rgba(71,144,232,0.12); color: var(--blue); border: 1px solid rgba(71,144,232,0.25); }
+.alt-card-body { padding: 0.875rem; }
+.alt-card-brand { font-size: 10px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2px; }
+.alt-card-name { font-size: 13px; font-weight: 600; font-family: 'Plus Jakarta Sans', sans-serif; margin-bottom: 6px; line-height: 1.3; }
+.alt-card-foot { display: flex; justify-content: space-between; align-items: center; }
+.alt-card-price { font-size: 14px; font-weight: 700; color: var(--teal); font-family: 'Plus Jakarta Sans', sans-serif; }
+.alt-compare-row {
+  margin-bottom: 1.5rem; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); overflow: hidden;
+}
+.alt-compare-row table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.alt-compare-row th { padding: 10px 14px; text-align: left; background: var(--surface2); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--text3); font-weight: 500; }
+.alt-compare-row td { padding: 10px 14px; border-top: 1px solid var(--border); color: var(--text2); }
+.alt-compare-row td:first-child { color: var(--text); font-weight: 500; }
+.alt-compare-row td.highlight { color: var(--accent); font-weight: 700; }
+
+/* ══════════════════════════════════════════════
+   HAMBURGER MENU
+══════════════════════════════════════════════ */
+.hamburger {
+  display: none; flex-direction: column; gap: 5px; cursor: pointer;
+  padding: 6px; border: none; background: none; margin-left: auto;
+}
+.hamburger span {
+  display: block; width: 22px; height: 2px;
+  background: var(--text); border-radius: 2px;
+  transition: all .25s;
+}
+.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+.mobile-menu {
+  display: none; flex-direction: column;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0.75rem 1.25rem 1.25rem;
+  position: fixed; top: 64px; left: 0; right: 0; z-index: 999;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+}
+.mobile-menu.open { display: flex; }
+.mobile-menu a {
+  color: var(--text2); text-decoration: none; font-size: 15px;
+  padding: 12px 8px; border-bottom: 1px solid var(--border);
+  transition: color .15s;
+}
+.mobile-menu a:last-child { border-bottom: none; }
+.mobile-menu a:hover, .mobile-menu a.active { color: var(--accent); }
+.mobile-menu-btns { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.mobile-menu-btns button { flex: 1; min-width: 120px; }
+
+/* ══════════════════════════════════════════════
+   RESPONSIVE — TABLET LARGE  ≤1024px
+══════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  /* Hero */
+  .hero { padding: 4rem 1.5rem 3.5rem; gap: 2.5rem; }
+  .hero h1 { font-size: clamp(2.2rem, 5vw, 3.2rem); }
+  .hero-right { min-width: 0; }
+
+  /* About hero */
+  .about-hero-inner { gap: 2.5rem; }
+  .about-hero-card { min-width: 0; }
+
+  /* Story */
+  .about-story { gap: 3rem; padding: 4rem 1.5rem; }
+
+  /* Catalog */
+  .catalog-sidebar { width: 210px; }
+
+  /* Steps */
+  .ab-steps-grid { grid-template-columns: repeat(2,1fr); }
+  .steps-grid { grid-template-columns: repeat(2,1fr); }
+
+  /* Chat */
+  .chat-sidebar { width: 240px; }
+
+  /* Product detail */
+  .pd-modal { max-width: 96vw; }
+  .pd-hero { grid-template-columns: 220px 1fr; }
+
+  /* Suggested parts */
+  .suggested-parts { grid-template-columns: repeat(2,1fr); }
+
+  /* Section padding */
+  .section { padding: 3rem 1.5rem; }
+  .values-section, .about-values-section { padding: 3.5rem 1.5rem; }
+  .how-section, .about-how-section { padding: 3.5rem 1.5rem; }
+  .audience-section, .about-audience-section { padding: 3.5rem 1.5rem; }
+}
+
+/* ══════════════════════════════════════════════
+   RESPONSIVE — TABLET  ≤768px
+══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* ── NAV ── */
+  nav { padding: 0 1rem; gap: 0.75rem; height: 60px; }
+  .page { padding-top: 60px; }
+  .nav-links { display: none; }
+  .nav-right { display: none; }
+  .hamburger { display: flex; }
+  .nav-logo-texts .nav-logo-tagline { display: none; }
+  .nav-logo-name { font-size: 15px; }
+  .nav-logo-svg { width: 28px; height: 28px; }
+
+  /* ── HERO ── */
+  .hero {
+    grid-template-columns: 1fr; padding: 3rem 1.25rem 2.5rem;
+    gap: 2rem; text-align: center;
+  }
+  .hero h1 { font-size: clamp(1.9rem, 7vw, 2.8rem); letter-spacing: -1px; }
+  .hero p { margin: 1rem auto 1.75rem; }
+  .hero-ctas { justify-content: center; }
+  .hero-right { display: none; }
+  .hero-stats { gap: 1.5rem; }
+  .hero-stat strong { font-size: 1.6rem; }
+
+  /* ── VIN QUICK ── */
+  .vin-quick { padding: 2rem 1.25rem; }
+  .vin-input-row { flex-direction: column; padding: 12px; gap: 8px; border-radius: var(--r); }
+  .vin-input-row input { font-size: 14px; letter-spacing: 1px; }
+  .vin-input-row button { width: 100%; padding: 11px; }
+
+  /* ── SECTIONS ── */
+  .section { padding: 2.5rem 1.25rem; }
+  .section-header h2 { font-size: 1.4rem; }
+  .categories-grid { grid-template-columns: repeat(2,1fr); gap: 10px; }
+  .cat-icon { font-size: 1.6rem; }
+  .cat-card h4 { font-size: 12px; }
+  .products-grid { grid-template-columns: repeat(2,1fr); gap: 12px; }
+
+  /* ── VIN PAGE ── */
+  .vin-page { padding: 1.5rem 1.25rem; }
+  .vin-page h1 { font-size: 1.75rem; }
+  .vin-big-input { font-size: 16px; letter-spacing: 2px; }
+  .vin-specs-grid { grid-template-columns: repeat(2,1fr); }
+  .vin-result-header { flex-direction: column; gap: 1rem; padding: 1.25rem; }
+  .vin-car-icon { font-size: 3rem; }
+  .suggested-parts { grid-template-columns: 1fr; }
+
+  /* ── CATALOG ── */
+  .catalog-layout { flex-direction: column; padding: 1.25rem; gap: 1rem; }
+  .catalog-sidebar {
+    width: 100%; border-radius: var(--r); padding: 1rem;
+    max-height: 0; overflow: hidden; transition: max-height .3s ease;
+    padding: 0; border: none;
+  }
+  .catalog-sidebar.expanded {
+    max-height: 1200px; padding: 1rem;
+    border: 1px solid var(--border); border-radius: var(--r2);
+  }
+  .catalog-filter-toggle {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: var(--r); padding: 10px 14px; cursor: pointer;
+    font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 0.75rem;
+  }
+  .catalog-filter-toggle { display: flex; }
+  .catalog-toolbar { flex-wrap: wrap; }
+  .catalog-toolbar input { min-width: 0; flex: 1; }
+
+  /* ── CHAT ── */
+  .chat-layout { flex-direction: column; height: auto; min-height: calc(100vh - 60px); }
+  .chat-sidebar { display: none; }
+  .chat-main { flex: 1; }
+  .chat-messages { padding: 1rem; min-height: 320px; }
+  .msg { max-width: 92%; }
+
+  /* ── CART ── */
+  .cart-page { padding: 1.5rem 1.25rem; }
+  .cart-page h1 { font-size: 1.5rem; }
+  .cart-layout { grid-template-columns: 1fr; gap: 1rem; }
+  .cart-summary { position: static; }
+  .cart-item { padding: 1rem; gap: 0.75rem; }
+  .cart-item-icon { font-size: 2rem; padding: 8px; }
+
+  /* ── ABOUT ── */
+  .about-hero-section { padding: 3rem 1.25rem 2.5rem; }
+  .about-hero-inner { grid-template-columns: 1fr; gap: 1.5rem; text-align: center; }
+  .about-hero-card { display: none; }
+  .about-hero-h1 { font-size: clamp(1.8rem, 6vw, 2.5rem); }
+  .about-hero-p { margin: 0 auto 1.5rem; }
+  .about-ctas { justify-content: center; }
+  .about-stats-bar { padding: 2rem 1.25rem; }
+  .about-stats-inner { grid-template-columns: repeat(2,1fr); gap: 1.25rem; }
+  .ab-stat strong { font-size: 1.8rem; }
+  .about-story { grid-template-columns: 1fr; gap: 2rem; padding: 2.5rem 1.25rem; }
+  .about-values-section { padding: 2.5rem 1.25rem; }
+  .about-values-grid { grid-template-columns: 1fr; gap: 1rem; }
+  .ab-steps-grid { grid-template-columns: repeat(2,1fr); gap: 1rem; }
+  .about-how-section { padding: 2.5rem 1.25rem; }
+  .about-audience-section { padding: 2.5rem 1.25rem; }
+  .ab-audience-grid { grid-template-columns: 1fr; gap: 1rem; }
+  .about-cta-section { padding: 3rem 1.25rem; }
+
+  /* ── PRODUCT DETAIL MODAL ── */
+  .pd-overlay { padding: 0; align-items: flex-end; }
+  .pd-modal {
+    border-radius: var(--r2) var(--r2) 0 0;
+    max-height: 92vh; overflow-y: auto;
+    transform: translateY(100%);
+  }
+  .pd-overlay.open .pd-modal { transform: translateY(0); }
+  .pd-hero { grid-template-columns: 1fr; }
+  .pd-img-box { border-right: none; border-bottom: 1px solid var(--border); padding: 1.25rem; flex-direction: row; justify-content: center; gap: 1rem; }
+  .pd-img-box .main-icon { font-size: 4rem; }
+  .pd-info { padding: 1.25rem; }
+  .pd-name { font-size: 1.25rem; }
+  .pd-price { font-size: 1.6rem; }
+  .pd-actions { flex-direction: column; }
+  .btn-pd-cart { flex: none; }
+  .pd-tab-content { padding: 1.25rem; }
+  .pd-desc-grid { grid-template-columns: 1fr; }
+  .fitment-columns { grid-template-columns: 1fr; }
+  .alt-grid { grid-template-columns: repeat(2,1fr); }
+  .specs-table { font-size: 13px; }
+  .specs-table td { padding: 9px 12px; }
+
+  /* ── QUOTE MODAL ── */
+  .modal-overlay { padding: 0; align-items: flex-end; }
+  .modal { border-radius: var(--r2) var(--r2) 0 0; max-height: 90vh; overflow-y: auto; }
+
+  /* ── SYV widget ── */
+  .syv-widget { margin-bottom: 1rem; }
+
+  /* ── FOOTER ── */
+  .site-footer { flex-direction: column; text-align: center; gap: 1.25rem; padding: 2rem 1.25rem; }
+  .footer-nav { justify-content: center; flex-wrap: wrap; gap: 1rem; }
+}
+
+/* ══════════════════════════════════════════════
+   RESPONSIVE — MOBILE  ≤480px
+══════════════════════════════════════════════ */
+@media (max-width: 480px) {
+
+  /* ── HERO ── */
+  .hero { padding: 2.5rem 1rem 2rem; }
+  .hero h1 { font-size: 1.8rem; letter-spacing: -0.75px; }
+  .hero-stats { gap: 1.25rem; }
+  .hero-stat strong { font-size: 1.4rem; }
+  .hero-stat span { font-size: 11px; }
+  .btn-hero-primary, .btn-hero-secondary { width: 100%; padding: 13px 20px; text-align: center; }
+  .hero-ctas { flex-direction: column; width: 100%; }
+
+  /* ── CATEGORIES ── */
+  .categories-grid { grid-template-columns: repeat(2,1fr); gap: 8px; }
+  .cat-card { padding: 1.1rem 0.75rem; }
+
+  /* ── PRODUCTS ── */
+  .products-grid { grid-template-columns: 1fr; gap: 10px; }
+
+  /* ── VIN PAGE ── */
+  .vin-page h1 { font-size: 1.5rem; }
+  .vin-examples { gap: 6px; }
+  .vin-ex-btn { font-size: 11px; padding: 3px 10px; }
+  .vin-specs-grid { grid-template-columns: 1fr 1fr; }
+  .vin-spec { padding: 0.75rem 1rem; }
+
+  /* ── CART ── */
+  .cart-item { flex-wrap: wrap; }
+  .cart-item-right { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; }
+
+  /* ── ABOUT ── */
+  .about-stats-inner { grid-template-columns: 1fr 1fr; }
+  .ab-steps-grid { grid-template-columns: 1fr; }
+  .btn-about-primary, .btn-about-secondary { width: 100%; text-align: center; }
+  .about-ctas { flex-direction: column; width: 100%; }
+
+  /* ── PRODUCT DETAIL ── */
+  .pd-tab { padding: 11px 14px; font-size: 13px; }
+  .alt-grid { grid-template-columns: 1fr; }
+  .pd-actions { gap: 8px; }
+  .btn-validate-fitment { font-size: 12px; padding: 9px 12px; }
+
+  /* ── CHAT ── */
+  .chat-input-area { padding: 0.75rem 1rem; }
+
+  /* ── NAVBAR ── */
+  .nav-logo-wrap { gap: 8px; }
+  .nav-logo-svg { width: 26px; height: 26px; }
+  .nav-logo-name { font-size: 14px; }
+}
+
+/* ══════════════════════════════════════════════
+   RESPONSIVE — DESKTOP WIDE  ≥1280px
+══════════════════════════════════════════════ */
+@media (min-width: 1280px) {
+  .hero { max-width: 1200px; margin: 0 auto; padding: 6rem 2rem 5rem; }
+  .catalog-layout { max-width: 1300px; }
+  .products-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  .about-hero-section { padding: 6rem 3rem 5rem; }
+  .about-stats-inner { max-width: 1100px; }
+  .about-story { max-width: 1100px; padding: 5.5rem 3rem; }
+  .about-values-inner { max-width: 1100px; }
+  .about-how-section { max-width: 1100px; padding: 5.5rem 3rem; }
+  .ab-audience-inner { max-width: 1100px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ NAVBAR ══ -->
+<nav>
+  <a class="nav-logo-wrap" href="#" onclick="showPage('home')">
+    <svg class="nav-logo-svg" viewBox="0 0 38 38" fill="none">
+      <polygon points="19,2 35,11 35,27 19,36 3,27 3,11" fill="none" stroke="#2563eb" stroke-width="2"/>
+      <polygon points="19,9 30,15.5 30,22.5 19,29 8,22.5 8,15.5" fill="#2563eb"/>
+      <rect x="13" y="0" width="12" height="8" rx="2" fill="#2563eb"/>
+      <circle cx="19" cy="19" r="5" fill="white"/>
+      <circle cx="19" cy="19" r="2.5" fill="#0891b2"/>
+      <circle cx="19" cy="8" r="2.5" fill="white"/>
+      <circle cx="28" cy="13" r="2.5" fill="white"/>
+      <circle cx="28" cy="25" r="2.5" fill="white"/>
+    </svg>
+    <div class="nav-logo-texts">
+      <div class="nav-logo-name"><span class="ln">Auto</span><span class="lv">Viet</span><span class="lh"> Hub</span></div>
+      <div class="nav-logo-tagline">Kết nối ngành xe — Vì cộng đồng Việt</div>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="#" onclick="showPage('home')" id="nav-home" class="active">Trang Chủ</a>
+    <a href="#" onclick="goToCatalogHome()" id="nav-catalog">Phụ Tùng</a>
+    <a href="#" onclick="showPage('vin')" id="nav-vin">Tra VIN</a>
+    <a href="#" onclick="showPage('chat')" id="nav-chat">AI Tư Vấn</a>
+    <a href="#" onclick="showPage('about')" id="nav-about">Về Chúng Tôi</a>
+  </div>
+  <div class="nav-right">
+    <button class="btn-cart" onclick="showPage('cart')">
+      🛒 Giỏ hàng
+      <span class="cart-badge" id="cart-badge">0</span>
+    </button>
+    <button class="btn-primary" onclick="openQuoteModal()">Báo Giá</button>
+  </div>
+  <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- ══ MOBILE MENU ══ -->
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#" onclick="navTo('home')">🏠 Trang Chủ</a>
+  <a href="#" onclick="navTo('catalog')">🔩 Phụ Tùng</a>
+  <a href="#" onclick="navTo('vin')">🔍 Tra VIN</a>
+  <a href="#" onclick="navTo('chat')">🤖 AI Tư Vấn</a>
+  <a href="#" onclick="navTo('about')">ℹ️ Về Chúng Tôi</a>
+  <div class="mobile-menu-btns">
+    <button class="btn-cart" style="flex:1" onclick="navTo('cart')">
+      🛒 Giỏ hàng <span class="cart-badge" id="cart-badge-mobile">0</span>
+    </button>
+    <button class="btn-primary" style="flex:1" onclick="openQuoteModal();closeMobileMenu()">Báo Giá</button>
+  </div>
+</div>
+
+<!-- ══ PAGE: HOME ══ -->
+<div id="page-home" class="page active">
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-tag">🔧 Phụ Tùng Chính Hãng · Toàn Quốc</div>
+    <h1>Phụ Tùng Ô Tô<br>Đúng Xe — <em>Đúng Giá</em></h1>
+    <p>Tra mã VIN trong 3 giây. AI tư vấn 24/7. Hàng chính hãng từ Toyota, Honda, Hyundai, Mazda, Ford và 50+ thương hiệu phụ tùng uy tín.</p>
+    <div class="hero-ctas">
+      <button class="btn-hero-primary" onclick="showPage('vin')">🔍 Tra Mã VIN Ngay</button>
+      <button class="btn-hero-secondary" onclick="showPage('chat')">💬 Hỏi AI Tư Vấn</button>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><strong>50,000+</strong><span>Mã phụ tùng</span></div>
+      <div class="hero-stat"><strong>15+</strong><span>Thương hiệu xe</span></div>
+      <div class="hero-stat"><strong>24/7</strong><span>AI hỗ trợ</span></div>
+      <div class="hero-stat"><strong>Toàn quốc</strong><span>Giao hàng nhanh</span></div>
+    </div>
+  </section>
+
+  <!-- VIN Quick Search -->
+  <div class="vin-quick">
+    <div class="vin-quick-inner">
+      <h2>🔍 Tra Cứu Nhanh Theo VIN</h2>
+      <p>Nhập số VIN (17 ký tự) để xem phụ tùng phù hợp cho xe của bạn</p>
+      <div class="vin-input-row">
+        <input type="text" id="vin-quick-input" placeholder="Nhập số VIN của xe... (VD: JTDBT923291234567)" maxlength="17" oninput="this.value=this.value.toUpperCase()">
+        <button onclick="quickVinSearch()">Tra Ngay →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Categories -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Danh Mục Phụ Tùng</h2>
+      <a href="#" onclick="goToCatalogHome()">Xem tất cả →</a>
+    </div>
+    <div class="categories-grid">
+      <div class="cat-card" onclick="filterByCategory('brake')"><div class="cat-icon">🛑</div><h4>Phanh & Má Phanh</h4><span>15 tên phụ tùng</span></div>
+      <div class="cat-card" onclick="filterByCategory('engine')"><div class="cat-icon">⚙️</div><h4>Động Cơ & Phụ Kiện</h4><span>15 tên phụ tùng</span></div>
+      <div class="cat-card" onclick="filterByCategory('filter')"><div class="cat-icon">🔘</div><h4>Lọc Dầu / Lọc Gió</h4><span>9 tên phụ tùng</span></div>
+      <div class="cat-card" onclick="filterByCategory('suspension')"><div class="cat-icon">🔩</div><h4>Hệ Thống Treo</h4><span>15 tên phụ tùng</span></div>
+      <div class="cat-card" onclick="filterByCategory('electrical')"><div class="cat-icon">⚡</div><h4>Điện - Ắc Quy</h4><span>15 tên phụ tùng</span></div>
+      <div class="cat-card" onclick="filterByCategory('lighting')"><div class="cat-icon">💡</div><h4>Đèn & Chiếu Sáng</h4><span>10 tên phụ tùng</span></div>
+      <div class="cat-card" onclick="filterByCategory('cooling')"><div class="cat-icon">❄️</div><h4>Làm Mát & Tản Nhiệt</h4><span>14 tên phụ tùng</span></div>
+      <div class="cat-card" onclick="filterByCategory('body')"><div class="cat-icon">🚗</div><h4>Thân Xe & Ngoại Thất</h4><span>15 tên phụ tùng</span></div>
+    </div>
+  </div>
+
+  <!-- Featured Products -->
+  <div class="section" style="border-top: 1px solid var(--border); padding-top: 3rem;">
+    <div class="section-header">
+      <h2>Sản Phẩm Nổi Bật</h2>
+      <a href="#" onclick="goToCatalogHome()">Xem thêm →</a>
+    </div>
+    <div class="products-grid" id="home-products"></div>
+  </div>
+</div>
+
+<!-- ══ PAGE: VIN LOOKUP ══ -->
+<div id="page-vin" class="page">
+  <div class="vin-page">
+    <h1>Tra Cứu Mã VIN</h1>
+    <p>Nhập số VIN 17 ký tự để nhận danh sách phụ tùng phù hợp chính xác cho xe của bạn</p>
+
+    <div class="vin-lookup-card">
+      <h3>🔍 Nhập Số VIN</h3>
+      <input class="vin-big-input" id="vin-main-input" type="text" placeholder="JTDBT923291234567" maxlength="17"
+        oninput="this.value=this.value.toUpperCase(); updateVinCounter()" onkeydown="if(event.key==='Enter')lookupVin()">
+      <div class="vin-char-counter">Đã nhập: <span id="vin-char-count">0</span>/17 ký tự
+        <span id="vin-valid-msg" style="color:var(--text3); margin-left:12px;"></span>
+      </div>
+      <div style="margin-bottom:1rem; font-size:13px; color:var(--text2);">Thử với VIN mẫu:</div>
+      <div class="vin-examples">
+        <button class="vin-ex-btn" onclick="fillVin('JTDBT923291234567')">Toyota Camry</button>
+        <button class="vin-ex-btn" onclick="fillVin('1HGCV1F30KA012345')">Honda Accord</button>
+        <button class="vin-ex-btn" onclick="fillVin('KMHD84LF8KU123456')">Hyundai Elantra</button>
+        <button class="vin-ex-btn" onclick="fillVin('3FADP4BJ4KM123456')">Ford Focus</button>
+        <button class="vin-ex-btn" onclick="fillVin('JM1BN1L77K1234567')">Mazda 3</button>
+      </div>
+      <button class="btn-primary" style="padding:12px 32px; font-size:14px;" onclick="lookupVin()">
+        🔍 Tra Cứu Phụ Tùng
+      </button>
+    </div>
+
+    <div id="vin-result-area"></div>
+  </div>
+</div>
+
+<!-- ══ PAGE: CATALOG ══ -->
+<div id="page-catalog" class="page">
+  <div class="catalog-layout">
+    <aside class="catalog-sidebar">
+
+      <!-- SELECT YOUR VEHICLE -->
+      <div class="syv-widget">
+        <div class="syv-header">
+          <span>🚗</span>
+          <span style="color:#fff">Chọn Xe Của Bạn</span>
+        </div>
+        <div class="syv-body" id="syv-body">
+          <div id="syv-active-display" style="display:none"></div>
+          <div id="syv-selects">
+            <select class="syv-select" id="syv-make" onchange="onSyvMakeChange()">
+              <option value="">-- Hãng xe --</option>
+            </select>
+            <select class="syv-select" id="syv-model" onchange="onSyvModelChange()" disabled>
+              <option value="">-- Dòng xe --</option>
+            </select>
+            <select class="syv-select" id="syv-year" onchange="onSyvYearChange()" disabled>
+              <option value="">-- Năm sản xuất --</option>
+            </select>
+            <select class="syv-select" id="syv-trim" onchange="onSyvTrimChange()" disabled>
+              <option value="">-- Phiên bản / Động cơ --</option>
+            </select>
+            <button class="btn-syv-apply" id="syv-apply-btn" onclick="applySyvFilter()" disabled>
+              Xem Phụ Tùng Phù Hợp →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <h3>Lọc Theo Hãng</h3>
+      <div class="filter-group" id="sidebar-cats"></div>
+
+      <h3>Khoảng Giá</h3>
+      <div style="padding: 0 4px;">
+        <input type="range" min="0" max="10000000" value="5000000" id="price-range"
+          style="width:100%; accent-color: var(--accent); margin-bottom:8px;"
+          oninput="document.getElementById('price-val').textContent=Number(this.value).toLocaleString('vi-VN')+'đ'; document.getElementById('price-val').style.color='var(--teal)'">
+        <div style="font-size:13px; color:var(--text2);">Tối đa: <strong id="price-val" style="color:var(--teal)">5,000,000đ</strong></div>
+      </div>
+
+      <h3>Hãng Phụ Tùng</h3>
+      <div class="filter-group">
+        <label class="filter-item"><input type="checkbox"> OEM Chính hãng</label>
+        <label class="filter-item"><input type="checkbox"> Bosch</label>
+        <label class="filter-item"><input type="checkbox"> Denso</label>
+        <label class="filter-item"><input type="checkbox"> NGK</label>
+        <label class="filter-item"><input type="checkbox"> Gates</label>
+      </div>
+    </aside>
+
+    <main class="catalog-main">
+      <div style="display:none" class="catalog-filter-toggle" id="filter-toggle" onclick="toggleCatalogFilter()">
+        <span>🔧 Bộ lọc tìm kiếm</span>
+        <span id="filter-toggle-icon">▼</span>
+      </div>
+      <div class="catalog-toolbar">
+        <input type="text" id="catalog-search" placeholder="🔍  Tìm kiếm phụ tùng..." oninput="renderCatalog()">
+        <select id="catalog-sort" onchange="renderCatalog()">
+          <option value="default">Mặc định</option>
+          <option value="price-asc">Giá tăng dần</option>
+          <option value="price-desc">Giá giảm dần</option>
+          <option value="name">Tên A-Z</option>
+        </select>
+        <span class="catalog-count" id="catalog-count">Đang tải...</span>
+      </div>
+      <div class="products-grid" id="catalog-products"></div>
+      <div id="catalog-pagination" style="display:flex;justify-content:center;align-items:center;gap:6px;margin-top:1.5rem;flex-wrap:wrap;"></div>
+    </main>
+  </div>
+</div>
+
+<!-- ══ PAGE: AI CHAT ══ -->
+<div id="page-chat" class="page">
+  <div class="chat-layout">
+    <aside class="chat-sidebar">
+      <h3>Ngữ Cảnh Xe</h3>
+      <div class="chat-context-card">
+        <div class="label">VIN đã tra</div>
+        <strong id="chat-vin-display">Chưa có</strong>
+      </div>
+      <div class="chat-context-card">
+        <div class="label">Loại xe</div>
+        <strong id="chat-car-display">Chưa xác định</strong>
+      </div>
+      <div style="margin-top:1.5rem;">
+        <h3>Câu Hỏi Nhanh</h3>
+        <div class="chat-quick-btns">
+          <button class="quick-btn" onclick="quickAsk('Xe tôi cần bảo dưỡng những gì sau 50,000 km?')">🔧 Bảo dưỡng 50,000 km</button>
+          <button class="quick-btn" onclick="quickAsk('Má phanh Toyota Camry 2019 chính hãng giá bao nhiêu?')">🛑 Hỏi giá má phanh Camry</button>
+          <button class="quick-btn" onclick="quickAsk('Dầu nhớt phù hợp cho Honda CR-V 2021 là loại nào?')">🛢️ Tư vấn dầu nhớt Honda CR-V</button>
+          <button class="quick-btn" onclick="quickAsk('Lọc gió Hyundai Tucson 2022 thay bao lâu một lần?')">🌀 Lọc gió Tucson</button>
+          <button class="quick-btn" onclick="quickAsk('So sánh bugi NGK và Denso cho Toyota Vios')">⚡ So sánh bugi NGK vs Denso</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="chat-main">
+      <div class="chat-header">
+        <div class="ai-avatar">🤖</div>
+        <div class="chat-header-info">
+          <strong>AutoParts AI Assistant</strong>
+          <span><span class="online-dot"></span>Đang hoạt động · Hỗ trợ song ngữ Việt - Anh</span>
+        </div>
+      </div>
+      <div class="chat-messages" id="chat-messages">
+        <div class="msg ai">
+          <div class="msg-avatar">🤖</div>
+          <div>
+            <div class="msg-bubble">
+              Xin chào! Tôi là <strong>AutoParts AI</strong> — trợ lý tư vấn phụ tùng ô tô của bạn. 🚗<br><br>
+              Tôi có thể giúp bạn:<br>
+              • Tìm đúng phụ tùng cho xe của bạn theo mã VIN<br>
+              • Tư vấn lịch bảo dưỡng và loại dầu nhớt<br>
+              • So sánh các hãng phụ tùng OEM / aftermarket<br>
+              • Giải thích triệu chứng hỏng hóc<br><br>
+              Bạn cần tư vấn gì hôm nay? 😊
+            </div>
+            <div class="msg-time">AutoParts AI · Vừa xong</div>
+          </div>
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <div class="chat-input-row">
+          <input type="text" id="chat-input" placeholder="Hỏi về phụ tùng, bảo dưỡng, VIN..." 
+            onkeydown="if(event.key==='Enter')sendChat()">
+          <button class="btn-send" onclick="sendChat()">➤</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAGE: CART ══ -->
+<div id="page-cart" class="page">
+  <div class="cart-page">
+    <h1>🛒 Giỏ Hàng</h1>
+    <div class="cart-layout">
+      <div>
+        <div class="cart-items" id="cart-items-list"></div>
+      </div>
+      <div class="cart-summary">
+        <h3>Tóm Tắt Đơn Hàng</h3>
+        <div class="summary-row"><span>Tạm tính</span><span class="val" id="subtotal">0đ</span></div>
+        <div class="summary-row"><span>Phí vận chuyển</span><span class="val">Miễn phí</span></div>
+        <div class="summary-row"><span>VAT (10%)</span><span class="val" id="vat">0đ</span></div>
+        <div class="summary-row total"><span>Tổng cộng</span><span class="val" id="total">0đ</span></div>
+        <button class="btn-checkout">Thanh Toán Ngay →</button>
+        <button class="btn-quote" onclick="openQuoteModal()">📋 Yêu Cầu Báo Giá</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ PAGE: ABOUT ══ -->
+<div id="page-about" class="page">
+
+  <!-- Hero -->
+  <section class="about-hero-section">
+    <div class="about-hero-inner">
+      <div>
+        <div class="about-hero-badge">🔗 Dự án cộng đồng phi lợi nhuận</div>
+        <h1 class="about-hero-h1">Ngôi nhà chung<br>của ngành <em>ô tô Việt</em></h1>
+        <p class="about-hero-p">AutoViet Hub kết nối chủ xe, kỹ thuật viên, garage và doanh nghiệp trong toàn bộ chuỗi giá trị ngành ô tô — miễn phí, minh bạch, vì cộng đồng.</p>
+        <div class="about-ctas">
+          <button class="btn-about-primary" onclick="showPage('vin')">🔍 Tra VIN Ngay →</button>
+          <button class="btn-about-secondary" onclick="showPage('chat')">💬 Hỏi AI Tư Vấn</button>
+        </div>
+      </div>
+      <div class="about-hero-card">
+        <div class="about-card-title">Nền tảng phục vụ toàn ngành</div>
+        <div class="about-feat-list">
+          <div class="about-feat-row">
+            <div class="about-feat-icon blue">🔧</div>
+            <div><div class="about-feat-label">Phụ tùng & kỹ thuật</div><div class="about-feat-val">Tra cứu 50,000+ mã phụ tùng</div></div>
+          </div>
+          <div class="about-feat-row">
+            <div class="about-feat-icon teal">🤖</div>
+            <div><div class="about-feat-label">AI tư vấn</div><div class="about-feat-val">Hỗ trợ 24/7 theo mã VIN</div></div>
+          </div>
+          <div class="about-feat-row">
+            <div class="about-feat-icon green">🤝</div>
+            <div><div class="about-feat-label">Cộng đồng</div><div class="about-feat-val">Kết nối garage & kỹ thuật viên</div></div>
+          </div>
+          <div class="about-feat-row">
+            <div class="about-feat-icon blue">📋</div>
+            <div><div class="about-feat-label">Báo giá minh bạch</div><div class="about-feat-val">So sánh giá chính hãng & aftermarket</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="about-divider"></div>
+
+  <!-- Stats -->
+  <section class="about-stats-bar">
+    <div class="about-stats-inner">
+      <div class="ab-stat"><strong>50,000<em>+</em></strong><span>Mã phụ tùng trong hệ thống</span></div>
+      <div class="ab-stat"><strong>15<em>+</em></strong><span>Thương hiệu xe phổ biến tại VN</span></div>
+      <div class="ab-stat"><strong>24/7</strong><span>AI hỗ trợ tư vấn liên tục</span></div>
+      <div class="ab-stat"><strong>100<em>%</em></strong><span>Phi lợi nhuận, mở cho cộng đồng</span></div>
+    </div>
+  </section>
+
+  <!-- Story -->
+  <section>
+    <div class="about-story">
+      <div>
+        <div class="ab-section-label">Câu chuyện của chúng tôi</div>
+        <h2>Tại sao AutoViet Hub ra đời?</h2>
+        <p>Ngành ô tô Việt Nam đang phát triển nhanh chóng — nhưng thông tin vẫn còn phân tán. Chủ xe khó tìm phụ tùng đúng giá, thợ kỹ thuật thiếu nơi cập nhật kiến thức, garage nhỏ không có công cụ chuyên nghiệp như các đại lý lớn.</p>
+        <blockquote class="about-blockquote">"Chúng tôi tin rằng AutoViet Hub không thuộc về ai — AutoViet Hub thuộc về tất cả chúng ta."</blockquote>
+        <p>AutoViet Hub được xây dựng như một nền tảng trung lập, minh bạch — nơi mọi người trong ngành đều có thể tiếp cận thông tin chính xác, kết nối đúng người và cùng nhau phát triển bền vững.</p>
+      </div>
+      <div>
+        <div class="ab-section-label">Sứ mệnh & tầm nhìn</div>
+        <h2>Phổ cập kiến thức ô tô cho mọi người</h2>
+        <p>Chúng tôi không bán hàng để kiếm lợi nhuận. Chúng tôi xây dựng hạ tầng thông tin cho cả ngành — từ tra mã VIN, tư vấn kỹ thuật AI đến kết nối chuỗi cung ứng phụ tùng.</p>
+        <p>Tầm nhìn dài hạn là xây dựng một hệ sinh thái ô tô mở tại Việt Nam, nơi kiến thức được chia sẻ tự do và mọi người đều được hỗ trợ đúng lúc, đúng nhu cầu.</p>
+        <div class="about-check-list">
+          <div class="about-check-item">Miễn phí hoàn toàn cho người dùng cá nhân</div>
+          <div class="about-check-item">Không quảng cáo, không thiên vị nhà cung cấp</div>
+          <div class="about-check-item">Dữ liệu minh bạch, nguồn gốc rõ ràng</div>
+          <div class="about-check-item">Cộng đồng đóng góp & kiểm soát nội dung</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Values -->
+  <section class="about-values-section">
+    <div class="about-values-inner">
+      <div class="about-values-header">
+        <div class="ab-section-label" style="text-align:center;">Giá trị cốt lõi</div>
+        <h2>Những điều chúng tôi cam kết</h2>
+        <p>Mọi quyết định xây dựng AutoViet Hub đều xuất phát từ 6 giá trị cốt lõi này.</p>
+      </div>
+      <div class="about-values-grid">
+        <div class="ab-value-card"><div class="ab-value-icon" style="background:#eff6ff;">🔍</div><h3>Minh bạch</h3><p>Thông tin giá cả, nguồn gốc phụ tùng và đánh giá kỹ thuật đều được công khai, không thiên vị bất kỳ nhà cung cấp nào.</p></div>
+        <div class="ab-value-card"><div class="ab-value-icon" style="background:rgba(8,145,178,0.08);">🤝</div><h3>Cộng đồng</h3><p>Nền tảng được xây dựng cùng cộng đồng, không phải chỉ cho cộng đồng. Mọi đóng góp đều có giá trị và được ghi nhận.</p></div>
+        <div class="ab-value-card"><div class="ab-value-icon" style="background:#f0fdf4;">📚</div><h3>Tri thức mở</h3><p>Kiến thức kỹ thuật ô tô phải được chia sẻ tự do. Không thu phí thông tin, không giấu kiến thức vì mục đích thương mại.</p></div>
+        <div class="ab-value-card"><div class="ab-value-icon" style="background:#eff6ff;">⚡</div><h3>Chính xác</h3><p>Thông tin phụ tùng, tương thích xe và hướng dẫn kỹ thuật đều được kiểm duyệt kỹ trước khi công bố trên nền tảng.</p></div>
+        <div class="ab-value-card"><div class="ab-value-icon" style="background:rgba(8,145,178,0.08);">🌱</div><h3>Bền vững</h3><p>Xây dựng cơ sở hạ tầng thông tin lâu dài cho ngành, không chạy theo xu hướng ngắn hạn hay áp lực doanh thu.</p></div>
+        <div class="ab-value-card"><div class="ab-value-icon" style="background:#fef3c7;">🇻🇳</div><h3>Bản sắc Việt</h3><p>Nội dung và giải pháp được thiết kế đặc thù cho thị trường Việt Nam — không sao chép mô hình nước ngoài một cách máy móc.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How we work -->
+  <section class="about-how-section">
+    <div class="ab-section-label">Cách chúng tôi hoạt động</div>
+    <h2>4 trụ cột của AutoViet Hub</h2>
+    <p class="ab-lead">Mỗi tính năng được xây dựng để giải quyết một vấn đề thực tế mà cộng đồng ngành ô tô đang gặp phải.</p>
+    <div class="ab-steps-grid">
+      <div class="ab-step-card"><div class="ab-step-num">01</div><h4>Tra cứu theo VIN</h4><p>Nhập số VIN 17 ký tự để xem toàn bộ thông số xe và danh sách phụ tùng khuyến nghị chính xác.</p></div>
+      <div class="ab-step-card"><div class="ab-step-num">02</div><h4>AI tư vấn 24/7</h4><p>Trợ lý AI chuyên sâu ô tô, trả lời từ triệu chứng hỏng hóc đến lịch bảo dưỡng và so sánh phụ tùng.</p></div>
+      <div class="ab-step-card"><div class="ab-step-num">03</div><h4>Danh mục phụ tùng</h4><p>Hơn 50,000 mã từ OEM chính hãng đến aftermarket uy tín, có so sánh giá và thông số chi tiết.</p></div>
+      <div class="ab-step-card"><div class="ab-step-num">04</div><h4>Kết nối cộng đồng</h4><p>Kết nối chủ xe với garage, kỹ thuật viên với nhà cung cấp — mạng lưới tin cậy toàn ngành.</p></div>
+    </div>
+  </section>
+
+  <!-- Audience -->
+  <section class="about-audience-section">
+    <div class="ab-audience-inner">
+      <div class="ab-section-label" style="color:rgba(103,232,249,0.8);text-align:center;">Đối tượng phục vụ</div>
+      <h2>AutoViet Hub dành cho ai?</h2>
+      <p class="ab-sub">Bất kỳ ai trong chuỗi giá trị ngành ô tô Việt Nam đều có thể tìm thấy giá trị tại đây.</p>
+      <div class="ab-audience-grid">
+        <div class="ab-audience-card"><div class="ab-audience-icon">🚗</div><h4>Chủ xe cá nhân</h4><p>Tra cứu phụ tùng đúng xe, hiểu triệu chứng hỏng hóc, so sánh giá và tìm garage uy tín gần nhất.</p></div>
+        <div class="ab-audience-card"><div class="ab-audience-icon">🔧</div><h4>Kỹ thuật viên & Garage</h4><p>Tra cứu thông số kỹ thuật, cập nhật kiến thức mới nhất và kết nối với nhà cung cấp phụ tùng giá tốt.</p></div>
+        <div class="ab-audience-card"><div class="ab-audience-icon">📦</div><h4>Nhà phân phối phụ tùng</h4><p>Tiếp cận khách hàng tiềm năng, xây dựng uy tín thương hiệu và tham gia hệ sinh thái chuỗi cung ứng.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section style="background: var(--surface); border-top: 1px solid var(--border);">
+    <div class="about-cta-section">
+      <div class="ab-section-label" style="display:block;text-align:center;">Tham gia cùng chúng tôi</div>
+      <h2>Cùng xây dựng ngành ô tô Việt lành mạnh hơn</h2>
+      <p>AutoViet Hub cần sự tham gia của mọi người — từ đóng góp kiến thức, phản hồi sản phẩm đến kết nối cộng đồng. Mỗi đóng góp đều có giá trị.</p>
+      <div class="ab-cta-btns">
+        <button class="btn-big-blue" onclick="showPage('vin')">Tra VIN Miễn Phí →</button>
+        <button class="btn-big-outline" onclick="openQuoteModal()">Liên Hệ Hợp Tác</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ══ SITE FOOTER ══ -->
+<footer class="site-footer">
+  <div>
+    <div class="footer-brand-name">Auto<span>Viet</span> Hub</div>
+    <div class="footer-brand-tag">Kết nối ngành xe — Vì cộng đồng Việt · autoviethub.vn</div>
+  </div>
+  <div class="footer-nav">
+    <a href="#" onclick="showPage('home')">Trang Chủ</a>
+    <a href="#" onclick="goToCatalogHome()">Phụ Tùng</a>
+    <a href="#" onclick="showPage('vin')">Tra VIN</a>
+    <a href="#" onclick="showPage('chat')">AI Tư Vấn</a>
+    <a href="#" onclick="showPage('about')">Về Chúng Tôi</a>
+  </div>
+  <div class="footer-copy">© 2025 AutoViet Hub · Phi lợi nhuận · Vì cộng đồng</div>
+</footer>
+
+<!-- ══ PRODUCT DETAIL MODAL ══ -->
+<div class="pd-overlay" id="pd-overlay">
+  <div class="pd-modal">
+    <button class="pd-close" onclick="closePD()">✕</button>
+
+    <!-- Hero: image + core info -->
+    <div class="pd-hero">
+      <div class="pd-img-box">
+        <div class="main-icon" id="pd-icon">🔧</div>
+        <div class="pd-img-thumbs" id="pd-thumbs"></div>
+      </div>
+      <div class="pd-info">
+        <div class="pd-brand-row">
+          <span class="pd-brand-tag" id="pd-brand">Brand</span>
+          <span class="pd-oem" id="pd-oem">OEM: —</span>
+        </div>
+        <div class="pd-name" id="pd-name">Tên sản phẩm</div>
+        <div class="pd-compat-row">
+          <span>🚗</span>
+          <span id="pd-compat">Phù hợp với...</span>
+        </div>
+        <div class="pd-price-row">
+          <span class="pd-price" id="pd-price">0đ</span>
+          <span class="pd-price-old" id="pd-old-price"></span>
+          <span class="pd-save" id="pd-save" style="display:none"></span>
+        </div>
+        <div class="pd-stock">
+          <span class="pd-stock-dot"></span>
+          <span id="pd-stock-text">Còn hàng · Giao trong 1-2 ngày</span>
+        </div>
+        <div class="pd-actions">
+          <button class="btn-pd-cart" id="pd-btn-cart">🛒 Thêm Vào Giỏ Hàng</button>
+          <button class="btn-validate-fitment" id="pd-btn-validate" onclick="validateFitmentForProduct()">
+            ⚠️ Kiểm Tra Xe Khớp
+          </button>
+          <button class="btn-pd-quote" onclick="openQuoteModal()">📋 Báo Giá</button>
+          <button class="btn-pd-ai" id="pd-btn-ai">🤖 Hỏi AI</button>
+        </div>
+        <div id="pd-fitment-status" style="margin-top:10px;display:none"></div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="pd-tabs">
+      <div class="pd-tab active" onclick="switchPDTab('desc',this)">Mô Tả <span class="pd-tab-count">✓</span></div>
+      <div class="pd-tab" onclick="switchPDTab('specs',this)">Thông Số Kỹ Thuật <span class="pd-tab-count" id="specs-cnt">8</span></div>
+      <div class="pd-tab" onclick="switchPDTab('fitment',this)">Xe Tương Thích <span class="pd-tab-count" id="fitment-cnt">0</span></div>
+      <div class="pd-tab" onclick="switchPDTab('alts',this)">Sản Phẩm Tương Đương <span class="pd-tab-count" id="alts-cnt">0</span></div>
+    </div>
+
+    <!-- Tab: Description -->
+    <div class="pd-tab-content active" id="pd-tab-desc">
+      <div class="pd-desc-grid">
+        <div>
+          <h4 style="font-size:14px;margin-bottom:12px;color:var(--text2);">ĐẶC ĐIỂM NỔI BẬT</h4>
+          <ul class="pd-feature-list" id="pd-features"></ul>
+        </div>
+        <div>
+          <h4 style="font-size:14px;margin-bottom:12px;color:var(--text2);">THÔNG TIN CHUNG</h4>
+          <div id="pd-desc-info"></div>
+        </div>
+      </div>
+      <div class="pd-warning">
+        <span style="font-size:1.1rem;flex-shrink:0">⚠️</span>
+        <span>Để đảm bảo phụ tùng phù hợp chính xác với xe của bạn, hãy kiểm tra tab <strong>"Xe Tương Thích"</strong> hoặc tra mã VIN trước khi đặt hàng.</span>
+      </div>
+    </div>
+
+    <!-- Tab: Specs -->
+    <div class="pd-tab-content" id="pd-tab-specs">
+      <table class="specs-table" id="pd-specs-table"></table>
+    </div>
+
+    <!-- Tab: Fitment -->
+    <div class="pd-tab-content" id="pd-tab-fitment">
+      <div class="fitment-search-row">
+        <input type="text" id="fitment-search" placeholder="🔍  Lọc theo tên xe, năm sản xuất..." oninput="filterFitment()">
+        <select id="fitment-make" onchange="filterFitment()">
+          <option value="">Tất cả hãng</option>
+          <option>Toyota</option><option>Honda</option><option>Hyundai</option>
+          <option>Kia</option><option>Mazda</option><option>Ford</option>
+          <option>Mitsubishi</option><option>Suzuki</option><option>Nissan</option>
+        </select>
+        <select id="fitment-year" onchange="filterFitment()">
+          <option value="">Tất cả năm</option>
+        </select>
+      </div>
+      <div class="fitment-columns" id="fitment-columns"></div>
+    </div>
+
+    <!-- Tab: Alternatives -->
+    <div class="pd-tab-content" id="pd-tab-alts">
+      <div class="alt-compare-row" id="alt-compare-table"></div>
+      <h4 style="font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:1rem;">SẢN PHẨM THAY THẾ</h4>
+      <div class="alt-grid" id="alt-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ QUOTE MODAL ══ -->
+
+<div class="modal-overlay" id="quote-modal">
+  <div class="modal">
+    <h2>📋 Yêu Cầu Báo Giá</h2>
+    <p>Điền thông tin bên dưới. Đội ngũ sẽ phản hồi trong vòng 2 giờ làm việc.</p>
+    <div class="form-group"><label>HỌ TÊN *</label><input type="text" placeholder="Nguyễn Văn A"></div>
+    <div class="form-group"><label>SỐ ĐIỆN THOẠI *</label><input type="tel" placeholder="0912 345 678"></div>
+    <div class="form-group"><label>EMAIL</label><input type="email" placeholder="email@example.com"></div>
+    <div class="form-group"><label>MÃ VIN XE (nếu có)</label><input type="text" placeholder="17 ký tự" style="letter-spacing:2px; font-family:monospace;"></div>
+    <div class="form-group"><label>LOẠI XE</label>
+      <select>
+        <option>-- Chọn hãng xe --</option>
+        <option>Toyota</option><option>Honda</option><option>Hyundai</option>
+        <option>Kia</option><option>Mazda</option><option>Ford</option>
+        <option>Mitsubishi</option><option>Suzuki</option><option>Nissan</option>
+      </select>
+    </div>
+    <div class="form-group"><label>MÔ TẢ NHU CẦU</label>
+      <textarea placeholder="Xe cần thay má phanh, lọc dầu... hoặc triệu chứng hỏng hóc..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeQuoteModal()">Hủy</button>
+      <button class="btn-primary" style="padding:10px 24px;" onclick="submitQuote()">Gửi Yêu Cầu ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOAST AREA ══ -->
+<div class="toast-area" id="toast-area"></div>
+
+<script>
+// ═══════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════
+const PRODUCTS = [
+  { id:1, name:'Má Phanh Trước Camry 2018-2023', brand:'Toyota OEM', cat:'brake', icon:'🛑', price:850000, oldPrice:980000, badge:'Chính hãng', compat:'Toyota Camry 2018-2023',
+    oem:'04465-06300', stock:'Còn hàng · Giao 1-2 ngày',
+    features:['Chất liệu ceramic giảm bụi đến 70%','Độ ồn thấp, êm ái khi phanh','Chịu nhiệt cao đến 650°C','Phù hợp OEM chính xác, không cần chỉnh sửa','Bộ bao gồm 4 miếng (2 trục trước)'],
+    desc_info:[['Xuất xứ','Nhật Bản (Toyota OEM)'],['Bảo hành','12 tháng hoặc 20,000km'],['Hộp đóng gói','Hộp OEM chính hãng'],['Trọng lượng','1.2 kg']],
+    specs:[
+      {section:'THÔNG SỐ VẬT LÝ', rows:[['Chiều dài miếng phanh','155 mm'],['Chiều rộng','55 mm'],['Độ dày mới','12 mm'],['Độ dày tối thiểu','2 mm'],['Trọng lượng tổng','1.2 kg']]},
+      {section:'THÔNG SỐ KỸ THUẬT', rows:[['Chất liệu ma sát','Ceramic NAO'],['Hệ số ma sát','0.40 – 0.45 μ'],['Nhiệt độ làm việc','-40°C đến +650°C'],['Áp suất tối đa','180 bar'],['Tiêu chuẩn','FMSI D1212']]},
+      {section:'THÔNG TIN CHỨNG NHẬN', rows:[['Chứng nhận','TÜV · ECE R90'],['IATF 16949','Có'],['OE Part Number','04465-06300 / 04465-0E040']]}
+    ],
+    fitment:[
+      { make:'Toyota', model:'Camry', entries:[
+        {year:'2018', title:'2018 Toyota Camry Má Phanh Trước', sub:'Tự động FWD Sedan 2.5L 4-cyl A25A-FKS', note:'Đường kính: 296mm'},
+        {year:'2019', title:'2019 Toyota Camry Má Phanh Trước', sub:'Tự động FWD Sedan 2.5L 4-cyl A25A-FKS', note:'Đường kính: 296mm'},
+        {year:'2020', title:'2020 Toyota Camry Má Phanh Trước', sub:'Tự động FWD Sedan 2.5L Hybrid', note:'Đường kính: 296mm'},
+        {year:'2021', title:'2021 Toyota Camry Má Phanh Trước', sub:'Tự động FWD Sedan 2.5L / 3.5L V6', note:'Đường kính: 296mm'},
+        {year:'2022', title:'2022 Toyota Camry Má Phanh Trước', sub:'Tự động FWD Sedan 2.5L 4-cyl', note:'Đường kính: 296mm'},
+        {year:'2023', title:'2023 Toyota Camry Má Phanh Trước', sub:'Tự động FWD Sedan 2.5L 4-cyl', note:'Đường kính: 296mm'},
+      ]},
+      { make:'Toyota', model:'Avalon', entries:[
+        {year:'2019', title:'2019 Toyota Avalon Má Phanh Trước', sub:'Tự động FWD Sedan 3.5L V6 2GR-FKS', note:'Đường kính: 320mm'},
+        {year:'2020', title:'2020 Toyota Avalon Má Phanh Trước', sub:'Tự động FWD Sedan 3.5L V6', note:'Đường kính: 320mm'},
+        {year:'2021', title:'2021 Toyota Avalon Hybrid', sub:'Tự động FWD Sedan 2.5L Hybrid A25A', note:'Đường kính: 296mm'},
+      ]},
+      { make:'Lexus', model:'ES350', entries:[
+        {year:'2019', title:'2019 Lexus ES350 Má Phanh Trước', sub:'Tự động FWD Sedan 3.5L V6 2GR-FKS', note:'Đường kính: 320mm'},
+        {year:'2020', title:'2020 Lexus ES300h', sub:'Tự động FWD Sedan 2.5L Hybrid', note:'Đường kính: 296mm'},
+      ]},
+    ],
+    alternatives:[
+      { id:101, name:'Má Phanh Trước Brembo P83118', brand:'Brembo', icon:'🛑', price:1250000, badge:'premium', compat:'Toyota Camry 2018-2023', note:'Hiệu suất cao, dành cho lái xe thể thao' },
+      { id:102, name:'Má Phanh Ceramic Akebono EUR1467', brand:'Akebono', icon:'🛑', price:920000, badge:'oem', compat:'Toyota Camry 2018-2023', note:'OE-equivalent, độ ồn cực thấp' },
+      { id:103, name:'Má Phanh Bosch QuietCast BC1212', brand:'Bosch', icon:'🛑', price:680000, badge:'cheaper', compat:'Toyota Camry 2018-2023', note:'Aftermarket, giá tốt, chất lượng đảm bảo' },
+      { id:104, name:'Má Phanh Raybestos MGD1212CH', brand:'Raybestos', icon:'🛑', price:590000, badge:'cheaper', compat:'Toyota Camry 2018-2023', note:'Lựa chọn tiết kiệm cho đường đô thị' },
+    ],
+  },
+  { id:2, name:'Lọc Dầu Động Cơ Denso', brand:'Denso', cat:'filter', icon:'🔘', price:120000, oldPrice:null, badge:null, compat:'Toyota / Honda / Mazda',
+    oem:'90915-YZZD4', stock:'Còn hàng · Giao trong ngày',
+    features:['Lõi lọc mật độ cao, giữ 99.9% hạt bụi ≥ 25μm','Van chống hồi dầu tích hợp','Vỏ thép dập chịu áp lực cao','Tương thích nhiều loại dầu khoáng và tổng hợp','Tuổi thọ: 5,000–10,000km'],
+    desc_info:[['Xuất xứ','Nhật Bản'],['Bảo hành','6 tháng'],['Trọng lượng','250g'],['Ren lắp','3/4-16 UNF']],
+    specs:[
+      {section:'THÔNG SỐ', rows:[['Đường kính ngoài','65 mm'],['Chiều cao','80 mm'],['Ren lắp','3/4-16 UNF'],['Áp suất van xả','0.7–1.1 kgf/cm²'],['Khả năng lọc','99.9% tại 25μm'],['Dung tích dầu giữ','0.15L']]},
+    ],
+    fitment:[
+      { make:'Toyota', model:'Vios / Yaris', entries:[
+        {year:'2014-2023', title:'Toyota Vios / Yaris 1.5L NCP / NSP', sub:'Động cơ 1NZ-FE / 2NZ-FE', note:'Tháo 17mm'},
+        {year:'2008-2023', title:'Toyota Camry 2.0L / 2.5L', sub:'Động cơ 1AZ-FE / 2AR-FE', note:'Tháo 17mm'},
+      ]},
+      { make:'Honda', model:'City / Jazz', entries:[
+        {year:'2014-2023', title:'Honda City 1.5L GM6', sub:'Động cơ L15Z7', note:'Ren 3/4-16'},
+        {year:'2017-2023', title:'Honda CR-V 1.5L Turbo', sub:'Động cơ L15B7', note:'Ren 3/4-16'},
+      ]},
+    ],
+    alternatives:[
+      { id:201, name:'Lọc Dầu Toyota OEM', brand:'Toyota OEM', icon:'🔘', price:180000, badge:'oem', compat:'Toyota Vios / Camry', note:'Chính hãng Toyota, lắp vừa 100%' },
+      { id:202, name:'Lọc Dầu Bosch 0451103336', brand:'Bosch', icon:'🔘', price:95000, badge:'cheaper', compat:'Toyota / Honda / Mazda', note:'Aftermarket phổ thông, giá rẻ' },
+    ],
+  },
+  { id:3, name:'Bugi NGK Iridium IX', brand:'NGK', cat:'engine', icon:'⚡', price:380000, oldPrice:450000, badge:'SALE', compat:'Đa số các xe Nhật',
+    oem:'BKR6EIX-11', stock:'Còn hàng · Giao 1-2 ngày',
+    features:['Điện cực iridium đường kính 0.6mm cực nhỏ','Tia lửa mạnh hơn bugi thường 30%','Tuổi thọ đến 60,000–100,000 km','Khởi động dễ dàng hơn trong thời tiết lạnh','Tiết kiệm nhiên liệu, giảm khí thải HC'],
+    desc_info:[['Xuất xứ','Nhật Bản (NGK)'],['Bảo hành','12 tháng'],['Bộ gồm','1 cái'],['Khoảng khe','1.1mm (mặc định)']],
+    specs:[
+      {section:'THÔNG SỐ ĐIỆN', rows:[['Điện trở','5kΩ'],['Điện áp đánh lửa','≤ 20kV'],['Khe hở','1.1 mm'],['Vật liệu điện cực','Iridium IX alloy']]},
+      {section:'THÔNG SỐ CƠ', rows:[['Ren lắp','14mm × 1.25mm'],['Chiều dài ren','19.0mm'],['Kích thước đầu lục giác','16mm']]},
+    ],
+    fitment:[
+      { make:'Toyota', model:'Vios / Yaris / Camry', entries:[
+        {year:'2008-2023', title:'Toyota Vios 1.5L 1NZ-FE', sub:'Động cơ 4-cyl, cần 4 bugi', note:'Thay 40,000km'},
+        {year:'2012-2023', title:'Toyota Camry 2.5L 2AR-FE', sub:'Động cơ 4-cyl, cần 4 bugi', note:'Thay 80,000km (iridium)'},
+      ]},
+      { make:'Honda', model:'City / CR-V', entries:[
+        {year:'2014-2023', title:'Honda City 1.5L L15Z7', sub:'Động cơ 4-cyl, cần 4 bugi', note:'Thay 60,000km'},
+      ]},
+    ],
+    alternatives:[
+      { id:301, name:'Bugi Denso Iridium IK20', brand:'Denso', icon:'⚡', price:420000, badge:'premium', compat:'Xe Nhật phổ thông', note:'Chất lượng ngang ngửa NGK, tuổi thọ tương đương' },
+      { id:302, name:'Bugi NGK G-Power Platinum', brand:'NGK', icon:'⚡', price:280000, badge:'cheaper', compat:'Xe Nhật phổ thông', note:'Platinum, tuổi thọ 40,000km' },
+      { id:303, name:'Bugi Bosch Iridium OE', brand:'Bosch', icon:'⚡', price:350000, badge:'oem', compat:'Xe Nhật / châu Âu', note:'OE cho xe Ford, Mazda dùng Bosch' },
+    ],
+  },
+  { id:4, name:'Ắc Quy GS 70Ah MF', brand:'GS Battery', cat:'electrical', icon:'🔋', price:2450000, oldPrice:null, badge:'Hot', compat:'Phổ thông',
+    oem:'GS MF75D23L', stock:'Còn hàng tại kho Hà Nội',
+    features:['Công nghệ MF (Maintenance Free) không cần bổ sung nước','Khởi động mạnh 550CCA','Chống rò rỉ axit, van hơi tích hợp','Tuổi thọ 3–5 năm','Phù hợp xe 1.5L–2.5L phổ thông'],
+    desc_info:[['Xuất xứ','Thái Lan (GS Yuasa)'],['Bảo hành','18 tháng'],['Trọng lượng','16.5kg'],['Kích thước','260×173×220mm']],
+    specs:[
+      {section:'THÔNG SỐ ĐIỆN', rows:[['Điện áp','12V'],['Dung lượng','70Ah (20HR)'],['CCA','550A (SAE)'],['MCA','680A'],['Nội trở','≤6.0mΩ']]},
+      {section:'THÔNG SỐ VẬT LÝ', rows:[['Kích thước (D×R×C)','260×173×220mm'],['Trọng lượng','16.5kg'],['Cực dương','Bên trái (L)']]},
+    ],
+    fitment:[
+      { make:'Toyota', model:'Camry / Vios / Fortuner', entries:[
+        {year:'Phổ thông', title:'Toyota Camry 2.0–2.5L', sub:'Tất cả năm sản xuất', note:'Cực trái, kẹp côn'},
+        {year:'Phổ thông', title:'Toyota Fortuner 2.4–2.7L', sub:'Tất cả năm sản xuất', note:'Cực trái'},
+      ]},
+      { make:'Honda', model:'City / CR-V / Accord', entries:[
+        {year:'Phổ thông', title:'Honda City 1.5L', sub:'Tất cả năm sản xuất', note:'Kiểm tra phân cực'},
+        {year:'Phổ thông', title:'Honda CR-V 1.5T / 2.0L', sub:'Tất cả năm sản xuất', note:'Kiểm tra phân cực'},
+      ]},
+    ],
+    alternatives:[
+      { id:401, name:'Ắc Quy Delkor 70Ah DIN', brand:'Delkor (Hàn)', icon:'🔋', price:2650000, badge:'premium', compat:'Phổ thông', note:'Thương hiệu Hàn, chất lượng cao' },
+      { id:402, name:'Ắc Quy Bosch S4 70Ah', brand:'Bosch', icon:'🔋', price:2200000, badge:'cheaper', compat:'Phổ thông', note:'Giá tốt, phổ biến tại VN' },
+    ],
+  },
+  { id:5, name:'Dây Curoa Timing Gates', brand:'Gates', cat:'engine', icon:'⚙️', price:680000, oldPrice:780000, badge:null, compat:'Honda CR-V / Accord',
+    oem:'5495XS', stock:'Còn hàng · Giao 1-2 ngày',
+    features:['Lõi sợi carbon fiber độ bền cao','Lớp EPDM kháng nhiệt và dầu','Chính xác từng răng, không trượt','Thay thế theo khuyến nghị OEM 60,000km','Bộ bao gồm dây + tấm hướng dẫn'],
+    desc_info:[['Xuất xứ','Mỹ (Gates Corporation)'],['Bảo hành','12 tháng hoặc 20,000km'],['Chiều dài','995mm'],['Số răng','197']],
+    specs:[
+      {section:'THÔNG SỐ', rows:[['Chiều dài','995mm'],['Số răng','197T'],['Chiều rộng','25mm'],['Vật liệu','EPDM + Carbon Fiber'],['Khoảng nhiệt làm việc','-40°C ~ +140°C']]},
+    ],
+    fitment:[
+      { make:'Honda', model:'CR-V / Accord', entries:[
+        {year:'2017-2022', title:'Honda CR-V 1.5L L15B7 Turbo', sub:'4-cyl DOHC VTEC Turbo', note:'Thay 60,000km'},
+        {year:'2018-2023', title:'Honda Accord 1.5T / 2.0T', sub:'4-cyl DOHC VTEC Turbo', note:'Thay 60,000km'},
+      ]},
+    ],
+    alternatives:[
+      { id:501, name:'Dây Curoa Timing Aisin TKH-002', brand:'Aisin', icon:'⚙️', price:750000, badge:'oem', compat:'Honda CR-V / Accord', note:'OE supplier cho Honda, chất lượng ngang OEM' },
+      { id:502, name:'Dây Curoa Contitech CT1127', brand:'Continental', icon:'⚙️', price:580000, badge:'cheaper', compat:'Honda / Mazda', note:'Aftermarket châu Âu, chất lượng tốt' },
+    ],
+  },
+  { id:6, name:'Lọc Gió Điều Hoà Bosch', brand:'Bosch', cat:'filter', icon:'🌀', price:180000, oldPrice:null, badge:null, compat:'Hyundai Tucson / Elantra',
+    oem:'1987432461', stock:'Còn hàng · Giao trong ngày',
+    features:['Lọc 99% phấn hoa và bụi mịn PM2.5','Lớp than hoạt tính khử mùi hiệu quả','Thay mỗi 15,000km hoặc 1 năm','Lắp thẳng vào vị trí OEM, không cắt chỉnh','Cải thiện lưu lượng khí vào cabin'],
+    desc_info:[['Xuất xứ','Đức (Bosch)'],['Bảo hành','6 tháng'],['Kích thước','220×240mm'],['Loại','Activated Carbon + Pollen']],
+    specs:[
+      {section:'THÔNG SỐ', rows:[['Kích thước','220×240×25mm'],['Hiệu suất lọc','≥99% tại 1μm'],['Vật liệu','HEPA + Than hoạt tính'],['Chu kỳ thay','15,000km / 12 tháng']]},
+    ],
+    fitment:[
+      { make:'Hyundai', model:'Tucson / Elantra / i30', entries:[
+        {year:'2016-2021', title:'Hyundai Tucson NX4 2.0L / 1.6T', sub:'Automatic / Manual', note:'Khoang phụ phía trước phải'},
+        {year:'2017-2023', title:'Hyundai Elantra CN7 1.6L', sub:'Automatic CVT', note:'Sau hộp găng tay'},
+        {year:'2018-2023', title:'Hyundai i30 1.4T / 1.6L', sub:'Automatic / Manual', note:'Sau hộp găng tay'},
+      ]},
+      { make:'Kia', model:'Sportage / Cerato', entries:[
+        {year:'2016-2022', title:'Kia Sportage QL 2.0L / 1.6T', sub:'Automatic / Manual', note:'Khoang phụ phía trước phải'},
+        {year:'2019-2023', title:'Kia Cerato BD 2.0L', sub:'Automatic', note:'Sau hộp găng tay'},
+      ]},
+    ],
+    alternatives:[
+      { id:601, name:'Lọc Gió Hyundai OEM 97133-D3000', brand:'Hyundai OEM', icon:'🌀', price:220000, badge:'oem', compat:'Hyundai Tucson / Elantra', note:'Chính hãng, phù hợp 100%' },
+      { id:602, name:'Lọc Gió Mann CUK 26 012-2', brand:'Mann-Filter', icon:'🌀', price:195000, badge:'premium', compat:'Hyundai / Kia', note:'Đức, than hoạt tính cao cấp' },
+      { id:603, name:'Lọc Gió Sakura CA-1270', brand:'Sakura', icon:'🌀', price:110000, badge:'cheaper', compat:'Hyundai / Kia', note:'Nhật, giá rẻ, thay thường xuyên' },
+    ],
+  },
+  { id:7, name:'Bóng Đèn Pha Osram H7 55W', brand:'Osram', cat:'lighting', icon:'💡', price:220000, oldPrice:260000, badge:'SALE', compat:'Phổ thông',
+    oem:'64210CBI', stock:'Còn hàng',
+    features:['Sáng hơn halogen tiêu chuẩn 30%','Dải sáng 4200K trắng xanh tự nhiên','Bóng sợi đốt Xenon công nghệ kép','Tuổi thọ 500 giờ','Lắp thẳng thay thế H7 tiêu chuẩn'],
+    desc_info:[['Xuất xứ','Đức (Osram)'],['Bảo hành','6 tháng'],['Cặp/Đơn','1 bóng'],['Công suất','55W']],
+    specs:[
+      {section:'THÔNG SỐ', rows:[['Loại bóng','H7 (PX26d)'],['Điện áp','12V'],['Công suất','55W'],['Nhiệt độ màu','4200K'],['Quang thông','1550lm'],['Tuổi thọ','500h']]},
+    ],
+    fitment:[
+      { make:'Toyota / Hyundai / Kia / Mazda', model:'Phổ thông H7', entries:[
+        {year:'2010-2023', title:'Toyota Camry / Corolla Altis', sub:'Đèn pha loại H7', note:'Kiểm tra loại bóng trước'},
+        {year:'2010-2023', title:'Hyundai Tucson / Elantra / i30', sub:'Đèn pha loại H7', note:'Kiểm tra loại bóng trước'},
+        {year:'2010-2023', title:'Mazda 3 / CX-5', sub:'Đèn pha loại H7', note:'Kiểm tra loại bóng trước'},
+      ]},
+    ],
+    alternatives:[
+      { id:701, name:'Osram Night Breaker 200 H7', brand:'Osram', icon:'💡', price:420000, badge:'premium', compat:'H7 phổ thông', note:'Sáng hơn 200%, cao cấp nhất dòng halogen' },
+      { id:702, name:'Philips X-tremeVision H7', brand:'Philips', icon:'💡', price:380000, badge:'premium', compat:'H7 phổ thông', note:'Đối thủ cạnh tranh Osram, sáng +130%' },
+      { id:703, name:'Bóng H7 thường 55W nội địa', brand:'Generic', icon:'💡', price:35000, badge:'cheaper', compat:'H7 phổ thông', note:'Giá rẻ, tuổi thọ thấp hơn' },
+    ],
+  },
+  { id:8, name:'Bi Moayơ Bánh Trước Hyundai', brand:'Hyundai OEM', cat:'suspension', icon:'🔩', price:1200000, oldPrice:null, badge:'Chính hãng', compat:'Hyundai Tucson 2020-2023',
+    oem:'51750-D3050', stock:'Đặt trước · Giao 2-3 ngày',
+    features:['Vòng bi 2 hàng bi (double row ball bearing)','Tích hợp cảm biến ABS','Lắp thẳng OEM, không cần chỉnh','Chịu tải đến 750kg/trục','Bôi trơn suốt đời, không cần bảo trì'],
+    desc_info:[['Xuất xứ','Hàn Quốc (Hyundai Mobis)'],['Bảo hành','12 tháng'],['Trọng lượng','3.2kg'],['Loại','Gen 3 với cảm biến ABS']],
+    specs:[
+      {section:'THÔNG SỐ', rows:[['Đường kính trong','35mm'],['Đường kính ngoài','75mm'],['Chiều rộng','37mm'],['Tải tĩnh','32kN'],['Tải động','20kN'],['Có cảm biến ABS','Có (72 xung)']]},
+    ],
+    fitment:[
+      { make:'Hyundai', model:'Tucson NX4', entries:[
+        {year:'2020', title:'2020 Hyundai Tucson 2.0L MPI', sub:'Tự động FWD / AWD', note:'Khớp cờ lê 32mm'},
+        {year:'2021', title:'2021 Hyundai Tucson 1.6T GDI', sub:'Tự động FWD / AWD', note:'Khớp cờ lê 32mm'},
+        {year:'2022', title:'2022 Hyundai Tucson 2.0L MPI', sub:'Tự động FWD', note:'Khớp cờ lê 32mm'},
+        {year:'2023', title:'2023 Hyundai Tucson 1.6T Hybrid', sub:'Tự động FWD Hybrid', note:'Khớp cờ lê 32mm'},
+      ]},
+    ],
+    alternatives:[
+      { id:801, name:'Bi Moayơ SKF VKBA 3648', brand:'SKF (Thuỵ Điển)', icon:'🔩', price:1450000, badge:'premium', compat:'Hyundai Tucson 2020+', note:'Tiêu chuẩn OE, thương hiệu vòng bi hàng đầu thế giới' },
+      { id:802, name:'Bi Moayơ Timken HA590466', brand:'Timken', icon:'🔩', price:1100000, badge:'cheaper', compat:'Hyundai Tucson 2020+', note:'Mỹ, chất lượng tốt, giá hợp lý' },
+    ],
+  },
+  { id:9, name:'Nước Làm Mát Prestone 5L', brand:'Prestone', cat:'cooling', icon:'❄️', price:320000, oldPrice:null, badge:null, compat:'Tất cả xe',
+    oem:'AF2100/1', stock:'Còn hàng', features:['Pha sẵn 50/50, không cần pha thêm','Bảo vệ đến -37°C và +129°C','Chống ăn mòn hợp kim nhôm, đồng, gang','Tương thích tất cả màu dung dịch làm mát cũ','Chu kỳ thay: 5 năm hoặc 150,000km'],
+    desc_info:[['Xuất xứ','Mỹ'],['Bảo hành','N/A'],['Thể tích','5 Lít'],['Loại','Full Strength OAT']],
+    specs:[{section:'THÔNG SỐ', rows:[['Thể tích','5L'],['Pha sẵn','50/50 dùng ngay'],['Bảo vệ','−37°C ~ +129°C'],['Công thức','OAT (Organic Acid Technology)'],['Màu sắc','Vàng/Vàng xanh']]}],
+    fitment:[{ make:'Tất cả xe', model:'Phổ thông', entries:[{year:'Mọi năm', title:'Áp dụng cho tất cả xe sử dụng nước làm mát gốc OAT', sub:'Toyota / Honda / Hyundai / Mazda / Ford...', note:'Kiểm tra màu nước làm mát cũ trước khi đổ'}]}],
+    alternatives:[{ id:901, name:'Nước Làm Mát Valvoline Zerex 5L', brand:'Valvoline', icon:'❄️', price:290000, badge:'cheaper', compat:'Phổ thông', note:'Mỹ, giá tốt, formula tương tự' }],
+  },
+  { id:10, name:'Cao Su Gạt Mưa Bosch Aero', brand:'Bosch', cat:'body', icon:'🚗', price:280000, oldPrice:320000, badge:'SALE', compat:'Phổ thông 24"',
+    oem:'3397008997', stock:'Còn hàng', features:['Thiết kế khí động học, gạt sạch 100%','Không có khung kim loại, không đọng nước đá','Lớp cao su tự nhiên cao cấp','Phù hợp mưa tầm tầm và mưa lớn','Gắp Aerotwin fit phổ thông A001 – A012'],
+    desc_info:[['Xuất xứ','Đức'],['Bảo hành','6 tháng'],['Chiều dài','600mm (24")'],['Loại gắp','Top Lock / Pinch Tab']],
+    specs:[{section:'THÔNG SỐ', rows:[['Chiều dài','600mm (24")'],['Vật liệu','Natural rubber + Graphite'],['Loại lắp','Universal Aerotwin'],['Nhiệt độ làm việc','-30°C ~ +60°C']]}],
+    fitment:[{ make:'Phổ thông', model:'Xe dùng cần gạt 24"', entries:[{year:'Đa số', title:'Toyota Camry / Corolla / Vios cần gạt phụ lái', sub:'Kiểm tra chiều dài cần gạt hiện tại', note:'24" = 600mm'},{year:'Đa số', title:'Hyundai Tucson / Elantra cần phụ lái', sub:'Kiểm tra chiều dài', note:'24" = 600mm'}]}],
+    alternatives:[{ id:1001, name:'Gạt Mưa Valeo Silencio 600mm', brand:'Valeo', icon:'🚗', price:240000, badge:'cheaper', compat:'Phổ thông 24"', note:'Pháp, chất lượng tốt, giá thấp hơn' }],
+  },
+  { id:11, name:'Lọc Dầu Hộp Số Ford Ranger', brand:'Ford OEM', cat:'filter', icon:'🔘', price:450000, oldPrice:null, badge:'Chính hãng', compat:'Ford Ranger 2019-2023',
+    oem:'AB39-7G186-AA', stock:'Còn hàng · Giao 1-2 ngày',
+    features:['Chính hãng Ford Motor Company','Lọc hạt nhỏ trong dầu ATF','Bao gồm ron làm kín mới','Thay cùng với dầu hộp số 60,000km','Bảo vệ hộp số tự động 6-speed 6R80'],
+    desc_info:[['Xuất xứ','Mỹ (Ford OEM)'],['Bảo hành','12 tháng'],['Hộp số phù hợp','6R80 6-speed'],['Bao gồm','Lọc + ron làm kín']],
+    specs:[{section:'THÔNG SỐ', rows:[['Hộp số phù hợp','6R80 6AT'],['Áp suất lọc','3.5 bar'],['Vật liệu lọc','Sợi thủy tinh tổng hợp'],['Kích thước','180×120×30mm']]}],
+    fitment:[{ make:'Ford', model:'Ranger / Everest', entries:[{year:'2019-2023', title:'Ford Ranger Wildtrak/XLT 2.0T BiTurbo 10AT', sub:'Hộp số 10R80', note:'Thay 60,000km'},{year:'2019-2023', title:'Ford Ranger 2.0T / 2.2L 6AT', sub:'Hộp số 6R80', note:'Thay 60,000km'},{year:'2020-2023', title:'Ford Everest Titanium 2.0T', sub:'Hộp số 10R80', note:'Thay 60,000km'}]}],
+    alternatives:[{ id:1101, name:'Lọc ATF Mann W 814/80', brand:'Mann-Filter', icon:'🔘', price:380000, badge:'cheaper', compat:'Ford 6R80 / 10R80', note:'Đức, aftermarket chất lượng cao' }],
+  },
+  { id:12, name:'Phuộc Nhún Trước Mazda 3', brand:'KYB', cat:'suspension', icon:'🔩', price:1850000, oldPrice:2200000, badge:'SALE', compat:'Mazda 3 2019-2023',
+    oem:'341471', stock:'Còn hàng · Giao 2-3 ngày',
+    features:['Công nghệ twin-tube gas pressure','Piston 46mm độ chính xác cao','Giảm rung lắc ngang khi vào cua','Tương thích lò xo OEM','Bảo hành 24 tháng KYB chính hãng'],
+    desc_info:[['Xuất xứ','Nhật Bản (KYB)'],['Bảo hành','24 tháng / 40,000km'],['Loại','Twin-tube gas'],['Bán theo','1 cái']],
+    specs:[{section:'THÔNG SỐ', rows:[['Đường kính piston','46mm'],['Hành trình nén','120mm'],['Hành trình giãn','160mm'],['Loại gas','Nitơ N2'],['Độ cứng','OEM equivalent']]}],
+    fitment:[{ make:'Mazda', model:'Mazda 3', entries:[{year:'2019', title:'2019 Mazda 3 BP 2.0L SkyActiv-G', sub:'Tự động 6AT FWD Sedan / Hatchback', note:'Cần 2 cái/cầu trước'},{year:'2020', title:'2020 Mazda 3 BP 2.0L', sub:'Tự động 6AT / Thủ công 6MT', note:'Cần 2 cái/cầu trước'},{year:'2021-2023', title:'2021-2023 Mazda 3 2.0L SkyActiv-X', sub:'Tự động 6AT FWD', note:'Cần 2 cái/cầu trước'}]}],
+    alternatives:[
+      { id:1201, name:'Phuộc Bilstein B4 OEM Replacement', brand:'Bilstein', icon:'🔩', price:2800000, badge:'premium', compat:'Mazda 3 2019+', note:'Đức, monotube, êm hơn và bền hơn' },
+      { id:1202, name:'Phuộc Tokico Excel-G B2202', brand:'Tokico', icon:'🔩', price:1550000, badge:'cheaper', compat:'Mazda 3 2019+', note:'Nhật, giá tốt, phù hợp dùng hàng ngày' },
+    ],
+  },
+];
+
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+const API = '/api/v1/catalog';   // cùng origin (server phục vụ luôn file này) — khỏi cần CORS
+
+// Tên phụ tùng tiếng Việt thật, lấy từ Desktop/data/Copy of Danh_sach_phu_tung.xlsx
+// (286 dòng, đã gán name_vi cho DB qua filter_part.py trước đó) — phân tay theo
+// từ khoá vào 8 danh mục hiển thị ở trang chủ. DB không có cột "danh mục" nên
+// đây là cách xấp xỉ: bấm danh mục → search song song từng tên trong danh sách
+// này (ILIKE tiếng Việt) → gộp kết quả lại.
+const CATEGORY_TERMS = {
+  brake: ["Đĩa phanh trước", "Tăng bua sau", "Má phanh trước", "Bộ chống ồn tản nhiệt má phanh trước", "Phanh cài giữ má phanh", "Bộ cuppen chụi bụi phanh trước", "Piston phanh trước", "Cụm phanh trước", "Chắn bụi đĩa phanh trước", "Má phanh sau", "Bộ chống ồn tản nhiệt má phanh sau", "Bộ cuppen chụp bụi phanh sau", "Cụm phanh sau", "Piston phanh sau", "Tấm chắn bụi đĩa phanh sau", "Guốc phanh sau", "Xy lanh phanh sau", "Tấm che bụi tăng bua sau", "Dây phanh tay đoạn giữa", "Dây phanh tay RH", "Dây phanh tay LH", "Tổng phanh", "Bầu trợ lực phanh", "Bình đựng dầu phanh", "Ruột tổng phanh", "Tuy ô phanh RH", "Tuy ô phanh LH", "Bộ chia phanh sau"],
+  engine: ["Gioăng bộ đại tu", "Gioăng dàn cò", "Gioăng bugi", "Gioăng mặt máy", "Van VVT", "Nắp dàn cò", "Mặt máy", "Lốc máy", "Vòi phun dầu", "Đáy các te động cơ", "Thước thăm dầu động cơ", "Cụm bi tăng tổng", "Phớt đầu cơ", "Phớt đuôi trục cơ", "Bơm dầu liền bưởng cam", "Chân máy RH", "Chân máy LH", "Chân hộp số", "Van thông hơi nắp dàn cò", "Ống hơi", "Piston", "Xéc măng", "Bạc biên", "Bạc Balie", "Căn dọc trục cơ", "Tay biên", "Trục cơ", "Trục đối trọng", "Nhông cơ", "Buly trục cơ", "Bánh đà", "Xích cam", "Tỳ cam cong", "Tỳ cam thẳng", "Búa tăng cam", "Tỳ cam trên", "Xích bơm dầu", "Búa tăng xích bơm dầu", "Tỳ xích bơm dầu", "Trục cam", "Nhông cam xả", "Nhông cam hút", "Xúp páp hút/xả", "Phớt ghít", "Con đội", "Dây cam", "Bi tăng cam", "Ty tăng cam", "Cút giàn sưởi", "Dây curoa tổng", "Cổ hút động cơ", "Gioăng cổ hút động cơ", "Cổ xả", "Gioăng cổ xả", "Đoạn bô giữa", "Đoạn bô cuối", "Cổ hút gió", "Bugi", "Môbin", "Băng đích đề", "Kim phun", "Thanh ray nhiên liệu", "Van điều áp", "Cổ ga", "Đĩa côn", "Bàn ép", "Bi T", "Bi bánh đà", "Càng cua để bi tê", "Tổng côn", "Chuột côn", "Ruột chuột côn", "Phớt quả bí", "Bơm dầu quả bí", "Main điều khiển hộp số tự động", "Van điều khiển hộp số tự động", "Bánh răng ABS sau", "Bi quả dứa nhỏ", "Bi quả dứa to", "Bi chữ thập sau", "Khớp các đang lái", "Bộ gioăng phớt bơm trợ lực", "Cụm ABS"],
+  filter: ["Lọc xăng", "Lọc dầu", "Giá bắt lọc dầu", "Gioăng giá bắt lọc dầu", "Nắp hộp lọc gió", "Hộp lọc gió", "Lọc nhiên liệu", "Lọc dầu số tự động", "Lọc gió điều hòa"],
+  suspension: ["Cao su treo bô", "Càng A trên", "Càng A dưới", "Ngõng moay ơ", "Rôtuyn đứng trên", "Rôtuyn đứng dưới", "Cao su càng A trên", "Cao su càng A dưới", "Giảm xóc", "Bát bèo giảm xóc", "Cao su cân bằng", "Thanh cân bằng", "Rôtuyn cân bằng", "Cao su tăm bông càng A", "Lò xo giảm xóc", "Thanh giằng dọc trên", "Cao su tăm bông cầu sau", "Cao su đỡ lò xo trên", "Lò xo", "Thanh giằng dọc dưới", "Thanh giằng ngang sau", "Cao su thanh giằng ngang sau", "Giảm xóc sau", "Cao su chân giảm xóc sau", "Bi moay ơ trước", "Phớt moay ơ trước ngoài", "Phớt moay ơ trước", "Giá bắt moay ơ trước", "Bi moay ơ sau", "Cây láp sau", "Căn chặn bi láp sau", "Cây láp trước", "Cây láp ngoài", "Đầu láp trong", "Cao su chụp bụi láp trong", "Phớt láp trước", "Bi vi sai", "Phớt cầu", "Trục các đăng trước", "Bi chữ thập các đăng trước", "Trục các đăng sau", "Thước lái", "Rô tuyn lái trong", "Rô tuyn lái ngoài", "Cao su chụp bụi thước lái", "Khớp các đăng lái", "Bơm trợ lực lái", "Cơ cấu gạt mưa"],
+  electrical: ["Túi khí RH", "Mô tơ bơm xăng", "Cảm biến trục cam", "Cảm biến trục cơ", "Cảm biến gió", "Máy phát", "Buly đầu máy phát", "Chổi than máy phát", "Bi đầu máy phát", "Cuộn điện", "Roto máy phát", "Máy đề", "Chổi than máy đề", "Rơ le đề", "Roto máy đề", "Stato máy đề", "Cảm biến báo áp suất lốp", "Túi khí vô lăng", "Cảm biến báo dầu động cơ", "Cảm biến tiếng gõ", "Cảm biến khí nạp", "Cảm biến ô xy", "Cảm biến tốc độ", "Cuộn cáp còi", "Công tắc pha cos", "Công tắc gạt mưa", "Phao báo nhiên liệu", "Cảm biến ABS trước", "Cảm biến ABS sau", "Cảm biến kích nổ túi khí", "Hộp điều khiển túi khí trung tâm", "Chổi gạt mưa", "Cần gạt mưa", "Mô tơ gạt mưa", "Bình nước rửa kính", "Mô tơ phun nước rửa kính", "Cổ đổ nước rửa kính", "Nắp bình nước rửa kính", "Mô tơ trộn gió"],
+  lighting: ["Đèn pha", "Bóng đèn pha", "Bóng xi nhan", "Bóng lăng téc", "Đèn sương mù", "Bóng đèn sương mù", "Đèn gương", "Đèn hậu mảnh ngoài", "Đèn hậu mảnh trong", "Công tắc báo đèn lùi"],
+  cooling: ["Bơm nước", "Buly bơm nước", "Ly tâm quạt", "Bi tỳ trên gần bơm nước", "Két nước", "Cút nước trên", "Cút nước dưới", "Lồng quạt", "Cánh quạt", "Bình nước phụ", "Van hằng nhiệt", "Gioăng van hằng nhiệt", "Rẻ quạt đi số", "Dàn lạnh", "Dàn sưởi", "Mô tơ quạt dàn lạnh", "Van tiết lưu", "Dàn nóng", "Phin lọc ga", "Lốc lạnh", "Bộ đầu lốc lạnh", "Buly tăng dây điều hòa"],
+  body: ["Bệ đỡ động cơ", "Tấm chắn gầm động cơ", "Ba đờ xốc trước", "Nhựa cài ba đờ xốc trước", "Xương tăng cứng đầu xe", "Ba đờ xốc sau", "Nhựa cài ba đờ xốc sau", "Ga lăng", "Biểu tượng mặt Ga lăng", "Nắp capo", "Tai xe", "Chắn bùn tai xe", "Ty chống nắp capo", "Bản lề nắp capo", "Khóa nắp capo", "Dây giật nắp capo", "Táp lô", "Cánh cửa trước", "Gioăng cánh cửa trước", "Kính cánh cửa trước", "Gioăng dẫn hướng kính cửa trước", "Nẹp chân kính ngoài cánh cửa trước", "Hạn chế cửa trước", "Cánh cửa sau", "Gioăng cánh cửa sau", "Kính cánh cửa sau", "Gioăng dẫn hướng kính cửa sau", "Kính tam giác cửa sau", "Gioăng kính tam giác của sau", "Nẹp chân kính ngoài cửa sau", "Hạn chế cửa sau", "Gioăng khung cửa trước", "Gioăng khung cửa sau", "Cánh cửa hậu", "Gioăng cánh cửa hậu", "Kính cửa hậu", "Ty chống cửa hậu", "Khóa cửa hậu", "Dây đai an toàn", "Cổ đổ xăng", "Dây giật nắp bình xăng"],
+};
+const CATEGORY_LABELS = {
+  brake:'Phanh & Má Phanh', engine:'Động Cơ & Phụ Kiện', filter:'Lọc Dầu / Lọc Gió',
+  suspension:'Hệ Thống Treo', electrical:'Điện - Ắc Quy', lighting:'Đèn & Chiếu Sáng',
+  cooling:'Làm Mát & Tản Nhiệt', body:'Thân Xe & Ngoại Thất',
+};
+
+let cart = [];
+let currentVinData = null;
+let chatHistory = [];
+let _productCache = new Map();   // id(uuid) → sản phẩm đã fetch (dùng cho addToCart/viewProduct)
+
+// Đổi 1 sản phẩm thật từ DB (catalog_products) sang shape mà renderProductCard/openPD
+// đang mong đợi (vốn viết sẵn cho PRODUCTS giả). DB không có icon/oldPrice/badge/compat
+// nên bù bằng giá trị mặc định hợp lý; KHÔNG bịa specs/features không có thật.
+function adaptProduct(p) {
+  return {
+    id: p.id,
+    // Hiện tên KỸ THUẬT (đầy đủ, không nhập nhằng). Tên chợ ngắn hơn nên để
+    // riêng, dùng làm phụ đề — tìm kiếm thì backend quét cả ba.
+    name: (p.name_vi && p.name_vi.trim()) || p.name,
+    name_cho: (p.name_vi_cho && p.name_vi_cho.trim()) || null,
+    name_en: p.name,
+    brand: p.brand || 'OEM',
+    icon: '🔧',
+    price: p.price ?? null,
+    oldPrice: null,
+    badge: p.in_stock === false ? 'HẾT HÀNG' : null,
+    compat: p.oem_code ? `Mã OEM: ${p.oem_code}` : (p.internal_ref || ''),
+    oem: p.oem_code || p.internal_ref || '',
+    stock: p.in_stock === false ? 'Hết hàng' : (p.in_stock === true ? `Còn hàng${p.stock_qty ? ' · ' + p.stock_qty + ' cái' : ''}` : 'Liên hệ để biết tồn kho'),
+    features: [],
+    desc_info: [
+      ['Mã nội bộ', p.internal_ref || 'N/A'],
+      ['Mã OEM', p.oem_code || 'N/A'],
+      ['Loại hàng', p.product_type === 'genuine' ? 'Chính hãng' : (p.product_type || 'N/A')],
+      ...(p.notes ? [['Ghi chú', p.notes]] : []),
+    ],
+    specs: [],
+    fitment: groupFitment(p.compatible_vehicles || []),
+    alternatives: (p.alternatives || []).map(a => ({
+      id: a.id, name: a.name, brand: a.product_type === 'genuine' ? 'Chính hãng' : 'Tương đương',
+      icon: '🔧', price: a.price ?? null, badge: null,
+      compat: a.oem_code || a.internal_ref || '', note: a.reason || '',
+    })),
+  };
+}
+
+// compatible_vehicles là list PHẲNG [{make,model_code,model_name,year_from,year_to}]
+// → gom theo make để khớp cấu trúc p.fitment[{make, entries:[...]}] mà UI đang cần
+function groupFitment(vehicles) {
+  const byMake = new Map();
+  for (const v of vehicles) {
+    const key = v.make || 'Khác';
+    if (!byMake.has(key)) byMake.set(key, []);
+    const nam = v.year_from ? `${v.year_from}${v.year_to ? '-' + v.year_to : '+'}` : 'Không rõ năm';
+    byMake.get(key).push({
+      year: nam,
+      title: v.model_name || v.model_code,
+      sub: v.model_code,
+      note: '',
+    });
+  }
+  return [...byMake.entries()].map(([make, entries]) => ({ make, entries }));
+}
+
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+// skipCatalogRender: dùng khi hàm GỌI showPage() đã tự lo việc render catalog
+// rồi (filterCatalog/filterByCategory/filterCatalogByVehicle) — không có cờ
+// này, showPage tự ý gọi renderCatalog() (danh sách KHÔNG lọc) chạy song song,
+// và vì nó chạy debounce 300ms nên thường XONG SAU, ghi đè mất kết quả đã lọc
+// → bấm danh mục nào cũng thấy lại nguyên cả catalog 5.4tr sản phẩm.
+function showPage(id, skipCatalogRender) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  const navEl = document.getElementById('nav-' + id);
+  if (navEl) navEl.classList.add('active');
+  window.scrollTo(0,0);
+  if (id === 'catalog' && !skipCatalogRender) renderCatalog();
+  if (id === 'cart') renderCart();
+}
+
+// ═══════════════════════════════════════
+// PRODUCTS
+// ═══════════════════════════════════════
+function renderProductCard(p, target) {
+  const priceStr = p.price != null ? p.price.toLocaleString('vi-VN') + 'đ' : 'Liên hệ';
+  const oldStr = p.oldPrice ? `<span class="product-price-old">${p.oldPrice.toLocaleString('vi-VN')}đ</span>` : '';
+  const badgeHtml = p.badge ? `<div class="product-badge ${p.badge==='SALE'?'sale':''}">${p.badge}</div>` : '';
+  return `<div class="product-card" data-pid="${p.id}" onclick="viewProduct('${p.id}')">
+    <div class="product-img">${p.icon}${badgeHtml}</div>
+    <div class="product-body">
+      <div class="product-brand">${p.brand}</div>
+      <div class="product-name">${p.name}</div>
+      <div class="product-compat">🚗 ${p.compat}</div>
+      <div class="product-footer">
+        <div><div class="product-price">${priceStr}</div>${oldStr}</div>
+        <button class="btn-add-cart" onclick="event.stopPropagation(); addToCart('${p.id}')">+ Giỏ</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// Nạp 1 sản phẩm vào _productCache (dùng lại cho addToCart/viewProduct thay vì
+// mảng PRODUCTS giả cố định) rồi trả về shape cho renderProductCard.
+function cacheAndAdapt(raw) {
+  const p = adaptProduct(raw);
+  _productCache.set(p.id, p);
+  return p;
+}
+
+// Trước đây lấy thẳng 8 sản phẩm ĐẦU theo ORDER BY name (không lọc gì) — toàn
+// ra mã lạ kiểu "'0' リング" (không có name_vi, chẳng đại diện cho gì cả).
+// Giờ lấy 1 SẢN PHẨM ĐẠI DIỆN CÓ name_vi cho MỖI TRONG 8 DANH MỤC (dùng lại
+// CATEGORY_TERMS) — thử vài tên đầu của mỗi danh mục cho tới khi có 1 kết quả
+// thật sự đã dịch tiếng Việt.
+async function renderHomeProducts() {
+  const el = document.getElementById('home-products');
+  if (!el) return;
+  el.innerHTML = '<div class="empty-state"><p>Đang tải...</p></div>';
+  try {
+    const cats = Object.keys(CATEGORY_TERMS);
+    const picks = await Promise.all(cats.map(async cat => {
+      for (const term of CATEGORY_TERMS[cat].slice(0, 6)) {
+        const res = await fetch(`${API}/products?${new URLSearchParams({ q: term, limit: '5', is_for_sale: 'true' })}`);
+        const data = await res.json();
+        const hit = (data.data || []).find(p => p.name_vi && p.name_vi.trim());
+        if (hit) return hit;
+      }
+      return null;
+    }));
+    const items = picks.filter(Boolean).map(cacheAndAdapt);
+    el.innerHTML = items.length ? items.map(p => renderProductCard(p)).join('') : '<div class="empty-state"><p>Chưa có sản phẩm</p></div>';
+  } catch (e) {
+    el.innerHTML = '<div class="empty-state"><p>Không tải được sản phẩm — kiểm tra kết nối server</p></div>';
+  }
+}
+
+const CATALOG_PAGE_SIZE = 24;
+let _catalogPage = 1;
+
+let _catalogDebounce = null;
+let _catalogBrand = '';   // lọc theo ĐÚNG cột brand — tách riêng khỏi ô tìm kiếm tên/mã
+
+function renderCatalog() {
+  _catalogPage = 1;   // đổi từ khóa tìm/sắp xếp → quay về trang 1
+  clearTimeout(_catalogDebounce);
+  _catalogDebounce = setTimeout(renderCatalogNow, 300);
+}
+
+function goToCatalogPage(n) {
+  _catalogPage = n;
+  renderCatalogNow();
+  document.getElementById('catalog-products')?.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// ═══════════════════════════════════════
+// 3 kiểu lọc (tìm kiếm / hãng / xe đã chọn / danh mục) TRƯỚC ĐÂY là 3 đường
+// code riêng, đè lên nhau — chọn xe xong gõ tìm kiếm thì tìm kiếm bỏ qua xe
+// đã chọn (và ngược lại). Giờ gộp lại: _catalogMode quyết định NGUỒN dữ liệu
+// gốc (browse toàn bộ / phụ tùng của 1 xe / phụ tùng 1 danh mục), còn search
+// + hãng luôn được áp lên TRÊN nguồn đó, dù đang ở mode nào.
+// ═══════════════════════════════════════
+let _catalogMode = 'browse';   // 'browse' | 'vehicle' | 'category'
+let _baseItems = [];           // cache phía client cho mode 'vehicle'/'category'
+let _baseLabel = '';
+
+function applyClientFilters(items, search, brand, sort) {
+  let out = items;
+  if (search) {
+    const s = search.toLowerCase();
+    out = out.filter(p =>
+      (p.name || '').toLowerCase().includes(s) ||
+      (p.name_en || '').toLowerCase().includes(s) ||
+      (p.oem || '').toLowerCase().includes(s));
+  }
+  if (brand) out = out.filter(p => p.brand === brand);
+  out = [...out];
+  if (sort === 'price-asc') out.sort((a,b) => (a.price??Infinity)-(b.price??Infinity));
+  if (sort === 'price-desc') out.sort((a,b) => (b.price??-Infinity)-(a.price??-Infinity));
+  if (sort === 'name') out.sort((a,b) => a.name.localeCompare(b.name));
+  return out;
+}
+
+function renderClientPage(items, label, page) {
+  const el = document.getElementById('catalog-products');
+  const cnt = document.getElementById('catalog-count');
+  const pag = document.getElementById('catalog-pagination');
+  const totalPages = Math.ceil(items.length / CATALOG_PAGE_SIZE) || 1;
+  const start = (page - 1) * CATALOG_PAGE_SIZE;
+  const pageItems = items.slice(start, start + CATALOG_PAGE_SIZE);
+  if (el) el.innerHTML = pageItems.length
+    ? pageItems.map(p => renderProductCard(p)).join('')
+    : `<div class="empty-state"><div class="icon">🔍</div><h3>Không tìm thấy</h3><p>Thử bỏ bớt bộ lọc</p></div>`;
+  if (cnt) cnt.textContent = `${items.length.toLocaleString('vi-VN')} phụ tùng${label ? ' — ' + label : ''} — trang ${page}/${totalPages}`;
+  if (pag) pag.innerHTML = renderPaginationHtml(page, totalPages, 'goToCatalogPage');
+}
+
+// Chỉ tải ĐÚNG 1 trang (24 sản phẩm) mỗi lần khi browse toàn bộ — không tải
+// hết 10.000 kết quả rồi cắt ở client. Backend /products hỗ trợ sẵn
+// page/limit/total/totalPages. Khi đang ở mode 'vehicle'/'category', dữ liệu
+// gốc đã tải 1 lần (_baseItems) — search/hãng/sort/phân trang chỉ lọc ở client.
+async function renderCatalogNow() {
+  const search = document.getElementById('catalog-search')?.value.trim() || '';
+  const sort = document.getElementById('catalog-sort')?.value || 'default';
+
+  if (_catalogMode === 'vehicle' || _catalogMode === 'category') {
+    const filtered = applyClientFilters(_baseItems, search, _catalogBrand, sort);
+    renderClientPage(filtered, _baseLabel, _catalogPage);
+    renderSidebarBrands();
+    return;
+  }
+
+  const el = document.getElementById('catalog-products');
+  const cnt = document.getElementById('catalog-count');
+  const pag = document.getElementById('catalog-pagination');
+  if (cnt) cnt.textContent = 'Đang tải...';
+  if (pag) pag.innerHTML = '';
+
+  const qs = new URLSearchParams({ limit: String(CATALOG_PAGE_SIZE), page: String(_catalogPage), is_for_sale: 'true' });
+  if (search) qs.set('q', search);
+  if (_catalogBrand) qs.set('brand', _catalogBrand);
+  try {
+    const res = await fetch(`${API}/products?${qs}`);
+    const data = await res.json();
+    let items = (data.data || []).map(cacheAndAdapt);
+    // Sắp xếp CHỈ trong phạm vi trang đang tải (server luôn trả theo tên) —
+    // muốn sắp xếp đúng trên toàn bộ kết quả cần backend hỗ trợ ORDER BY giá,
+    // hiện chưa có (giá đến từ Bravo, tách rời khỏi câu SQL chính).
+    if (sort === 'price-asc') items.sort((a,b) => (a.price??Infinity)-(b.price??Infinity));
+    if (sort === 'price-desc') items.sort((a,b) => (b.price??-Infinity)-(a.price??-Infinity));
+    if (sort === 'name') items.sort((a,b) => a.name.localeCompare(b.name));
+    if (el) el.innerHTML = items.length ? items.map(p => renderProductCard(p)).join('') : '<div class="empty-state"><div class="icon">🔍</div><h3>Không tìm thấy</h3><p>Thử từ khóa khác</p></div>';
+    const total = data.total ?? items.length;
+    const totalPages = data.totalPages ?? 1;
+    if (cnt) cnt.textContent = `${total.toLocaleString('vi-VN')} sản phẩm — trang ${_catalogPage}/${totalPages || 1}`;
+    if (pag) pag.innerHTML = renderPaginationHtml(_catalogPage, totalPages);
+  } catch (e) {
+    if (el) el.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><h3>Không kết nối được server</h3></div>';
+    if (cnt) cnt.textContent = '';
+  }
+
+  renderSidebarBrands();
+}
+
+// Nút trang kiểu 1 … 4 5 [6] 7 8 … 417 — không in hết hàng trăm nút khi
+// kết quả nhiều (VD 10.000 sp / 24 = ~417 trang).
+function renderPaginationHtml(page, totalPages, fnName = 'goToCatalogPage') {
+  if (!totalPages || totalPages <= 1) return '';
+  const btn = (n, label, active, disabled) =>
+    `<button onclick="${disabled ? '' : `${fnName}(${n})`}" ${disabled ? 'disabled' : ''}
+       style="min-width:32px;padding:6px 10px;border-radius:6px;font-size:13px;cursor:${disabled?'default':'pointer'};
+       border:1px solid var(--border2); background:${active?'var(--accent)':'var(--surface)'};
+       color:${active?'#fff':disabled?'var(--text3)':'var(--text)'};font-weight:${active?700:500};
+       font-family:'Plus Jakarta Sans',sans-serif;">${label}</button>`;
+
+  const parts = [btn(page-1, '‹ Trước', false, page<=1)];
+  const window = 2;
+  const show = new Set([1, totalPages]);
+  for (let i = page-window; i <= page+window; i++) if (i>=1 && i<=totalPages) show.add(i);
+  const sorted = [...show].sort((a,b)=>a-b);
+  let prev = 0;
+  for (const n of sorted) {
+    if (prev && n - prev > 1) parts.push(`<span style="padding:0 4px;color:var(--text3)">…</span>`);
+    parts.push(btn(n, String(n), n===page, false));
+    prev = n;
+  }
+  parts.push(btn(page+1, 'Sau ›', false, page>=totalPages));
+  return parts.join('');
+}
+
+async function renderSidebarBrands() {
+  const catEl = document.getElementById('sidebar-cats');
+  if (!catEl) return;
+  if (catEl.dataset.loaded) { highlightActiveBrand(); return; }   // danh sách chỉ cần nạp 1 lần
+  try {
+    const res = await fetch(`${API}/stats`);
+    const data = await res.json();
+    const brands = data.top_brands || [];
+    // radio (tròn) chứ không phải checkbox (vuông) — chỉ chọn được 1 hãng 1 lúc,
+    // dùng chung "name" để trình duyệt tự lo việc bỏ chọn hãng cũ khi chọn hãng mới.
+    catEl.innerHTML =
+      `<label class="filter-item" data-brand=""><input type="radio" name="brand-filter" onchange="filterCatalog('')"><span>Tất cả</span></label>` +
+      brands.map(b =>
+        `<label class="filter-item" data-brand="${b.brand}"><input type="radio" name="brand-filter" onchange="filterCatalog('${b.brand}')"><span>📦 ${b.brand}</span><span class="filter-count">${b.count.toLocaleString('vi-VN')}</span></label>`
+      ).join('');
+    catEl.dataset.loaded = '1';
+    highlightActiveBrand();
+  } catch (e) { /* im lặng — sidebar không phải phần bắt buộc */ }
+}
+
+// Tô sáng đúng hãng đang lọc + chọn radio tương ứng, không re-fetch danh sách.
+function highlightActiveBrand() {
+  document.querySelectorAll('#sidebar-cats .filter-item').forEach(el => {
+    const active = el.dataset.brand === _catalogBrand;
+    el.classList.toggle('active', active);
+    const rd = el.querySelector('input[type=radio]');
+    if (rd) rd.checked = active;
+  });
+}
+
+// Lọc THEO ĐÚNG cột brand trong DB (không nhét vào ô tìm tên/mã — brand thường
+// không xuất hiện trong tên sản phẩm nên tìm kiểu đó chỉ ra vài trăm/1.2 triệu).
+// radio tự lo việc chỉ 1 hãng được chọn — muốn bỏ lọc thì bấm "Tất cả".
+function filterCatalog(brand) {
+  _catalogBrand = brand;
+  _catalogPage = 1;
+  // showPage tự gọi renderCatalog() (đọc đúng _catalogBrand vừa set ở trên) —
+  // không cần tự render thêm lần nữa, khỏi fetch trùng.
+  showPage('catalog');
+}
+
+async function viewProduct(id) {
+  const cached = _productCache.get(id);
+  if (cached && cached.fitment) { openPD(cached); return; }   // đã có đủ dữ liệu chi tiết
+  try {
+    const res = await fetch(`${API}/products/${id}`);
+    if (!res.ok) { showToast('Không tìm thấy sản phẩm'); return; }
+    const raw = await res.json();
+    const p = cacheAndAdapt(raw);
+    openPD(p);
+  } catch (e) {
+    showToast('⚠️ Không tải được chi tiết sản phẩm');
+  }
+}
+
+// ═══════════════════════════════════════
+// PRODUCT DETAIL MODAL
+// ═══════════════════════════════════════
+let _currentPD = null;
+let _allFitment = [];
+
+function openPD(p) {
+  _currentPD = p;
+
+  // Hero
+  document.getElementById('pd-icon').textContent = p.icon;
+  document.getElementById('pd-brand').textContent = p.brand;
+  document.getElementById('pd-oem').textContent = 'OEM: ' + (p.oem || 'N/A');
+  document.getElementById('pd-name').textContent = p.name;
+  document.getElementById('pd-compat').textContent = p.compat;
+  document.getElementById('pd-price').textContent = p.price != null ? p.price.toLocaleString('vi-VN') + 'đ' : 'Liên hệ';
+  const oldEl = document.getElementById('pd-old-price');
+  const saveEl = document.getElementById('pd-save');
+  if (p.oldPrice) {
+    oldEl.textContent = p.oldPrice.toLocaleString('vi-VN') + 'đ';
+    const pct = Math.round((1 - p.price/p.oldPrice)*100);
+    saveEl.textContent = `-${pct}%`; saveEl.style.display='';
+  } else { oldEl.textContent=''; saveEl.style.display='none'; }
+  document.getElementById('pd-stock-text').textContent = p.stock || 'Còn hàng';
+  document.getElementById('pd-btn-cart').onclick = () => { addToCart(p.id); showToast('✓ Đã thêm vào giỏ hàng'); };
+  document.getElementById('pd-btn-ai').onclick = () => { closePD(); quickAsk(`Tư vấn về sản phẩm: ${p.name} (${p.brand}). Xe tôi: ${p.compat}`); showPage('chat'); };
+
+  // Thumbs (use same icon + related category icons)
+  const thumbIcons = [p.icon, '📦', '🔍', '📋'];
+  document.getElementById('pd-thumbs').innerHTML = thumbIcons.map((ic,i) =>
+    `<div class="pd-thumb ${i===0?'active':''}">${ic}</div>`
+  ).join('');
+
+  // Tab: Description
+  document.getElementById('pd-features').innerHTML = (p.features||[]).map(f=>`<li>${f}</li>`).join('');
+  document.getElementById('pd-desc-info').innerHTML = (p.desc_info||[]).map(([k,v])=>`
+    <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;">
+      <span style="color:var(--text2)">${k}</span><strong>${v}</strong>
+    </div>`).join('');
+
+  // Tab: Specs
+  const specsTable = document.getElementById('pd-specs-table');
+  specsTable.innerHTML = (p.specs||[]).map(sec => `
+    <tr><td colspan="2" class="specs-section-head">${sec.section}</td></tr>
+    ${sec.rows.map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('')}
+  `).join('');
+  document.getElementById('specs-cnt').textContent = (p.specs||[]).reduce((s,sec)=>s+sec.rows.length, 0);
+
+  // Tab: Fitment
+  _allFitment = p.fitment || [];
+  document.getElementById('fitment-cnt').textContent = _allFitment.reduce((s,g)=>s+g.entries.length,0);
+  // Populate year filter
+  const years = new Set();
+  _allFitment.forEach(g => g.entries.forEach(e => years.add(e.year)));
+  const yearSel = document.getElementById('fitment-year');
+  yearSel.innerHTML = '<option value="">Tất cả năm</option>' + [...years].sort().reverse().map(y=>`<option>${y}</option>`).join('');
+  filterFitment();
+
+  // Tab: Alternatives
+  const alts = p.alternatives || [];
+  document.getElementById('alts-cnt').textContent = alts.length;
+  renderAlternatives(p, alts);
+
+  // Reset tabs
+  document.querySelectorAll('.pd-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.pd-tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelector('.pd-tabs .pd-tab').classList.add('active');
+  document.getElementById('pd-tab-desc').classList.add('active');
+
+  document.getElementById('pd-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  // Auto-validate if vehicle already selected
+  if (selectedVehicle.make && selectedVehicle.model) {
+    setTimeout(validateFitmentForProduct, 100);
+  }
+}
+
+function closePD() {
+  document.getElementById('pd-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('pd-overlay').addEventListener('click', function(e){ if(e.target===this) closePD(); });
+
+function switchPDTab(name, el) {
+  document.querySelectorAll('.pd-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.pd-tab-content').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('pd-tab-'+name).classList.add('active');
+}
+
+function filterFitment() {
+  const search = (document.getElementById('fitment-search')?.value||'').toLowerCase();
+  const make = document.getElementById('fitment-make')?.value||'';
+  const year = document.getElementById('fitment-year')?.value||'';
+  let groups = _allFitment;
+  if (make) groups = groups.filter(g => g.make.toLowerCase().includes(make.toLowerCase()));
+  groups = groups.map(g => ({
+    ...g,
+    entries: g.entries.filter(e =>
+      (!search || e.title.toLowerCase().includes(search) || e.sub.toLowerCase().includes(search)) &&
+      (!year || e.year.includes(year))
+    )
+  })).filter(g => g.entries.length > 0);
+
+  const col = document.getElementById('fitment-columns');
+  if (!groups.length) { col.innerHTML = '<div class="fitment-empty" style="grid-column:1/-1">Không tìm thấy xe phù hợp</div>'; return; }
+
+  // Split into 2 columns
+  const half = Math.ceil(groups.length/2);
+  const left = groups.slice(0, half);
+  const right = groups.slice(half);
+
+  function renderGroups(gs) {
+    return gs.map(g => `
+      <div class="fitment-group">
+        <div class="fitment-group-title"><span class="brand-dot"></span>${g.make} ${g.model}</div>
+        ${g.entries.map(e=>`
+          <div class="fitment-entry">
+            <div class="fitment-entry-title">${e.title}</div>
+            <div class="fitment-entry-sub">${e.sub}</div>
+            <div class="fitment-entry-note">Ghi chú: ${e.note}</div>
+          </div>`).join('')}
+      </div>`).join('');
+  }
+  col.innerHTML = `<div>${renderGroups(left)}</div><div>${renderGroups(right)}</div>`;
+}
+
+function renderAlternatives(current, alts) {
+  // Cache lại từng alternative để addToCart('id') tìm thấy khi bấm "+ Giỏ" ngay tại đây
+  for (const a of alts) _productCache.set(a.id, a);
+
+  const giaStr = v => v != null ? v.toLocaleString('vi-VN')+'đ' : 'Liên hệ';
+  // Compare table
+  const compareRows = [
+    ['Hãng sản xuất', current.brand, ...alts.map(a=>a.brand)],
+    ['Giá', giaStr(current.price), ...alts.map(a=>giaStr(a.price))],
+    ['Phân loại', 'Đang xem', ...alts.map(a=>({ premium:'Cao cấp', cheaper:'Tiết kiệm', oem:'OEM' }[a.badge]||'—'))],
+    ['Ghi chú', 'Sản phẩm hiện tại', ...alts.map(a=>a.note)],
+  ];
+  const maxCols = Math.min(alts.length + 1, 5);
+  document.getElementById('alt-compare-table').innerHTML = alts.length ? `
+    <table>
+      <thead><tr>${['Tiêu chí','Sản phẩm này',...alts.slice(0,maxCols-1).map(a=>a.brand)].map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+      <tbody>${compareRows.map(row=>`<tr>${row.slice(0,maxCols).map((c,i)=>`<td ${i===1?'class="highlight"':''}>${c}</td>`).join('')}</tr>`).join('')}</tbody>
+    </table>` : '';
+
+  // Alt grid
+  const badgeLabels = { premium:'⭐ Cao cấp', cheaper:'💰 Tiết kiệm', oem:'🔩 OEM' };
+  document.getElementById('alt-grid').innerHTML = alts.map(a=>`
+    <div class="alt-card" onclick="closePD(); addToCart('${a.id}'); showToast('✓ Đã thêm ${a.name}')">
+      <div class="alt-card-img">
+        ${a.icon}
+        <span class="alt-badge ${a.badge}">${badgeLabels[a.badge]||a.badge}</span>
+      </div>
+      <div class="alt-card-body">
+        <div class="alt-card-brand">${a.brand}</div>
+        <div class="alt-card-name">${a.name}</div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:8px">${a.note}</div>
+        <div class="alt-card-foot">
+          <span class="alt-card-price">${giaStr(a.price)}</span>
+          <button style="background:var(--accent-dim);border:1px solid rgba(59,130,246,0.25);color:var(--accent);padding:4px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif" onclick="event.stopPropagation();closePD();addToCart('${a.id}')">+ Giỏ</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+
+
+// ═══════════════════════════════════════
+// VIN
+// ═══════════════════════════════════════
+function updateVinCounter() {
+  const v = document.getElementById('vin-main-input').value;
+  document.getElementById('vin-char-count').textContent = v.length;
+  const msg = document.getElementById('vin-valid-msg');
+  if (v.length === 17) { msg.textContent = '✓ Đủ 17 ký tự'; msg.style.color = 'var(--green)'; }
+  else if (v.length > 0) { msg.textContent = `Còn thiếu ${17-v.length} ký tự`; msg.style.color = 'var(--text3)'; }
+  else { msg.textContent = ''; }
+}
+
+// ═══════════════════════════════════════
+// TRA VIN — dữ liệu thật, HOÀN TOÀN server-side (/vin/lookup).
+// Server tự tra cache trước; cache miss thì TỰ ĐỘNG cào PartSouq server-side
+// (scripts/vin.py, undetected_chromedriver — né được chặn Cloudflare) rồi
+// lưu vào cache. Khách KHÔNG cần cài gì cả — khác bản trước phải dựa vào
+// extension cài trong trình duyệt từng người (thực tế chưa từng chạy được).
+// Lần đầu 1 VIN mới có thể mất tới ~60s (server đang mở Chrome cào); các
+// lần tra lại VIN đó sau chỉ mất ~2s vì đã có trong cache.
+// ═══════════════════════════════════════
+function fillVin(vin) {
+  const inp = document.getElementById('vin-main-input');
+  if (inp) { inp.value = vin; updateVinCounter(); }
+}
+
+function quickVinSearch() {
+  const v = document.getElementById('vin-quick-input')?.value.trim();
+  if (!v) return;
+  fillVin(v);
+  showPage('vin');
+  setTimeout(lookupVin, 200);
+}
+
+function vinLoadingHtml(text) {
+  return `<div style="text-align:center;padding:3rem;color:var(--text2)"><span class="spin" style="font-size:2rem">⚙️</span><p style="margin-top:1rem">${text}</p></div>`;
+}
+function vinErrorHtml(title, msg) {
+  return `<div class="vin-lookup-card" style="border-color:var(--red)">
+    <div style="text-align:center;padding:2rem">
+      <div style="font-size:3rem;margin-bottom:1rem">❌</div>
+      <h3 style="color:var(--red)">${title}</h3>
+      <p style="color:var(--text2);margin-top:.5rem">${msg}</p>
+      <button class="btn-primary" style="margin-top:1.5rem" onclick="showPage('chat')">💬 Hỏi AI Tư Vấn</button>
+    </div></div>`;
+}
+
+async function lookupVin() {
+  const vin = (document.getElementById('vin-main-input')?.value || '').trim().toUpperCase();
+  const area = document.getElementById('vin-result-area');
+  if (!vin) { showToast('Vui lòng nhập mã VIN', 'error'); return; }
+  if (vin.length !== 17) { showToast('VIN phải đúng 17 ký tự', 'error'); return; }
+
+  area.innerHTML = vinLoadingHtml('Đang tra cứu VIN...');
+  try {
+    const vd = await fetch(`${API}/vin/lookup?vin=${encodeURIComponent(vin)}`).then(r => r.json());
+
+    if (!vd.vehicles?.length) {
+      area.innerHTML = vinErrorHtml('Không tìm thấy VIN',
+        `Mã VIN "<strong>${vin}</strong>" không tra được${vd.error ? ` (${vd.error})` : ''}.<br>Thử tra theo dòng xe ở mục "Chọn Xe Của Bạn" trong trang Phụ Tùng, hoặc liên hệ tư vấn viên.`);
+      return;
+    }
+
+    const v = vd.vehicles[0];
+    const tenXe = `${v.year || ''} ${v.make || ''} ${v.model_name || v.model_code || ''}`.trim();
+    currentVinData = { vin, make: v.make, model: v.model_name || v.model_code, year: v.year, vehicle_id: v.vehicle_id || null };
+    const chatVin = document.getElementById('chat-vin-display');
+    const chatCar = document.getElementById('chat-car-display');
+    if (chatVin) chatVin.textContent = vin;
+    if (chatCar) chatCar.textContent = tenXe;
+
+    // Phụ tùng phù hợp — chỉ có nếu model_code khớp được với catalog_vehicles
+    // (vehicle_id). Không khớp được thì vẫn hiện thông tin xe, chỉ thiếu phần này.
+    let partsHtml = '<p style="color:var(--text3);font-size:13px">Chưa khớp được phụ tùng cho xe này trong kho.</p>';
+    if (v.vehicle_id) {
+      try {
+        const rows = await fetch(`${API}/vehicles/${v.vehicle_id}/fitments`).then(r => r.json());
+        const items = (rows || []).slice(0, 12).map(r => cacheAndAdapt({
+          id: r.id, name: r.name_vi || r.name, name_vi_cho: r.name_vi_cho,
+          internal_ref: r.internal_ref,
+          oem_code: r.oem_code, brand: r.brand, product_type: r.product_type,
+        }));
+        if (items.length) {
+          partsHtml = `<div class="suggested-parts">` + items.map(p => {
+            const priceStr = p.price != null ? p.price.toLocaleString('vi-VN') + 'đ' : 'Liên hệ';
+            return `<div class="part-chip" onclick="addToCart('${p.id}')">
+              <span class="icon">🔧</span>
+              <div class="part-chip-info"><strong>${p.name}</strong><span>${p.compat}</span></div>
+              <span class="part-chip-price">${priceStr}</span>
+            </div>`;
+          }).join('') + `</div>`;
+        }
+      } catch (e) { /* giữ thông báo mặc định phía trên */ }
+    }
+
+    area.innerHTML = `<div class="vin-result">
+      <div class="vin-result-header">
+        <div class="vin-car-icon">🚗</div>
+        <div class="vin-car-info">
+          <h2>${tenXe || 'Không rõ xe'}</h2>
+          <p>VIN: <code style="font-family:monospace;letter-spacing:1px;color:var(--accent)">${vin}</code></p>
+          <div class="vin-badges"><span class="vin-badge">Mã xe: ${v.model_code || '—'}</span></div>
+        </div>
+      </div>
+      <div class="vin-specs-grid">
+        <div class="vin-spec"><label>HÃNG XE</label><strong>${v.make || '—'}</strong></div>
+        <div class="vin-spec"><label>MẪU XE</label><strong>${v.model_name || v.model_code || '—'}</strong></div>
+        <div class="vin-spec"><label>NĂM SX</label><strong>${v.year || '—'}</strong></div>
+        <div class="vin-spec"><label>MÃ XE</label><strong>${v.model_code || '—'}</strong></div>
+      </div>
+      <div class="vin-suggested">
+        <h3>🔧 Phụ tùng phù hợp cho xe của bạn — nhấn để thêm vào giỏ hàng</h3>
+        ${partsHtml}
+        <div style="margin-top:1.5rem;display:flex;gap:10px;flex-wrap:wrap">
+          ${v.vehicle_id ? `<button class="btn-primary" onclick="filterCatalogByVehicle('${v.vehicle_id}','${tenXe.replace(/'/g,"")}');showPage('catalog',true);">🔩 Xem Tất Cả Phụ Tùng Xe Này</button>` : ''}
+          <button class="btn-primary" onclick="showPage('chat')">💬 Hỏi AI Về Xe Này</button>
+          <button style="background:transparent;border:1px solid var(--border2);color:var(--text);padding:10px 20px;border-radius:var(--r);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;" onclick="openQuoteModal()">📋 Yêu Cầu Báo Giá</button>
+        </div>
+      </div>
+    </div>`;
+    showToast(`✓ Đã tìm thấy: ${tenXe}`);
+  } catch (e) {
+    area.innerHTML = vinErrorHtml('Lỗi kết nối', e.message);
+  }
+}
+
+// ═══════════════════════════════════════
+// CART
+// ═══════════════════════════════════════
+function addToCart(productId) {
+  const p = _productCache.get(productId);
+  if (!p) return;
+  const existing = cart.find(i => i.id === productId);
+  if (existing) { existing.qty++; } else { cart.push({ ...p, qty: 1 }); }
+  updateCartBadge();
+  showToast(`✓ Đã thêm: ${p.name}`);
+}
+
+function updateCartBadge() {
+  const total = cart.reduce((s,i) => s+i.qty, 0);
+  document.getElementById('cart-badge').textContent = total;
+}
+
+function renderCart() {
+  const list = document.getElementById('cart-items-list');
+  if (!list) return;
+  if (!cart.length) {
+    list.innerHTML = `<div class="empty-state"><div class="icon">🛒</div><h3>Giỏ hàng trống</h3><p>Thêm phụ tùng từ danh mục hoặc tra VIN để bắt đầu</p><button class="btn-primary" style="margin-top:1rem" onclick="showPage('catalog')">Xem Danh Mục →</button></div>`;
+    updateSummary(0);
+    return;
+  }
+  list.innerHTML = cart.map(item => `<div class="cart-item">
+    <div class="cart-item-icon">${item.icon}</div>
+    <div class="cart-item-info">
+      <div class="brand">${item.brand}</div>
+      <div class="name">${item.name}</div>
+      <div class="compat">${item.compat || 'Phụ tùng'}</div>
+    </div>
+    <div class="cart-item-right">
+      <div class="cart-qty-ctrl">
+        <button class="qty-btn" onclick="changeQty('${item.id}', -1)">−</button>
+        <span class="qty-num">${item.qty}</span>
+        <button class="qty-btn" onclick="changeQty('${item.id}', 1)">+</button>
+      </div>
+      <div class="cart-item-price">${item.price != null ? (item.price * item.qty).toLocaleString('vi-VN') + 'đ' : 'Liên hệ'}</div>
+      <button class="remove-btn" onclick="removeFromCart('${item.id}')">✕ Xóa</button>
+    </div>
+  </div>`).join('');
+  const sub = cart.reduce((s,i) => s + (i.price ?? 0) * i.qty, 0);
+  updateSummary(sub);
+}
+
+function changeQty(id, delta) {
+  const item = cart.find(i => i.id === id);
+  if (!item) return;
+  item.qty = Math.max(1, item.qty + delta);
+  updateCartBadge(); renderCart();
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(i => i.id !== id);
+  updateCartBadge(); renderCart();
+}
+
+function updateSummary(sub) {
+  const vat = Math.round(sub * 0.1);
+  document.getElementById('subtotal').textContent = sub.toLocaleString('vi-VN') + 'đ';
+  document.getElementById('vat').textContent = vat.toLocaleString('vi-VN') + 'đ';
+  document.getElementById('total').textContent = (sub + vat).toLocaleString('vi-VN') + 'đ';
+}
+
+// ═══════════════════════════════════════
+// AI CHAT — giống cơ chế của index.html (localhost:3001/):
+//   1) Gọi AI 1 LẦN để PHÂN LOẠI câu hỏi (JSON: mã / VIN / xe+phụ tùng /
+//      chung chung) — KHÔNG để AI tự bịa sản phẩm.
+//   2) Nếu phân loại được → code tự tra THẲNG vào DB thật qua các API đã có
+//      sẵn (/search/by-code, /search/by-model, /vin/lookup...), hiện đúng
+//      sản phẩm thật, có giá thật.
+//   3) Nếu không phân loại được (hỏi chung chung, tư vấn bảo dưỡng...) →
+//      rơi về chat tư vấn tự do như bản cũ (vẫn hữu ích, chỉ không tra DB).
+// ═══════════════════════════════════════
+let _dangGuiChat = false;   // chặn gọi trùng — xem ghi chú cũ bên dưới
+
+async function callOpenAI(systemPrompt, userMsg, maxTokens, temperature) {
+  const body = { model: 'gpt-4o-mini', max_tokens: maxTokens || 400,
+    messages: [{ role:'system', content: systemPrompt }, { role:'user', content: userMsg }] };
+  if (temperature != null) body.temperature = temperature;
+  const res = await fetch('/api/ai/chat', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message || `HTTP ${res.status}`);
+  return data.choices[0].message.content;
+}
+
+const CLASSIFIER_PROMPT = `Bạn là bộ phân loại câu hỏi phụ tùng ô tô. CHỈ trả về JSON thuần (không markdown).
+Các loại (type):
+- by_code: khách đưa MÃ phụ tùng cụ thể (VD "04152-YZZA6").
+- by_multi_code: NHIỀU mã phụ tùng.
+- by_vin: có số VIN (17 ký tự) hoặc số khung.
+- by_model: khách nêu XE (hãng và/hoặc dòng xe, có thể kèm năm) + TÊN phụ tùng. Chỉ cần (tên xe) + (tên phụ tùng) là đủ, KHÔNG cần mã.
+- checkout: khách muốn chốt đơn / đặt hàng / mua / xem giỏ hàng.
+- general: mọi câu hỏi KHÁC (tư vấn chung, hỏi bảo dưỡng, so sánh hãng, không nêu được xe HOẶC phụ tùng cụ thể).
+
+QUY TẮC: nếu câu có (tên hãng HOẶC dòng xe) VÀ (tên phụ tùng) → LUÔN là by_model.
+Nếu chỉ có dòng xe mà đoán được hãng phổ biến thì điền "make": Vios/Camry/Innova/Fortuner/Altis/Corolla/Hilux/Yaris/Wigo→Toyota; City/CRV/Civic/Accord→Honda; Mazda3/CX5→Mazda; i10/Accent/SantaFe/Tucson→Hyundai; Morning/Cerato/Seltos→Kia.
+
+JSON: {"type":"","codes":[],"vin":"","make":"","model":"","year":null,"part_names":[]}
+
+Ví dụ:
+"Toyota Vios 2019 cần má phanh" → {"type":"by_model","make":"Toyota","model":"Vios","year":2019,"part_names":["má phanh"],"codes":[],"vin":""}
+"04152-YZZA6" → {"type":"by_code","codes":["04152-YZZA6"],"vin":"","make":"","model":"","year":null,"part_names":[]}
+"dầu nhớt bao lâu thay 1 lần" → {"type":"general","codes":[],"vin":"","make":"","model":"","year":null,"part_names":[]}`;
+
+// Ghép thêm NGỮ CẢNH XE đã biết (từ tra VIN hoặc "Chọn Xe Của Bạn") vào prompt
+// phân loại — thiếu đoạn này, khách tra VIN xong chỉ hỏi trống "má phanh" thì
+// AI không biết xe gì, lại hỏi ngược lại tên xe dù đã biết rồi.
+function classifierPromptWithContext() {
+  if (!currentVinData?.make) return CLASSIFIER_PROMPT;
+  return CLASSIFIER_PROMPT + `\n\nXE KHÁCH ĐANG CHỌN SẴN (từ tra VIN/chọn xe trước đó): ${currentVinData.year||''} ${currentVinData.make} ${currentVinData.model||''}.
+Nếu câu hỏi CHỈ có tên phụ tùng, KHÔNG nêu xe khác → LUÔN là by_model, tự điền make/model/year từ xe này (${currentVinData.make}/${currentVinData.model||''}/${currentVinData.year||'null'}), KHÔNG hỏi lại tên xe.`;
+}
+
+// Tra DB thật theo kết quả phân loại — trả {items, vinBanner, error, notFoundMsg}
+async function lookupCatalog(cl) {
+  try {
+    if (cl.type === 'by_code' && cl.codes?.length) {
+      const allRes = await Promise.all(cl.codes.map(c =>
+        fetch(`${API}/search/by-code?code=${encodeURIComponent(c)}`).then(r => r.json())));
+      return { items: allRes.flatMap(d => d.results || []) };
+    }
+    if (cl.type === 'by_multi_code' && cl.codes?.length) {
+      const d = await fetch(`${API}/search/by-multi-code?codes=${cl.codes.map(c=>encodeURIComponent(c)).join(',')}`).then(r=>r.json());
+      return { items: (d.results || []).filter(r => r.found).map(r => r.product) };
+    }
+    if (cl.type === 'by_vin' && cl.vin) {
+      const vd = await fetch(`${API}/vin/lookup?vin=${encodeURIComponent(cl.vin)}`).then(r => r.json());
+      if (!vd.vehicles?.length) {
+        return { items: [], notFoundMsg: `VIN <b>${cl.vin}</b> chưa có trong hệ thống. Thử tra theo dòng xe, VD "Toyota Vios 2019 cần lọc dầu".` };
+      }
+      const v = vd.vehicles[0];
+      const vinBanner = `🚗 VIN <b>${cl.vin}</b> → Xe: <b>${v.make||''} ${v.model_name||''} ${v.year||''}</b><br>`;
+      const partName = cl.part_names?.[0] || '';
+      if (!partName) return { items: [], vinBanner, notFoundMsg: 'Bạn cần phụ tùng gì cho xe này?' };
+      const p1 = new URLSearchParams({ make:v.make||'', model:v.model_code||v.model_name||'', part:partName });
+      if (v.vehicle_id) p1.set('vehicle_id', v.vehicle_id);
+      const d2 = await fetch(`${API}/search/by-model?${p1}`).then(r=>r.json());
+      return { items: d2.results || [], vinBanner };
+    }
+    if (cl.type === 'by_model' && (cl.make || cl.model)) {
+      const partNames = cl.part_names?.length ? cl.part_names : [''];
+      const sameXe = currentVinData?.vehicle_id && (cl.make||'').toLowerCase() === (currentVinData.make||'').toLowerCase();
+      const allRes = await Promise.all(partNames.map(partName => {
+        const p = new URLSearchParams();
+        if (cl.make) p.set('make', cl.make);
+        if (cl.model) p.set('model', cl.model);
+        if (cl.year) p.set('year', cl.year);
+        if (partName) p.set('part', partName);
+        if (sameXe) p.set('vehicle_id', currentVinData.vehicle_id);
+        return fetch(`${API}/search/by-model?${p}`).then(r => r.json());
+      }));
+      const seen = new Set();
+      const items = allRes.flatMap(d => d.results || []).filter(p => !seen.has(p.id) && seen.add(p.id));
+      const xe = [cl.make, cl.model, cl.year].filter(Boolean).join(' ');
+      const pt = cl.part_names?.[0] || 'phụ tùng';
+      const msgTu = allRes.find(d => d?.message)?.message;
+      return { items, notFoundMsg: msgTu || `Chưa tìm thấy <b>${pt}</b>${xe ? ` cho <b>${xe}</b>` : ''} trong dữ liệu. Thử tra bằng mã phụ tùng hoặc VIN.` };
+    }
+  } catch (e) {
+    return { items: [], error: e.message };
+  }
+  return { items: [] };
+}
+
+// Danh sách gọn RIÊNG cho chat — không dùng renderProductCard() (card catalog
+// to, thiết kế cho lưới nhiều cột) vì nhét vào bong bóng chat hẹp chỉ đủ 1 cột,
+// card lại cao → nhìn như cột dọc hẹp xấu (đã bị báo). Dùng dòng ngang gọn.
+function renderChatProducts(rawProducts) {
+  const items = rawProducts.map(cacheAndAdapt);
+  const rows = items.map(p => {
+    const priceStr = p.price != null ? p.price.toLocaleString('vi-VN') + 'đ' : 'Liên hệ';
+    return `<div class="chat-product-item" onclick="viewProduct('${p.id}')">`
+      + `<div class="chat-product-icon">${p.icon}</div>`
+      + `<div class="chat-product-info">`
+        + `<div class="chat-product-name">${p.name}</div>`
+        + `<div class="chat-product-meta">${p.compat}</div>`
+      + `</div>`
+      + `<div class="chat-product-right">`
+        + `<div class="chat-product-price">${priceStr}</div>`
+        + `<button class="chat-product-add" onclick="event.stopPropagation();addToCart('${p.id}');showToast('✓ Đã thêm vào giỏ')">+ Giỏ</button>`
+      + `</div>`
+    + `</div>`;
+  }).join('');
+  return `<div class="chat-product-list">${rows}</div>`;
+}
+
+async function sendChat() {
+  if (_dangGuiChat) return;
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  _dangGuiChat = true;
+  input.value = '';
+  appendMsg('user', msg);
+  chatHistory.push({ role:'user', content: msg });
+  showTyping();
+  try {
+    // 1) Phân loại — 1 lần gọi AI, JSON ngắn gọn, temperature 0 cho ổn định.
+    let cl;
+    try {
+      const raw = await callOpenAI(classifierPromptWithContext(), msg, 200, 0);
+      cl = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    } catch (e) {
+      cl = { type: 'general' };
+    }
+
+    if (cl.type === 'checkout') {
+      hideTyping();
+      appendMsg('ai', 'Bấm nút 🛒 giỏ hàng ở góc trên để xem giỏ hàng và đặt hàng nhé.');
+      chatHistory.push({ role:'assistant', content:'[Hướng dẫn checkout]' });
+      return;
+    }
+
+    if (['by_code','by_multi_code','by_vin','by_model'].includes(cl.type)) {
+      const { items, vinBanner, error, notFoundMsg } = await lookupCatalog(cl);
+      hideTyping();
+      if (error) { appendMsg('ai', (vinBanner||'') + `❌ Lỗi tra cứu: ${error}`); return; }
+      if (!items.length) {
+        appendMsg('ai', (vinBanner||'') + (notFoundMsg || '⚠️ Không tìm thấy sản phẩm phù hợp. Thử mã khác hoặc mô tả cụ thể hơn.'));
+        chatHistory.push({ role:'assistant', content:'[Không tìm thấy sản phẩm]' });
+        return;
+      }
+      appendMsg('ai', (vinBanner||'') + `Tìm thấy <b>${items.length}</b> sản phẩm:` + renderChatProducts(items), true);
+      chatHistory.push({ role:'assistant', content:`[Kết quả: ${items.length} sản phẩm]` });
+      return;
+    }
+
+    // 2) general / phân loại lỗi → tư vấn tự do (không tra DB) — giữ tính năng
+    // tư vấn bảo dưỡng/so sánh hãng như bản gốc, chỉ khi KHÔNG tra được DB.
+    const sysPrompt = `Bạn là AutoParts AI — chuyên gia tư vấn phụ tùng ô tô cho thị trường Việt Nam. Website tên AutoVietHub, bán phụ tùng chính hãng cho Toyota, Honda, Hyundai, Kia, Mazda, Ford, Mitsubishi...
+
+Nhiệm vụ:
+- Giải thích triệu chứng hỏng hóc, khuyến nghị kiểm tra/thay thế
+- Tư vấn lịch bảo dưỡng (dầu nhớt, bugi, lọc, má phanh...)
+- So sánh hãng phụ tùng (OEM, Bosch, Denso, NGK, KYB...)
+- Nếu khách nêu được xe + tên phụ tùng cụ thể, gợi ý họ gõ lại rõ ràng
+  (VD "Toyota Vios 2019 cần má phanh") để tra thẳng vào kho hàng thật.
+
+${currentVinData ? `Xe hiện tại của khách: ${currentVinData.year} ${currentVinData.make} ${currentVinData.model}, VIN: ${currentVinData.vin}` : ''}
+
+Trả lời ngắn gọn, thực tế. Dùng emoji vừa phải. KHÔNG bịa mã phụ tùng hay giá cụ thể — chỉ gợi ý khách tra theo mã/xe để xem hàng thật.`;
+
+    const reply = await callOpenAI(sysPrompt, msg, 1000);
+    hideTyping();
+    chatHistory.push({ role:'assistant', content: reply });
+    appendMsg('ai', reply);
+  } catch(e) {
+    hideTyping();
+    appendMsg('ai', '⚠️ Không kết nối được API. Vui lòng kiểm tra kết nối và thử lại.');
+  } finally {
+    _dangGuiChat = false;
+  }
+}
+
+function quickAsk(q) {
+  document.getElementById('chat-input').value = q;
+  sendChat();
+}
+
+function appendMsg(role, text, wide) {
+  const area = document.getElementById('chat-messages');
+  const time = new Date().toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'});
+  const html = `<div class="msg ${role}${wide ? ' wide' : ''}">
+    <div class="msg-avatar">${role==='ai'?'🤖':'👤'}</div>
+    <div>
+      <div class="msg-bubble">${text.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</div>
+      <div class="msg-time">${role==='ai'?'AutoParts AI':'Bạn'} · ${time}</div>
+    </div>
+  </div>`;
+  area.insertAdjacentHTML('beforeend', html);
+  area.scrollTop = area.scrollHeight;
+}
+
+let typingEl = null;
+function showTyping() {
+  const area = document.getElementById('chat-messages');
+  typingEl = document.createElement('div');
+  typingEl.className = 'msg ai';
+  typingEl.id = 'typing-indicator';
+  typingEl.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
+  area.appendChild(typingEl);
+  area.scrollTop = area.scrollHeight;
+}
+function hideTyping() { document.getElementById('typing-indicator')?.remove(); }
+
+// ═══════════════════════════════════════
+// QUOTE MODAL
+// ═══════════════════════════════════════
+function openQuoteModal() { document.getElementById('quote-modal').classList.add('open'); }
+function closeQuoteModal() { document.getElementById('quote-modal').classList.remove('open'); }
+function submitQuote() { closeQuoteModal(); showToast('✓ Yêu cầu báo giá đã gửi! Chúng tôi sẽ liên hệ trong 2 giờ.'); }
+
+document.getElementById('quote-modal').addEventListener('click', function(e) { if(e.target === this) closeQuoteModal(); });
+
+// ═══════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════
+function showToast(msg, type='') {
+  const area = document.getElementById('toast-area');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  area.appendChild(el);
+  requestAnimationFrame(() => { requestAnimationFrame(() => el.classList.add('show')); });
+  setTimeout(() => { el.classList.remove('show'); setTimeout(()=>el.remove(), 300); }, 3000);
+}
+
+// ═══════════════════════════════════════
+// SELECT YOUR VEHICLE — DATA & LOGIC
+// ═══════════════════════════════════════
+const VEHICLE_DB = {
+  Toyota: {
+    Camry: {
+      '2019': ['2.5L 4-cyl Auto (A25A-FKS)','2.5L Hybrid Auto','3.5L V6 Auto (2GR-FKS)'],
+      '2020': ['2.5L 4-cyl Auto (A25A-FKS)','2.5L Hybrid Auto'],
+      '2021': ['2.5L 4-cyl Auto','2.5L Hybrid','3.5L V6 Auto'],
+      '2022': ['2.5L 4-cyl Auto','2.5L Hybrid'],
+      '2023': ['2.5L 4-cyl Auto','2.5L Hybrid'],
+    },
+    Vios: {
+      '2019': ['1.5L 4-cyl Auto (2NZ-FE)','1.5L 4-cyl MT (2NZ-FE)'],
+      '2020': ['1.5L Auto','1.5L MT'],
+      '2021': ['1.5L Auto','1.5L MT'],
+      '2022': ['1.5L Auto','1.5L MT'],
+      '2023': ['1.5L Auto','1.5L MT'],
+    },
+    Fortuner: {
+      '2019': ['2.4L Diesel 4x2 AT','2.4L Diesel 4x4 AT','2.7L Petrol 4x2 AT'],
+      '2020': ['2.4L Diesel 4x2 AT','2.4L Diesel 4x4 AT'],
+      '2021': ['2.4L Diesel AT','2.8L Diesel AT'],
+      '2022': ['2.4L Diesel AT','2.8L Diesel AT'],
+      '2023': ['2.4L Diesel AT (GR Sport)','2.8L Diesel AT'],
+    },
+    'Corolla Cross': {
+      '2020': ['1.8L Hybrid CVT','2.0L CVT'],
+      '2021': ['1.8L Hybrid CVT','2.0L CVT'],
+      '2022': ['1.8L Hybrid CVT','2.0L CVT'],
+      '2023': ['1.8L Hybrid CVT'],
+    },
+  },
+  Honda: {
+    City: {
+      '2019': ['1.5L CVT (L15Z7)','1.5L MT (L15Z7)'],
+      '2020': ['1.5L CVT','1.5L MT'],
+      '2021': ['1.5L CVT','1.5L MT (RS)'],
+      '2022': ['1.5L CVT','1.5L MT'],
+      '2023': ['1.5L CVT'],
+    },
+    'CR-V': {
+      '2019': ['1.5T CVT 2WD','1.5T CVT 4WD'],
+      '2020': ['1.5T CVT 2WD','1.5T CVT 4WD','2.0L Hybrid'],
+      '2021': ['1.5T CVT AWD','2.0L Hybrid'],
+      '2022': ['1.5T CVT AWD','2.0L Hybrid'],
+      '2023': ['1.5T CVT AWD'],
+    },
+    Accord: {
+      '2019': ['1.5T CVT (L15B7)','2.0T 10AT'],
+      '2020': ['1.5T CVT','2.0T 10AT','2.0L Hybrid'],
+      '2021': ['1.5T CVT','2.0L Hybrid'],
+      '2022': ['1.5T CVT','2.0L Hybrid'],
+    },
+  },
+  Hyundai: {
+    Tucson: {
+      '2019': ['2.0L MPI 6AT FWD','2.0L MPI 6AT AWD'],
+      '2020': ['2.0L MPI 6AT FWD','1.6T GDI 7DCT AWD'],
+      '2021': ['2.0L MPI FWD','1.6T GDI AWD','1.6T Hybrid'],
+      '2022': ['2.0L MPI FWD','1.6T GDI AWD','1.6T Hybrid'],
+      '2023': ['2.0L MPI FWD','1.6T Hybrid'],
+    },
+    Elantra: {
+      '2019': ['2.0L MPI 6AT (G4NH)','1.6L MPI MT'],
+      '2020': ['2.0L MPI 6AT','1.6L MPI MT'],
+      '2021': ['2.0L MPI CVT','1.6T 7DCT (N Line)'],
+      '2022': ['2.0L MPI CVT','1.6T N Line'],
+      '2023': ['2.0L MPI CVT'],
+    },
+    'Santa Fe': {
+      '2019': ['2.2L CRDi 8AT AWD','2.0T 8AT AWD'],
+      '2020': ['2.2L CRDi AWD','2.0T AWD'],
+      '2021': ['2.2L CRDi AWD','2.5T AWD','1.6T Hybrid'],
+      '2022': ['2.5T AWD','1.6T Hybrid AWD'],
+    },
+  },
+  Mazda: {
+    'Mazda 3': {
+      '2019': ['2.0L SkyActiv-G 6AT Sedan','2.0L SkyActiv-G 6AT Hatchback','2.5L 6AT'],
+      '2020': ['2.0L SkyActiv-G 6AT','2.5L 6AT'],
+      '2021': ['2.0L SkyActiv-G 6AT','2.0L SkyActiv-X 6AT'],
+      '2022': ['2.0L SkyActiv-G 6AT','2.5L Turbo 6AT'],
+      '2023': ['2.0L SkyActiv-G 6AT'],
+    },
+    'CX-5': {
+      '2019': ['2.0L SkyActiv-G 6AT FWD','2.5L SkyActiv-G 6AT AWD','2.2L SkyActiv-D 6AT'],
+      '2020': ['2.0L 6AT FWD','2.5L 6AT AWD','2.5T Turbo AWD'],
+      '2021': ['2.0L 6AT FWD','2.5T Turbo AWD'],
+      '2022': ['2.0L 6AT FWD','2.5T Turbo AWD'],
+      '2023': ['2.5L 6AT AWD'],
+    },
+    'Mazda 6': {
+      '2019': ['2.0L SkyActiv-G 6AT','2.5L SkyActiv-G 6AT'],
+      '2020': ['2.0L 6AT','2.5L 6AT'],
+      '2021': ['2.0L 6AT','2.5T Turbo 6AT'],
+    },
+  },
+  Ford: {
+    Ranger: {
+      '2019': ['2.0L EcoBlue 6MT 4x2','2.0L BiTurbo 10AT 4x4','2.2L TDCi 6AT 4x2'],
+      '2020': ['2.0L EcoBlue 6MT','2.0L BiTurbo 10AT 4x4'],
+      '2021': ['2.0L EcoBlue 6AT','2.0L BiTurbo 10AT'],
+      '2022': ['2.0L EcoBlue 6AT Wildtrak','2.0L BiTurbo 10AT Raptor'],
+      '2023': ['2.0L EcoBlue 6AT','3.0L V6 10AT Raptor'],
+    },
+    Everest: {
+      '2019': ['2.0L EcoBlue 6AT RWD','2.0L BiTurbo 10AT AWD'],
+      '2020': ['2.0L EcoBlue 6AT','2.0L BiTurbo 10AT AWD'],
+      '2021': ['2.0L EcoBlue 6AT','2.0L BiTurbo 10AT AWD'],
+      '2022': ['2.0L EcoBlue 6AT Trend','2.0L BiTurbo 10AT Titanium+'],
+    },
+  },
+  Kia: {
+    Sportage: {
+      '2019': ['2.0L MPI 6AT FWD','2.0L MPI 6AT AWD'],
+      '2020': ['2.0L MPI 6AT FWD','2.0L MPI 6AT AWD'],
+      '2021': ['2.0L MPI FWD','1.6T 7DCT AWD'],
+      '2022': ['2.0L MPI FWD','1.6T 7DCT AWD','1.6T Hybrid'],
+      '2023': ['2.0L MPI FWD','1.6T Hybrid'],
+    },
+    Cerato: {
+      '2019': ['2.0L MPI 6AT','1.6L MPI 6AT'],
+      '2020': ['2.0L MPI 6AT','1.6T 7DCT (GT Line)'],
+      '2021': ['2.0L MPI 6AT','1.6T 7DCT'],
+      '2022': ['2.0L MPI 6AT'],
+    },
+  },
+  Mitsubishi: {
+    Outlander: {
+      '2019': ['2.0L CVT FWD','2.4L CVT AWD','2.4L PHEV AWD'],
+      '2020': ['2.0L CVT FWD','2.4L PHEV AWD'],
+      '2021': ['2.0L CVT FWD','2.4L CVT AWD'],
+      '2022': ['2.5L CVT FWD','2.5L CVT S-AWC'],
+    },
+    Xpander: {
+      '2019': ['1.5L MIVEC AT','1.5L MIVEC MT'],
+      '2020': ['1.5L AT','1.5L MT'],
+      '2021': ['1.5L AT Cross','1.5L MT'],
+      '2022': ['1.5L AT','1.5L AT Cross'],
+      '2023': ['1.5L AT'],
+    },
+  },
+};
+
+let selectedVehicle = { year:'', make:'', model:'', trim:'' };
+
+// Chọn xe thật — 4 bước: Hãng → Dòng xe → Năm → Phiên bản/động cơ.
+// _syvRows giữ TOÀN BỘ dòng catalog_vehicles của hãng đang chọn (fetch 1 lần ở
+// bước 1, lọc dần ở client cho các bước sau — đỡ gọi API liên tục).
+let _syvRows = [];
+
+async function initSYV() {
+  const makeSel = document.getElementById('syv-make');
+  if (!makeSel) return;
+  try {
+    const res = await fetch(`${API}/vehicles/makes`);
+    const data = await res.json();
+    const makes = data.counts || [];
+    makeSel.innerHTML = '<option value="">-- Hãng xe --</option>' +
+      makes.map(m => `<option value="${m.make}">${m.make} (${m.count})</option>`).join('');
+  } catch (e) {
+    makeSel.innerHTML = '<option value="">-- Không tải được danh sách hãng --</option>';
+  }
+}
+
+function resetSyvFrom(step) {
+  // step: 'model' | 'year' | 'trim' — xoá các dropdown TỪ bước này trở đi
+  const order = ['model', 'year', 'trim'];
+  const labels = { model:'-- Dòng xe --', year:'-- Năm sản xuất --', trim:'-- Phiên bản / Động cơ --' };
+  for (const s of order.slice(order.indexOf(step))) {
+    const sel = document.getElementById('syv-' + s);
+    sel.innerHTML = `<option value="">${labels[s]}</option>`;
+    sel.disabled = true;
+  }
+  document.getElementById('syv-apply-btn').disabled = true;
+}
+
+async function onSyvMakeChange() {
+  const make = document.getElementById('syv-make').value;
+  selectedVehicle = { make, model:'', year:'', trim:'', vehicleId:'', modelCode:'' };
+  resetSyvFrom('model');
+  if (!make) return;
+
+  const modelSel = document.getElementById('syv-model');
+  modelSel.innerHTML = '<option value="">Đang tải...</option>';
+  try {
+    const res = await fetch(`${API}/vehicles/by-query?make=${encodeURIComponent(make)}&limit=2000`);
+    const data = await res.json();
+    _syvRows = data.vehicles || [];
+    const models = [...new Set(_syvRows.map(v => v.model_name || v.model_code).filter(Boolean))].sort();
+    modelSel.innerHTML = '<option value="">-- Dòng xe --</option>' + models.map(m=>`<option value="${m}">${m}</option>`).join('');
+    modelSel.disabled = false;
+  } catch (e) {
+    modelSel.innerHTML = '<option value="">Lỗi tải dữ liệu</option>';
+  }
+}
+
+function onSyvModelChange() {
+  const model = document.getElementById('syv-model').value;
+  selectedVehicle = { ...selectedVehicle, model, year:'', trim:'', vehicleId:'', modelCode:'' };
+  resetSyvFrom('year');
+  if (!model) return;
+
+  const rows = _syvRows.filter(v => (v.model_name || v.model_code) === model);
+  const years = [...new Set(rows.map(v => v.year_from).filter(Boolean))].sort((a,b)=>b-a);
+  const yearSel = document.getElementById('syv-year');
+  yearSel.innerHTML = '<option value="">-- Năm sản xuất --</option>' +
+    years.map(y => {
+      const r = rows.find(v => v.year_from === y);
+      const label = r.year_to ? `${y} - ${r.year_to}` : `${y} - nay`;
+      return `<option value="${y}">${label}</option>`;
+    }).join('') +
+    (rows.some(v => !v.year_from) ? '<option value="__any__">Không rõ năm / mọi năm</option>' : '');
+  yearSel.disabled = false;
+}
+
+function onSyvYearChange() {
+  const yearVal = document.getElementById('syv-year').value;
+  selectedVehicle = { ...selectedVehicle, year: yearVal, trim:'', vehicleId:'', modelCode:'' };
+  resetSyvFrom('trim');
+  if (!yearVal) return;
+
+  const model = selectedVehicle.model;
+  let rows = _syvRows.filter(v => (v.model_name || v.model_code) === model);
+  rows = yearVal === '__any__'
+    ? rows.filter(v => !v.year_from)
+    : rows.filter(v => v.year_from === parseInt(yearVal));
+
+  const trimSel = document.getElementById('syv-trim');
+  trimSel.innerHTML = '<option value="">-- Phiên bản / Động cơ --</option>' + rows.map(v => {
+    const label = [v.engine, v.transmission, v.drive_type].filter(Boolean).join(' / ') || v.model_code;
+    return `<option value="${v.id}">${label}</option>`;
+  }).join('');
+  trimSel.disabled = false;
+}
+
+function onSyvTrimChange() {
+  const vehicleId = document.getElementById('syv-trim').value;
+  const row = _syvRows.find(v => v.id === vehicleId);
+  selectedVehicle.vehicleId = vehicleId;
+  selectedVehicle.modelCode = row ? row.model_code : '';
+  selectedVehicle.trim = document.getElementById('syv-trim').selectedOptions[0]?.textContent || '';
+  document.getElementById('syv-apply-btn').disabled = !vehicleId;
+}
+
+function applySyvFilter() {
+  const { year, make, model, trim, vehicleId } = selectedVehicle;
+  if (!make || !model || !vehicleId) return;
+
+  // Show active badge, hide selects
+  document.getElementById('syv-selects').style.display = 'none';
+  const badge = document.getElementById('syv-active-display');
+  badge.style.display = 'block';
+  badge.innerHTML = `
+    <div class="syv-active-badge">
+      <div>
+        <div style="font-size:11px;color:var(--green);margin-bottom:2px;">✓ Xe đã chọn</div>
+        <strong>${make} ${model}${year && year!=='__any__' ? ' ' + year : ''}</strong>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px">${trim}</div>
+      </div>
+      <button class="syv-clear-btn" onclick="clearSyvFilter()" title="Xóa lựa chọn">✕</button>
+    </div>`;
+
+  filterCatalogByVehicle(vehicleId, `${make} ${model}`);
+  showToast(`✓ Đã chọn: ${make} ${model}`);
+}
+
+// Lọc catalog THEO ĐÚNG xe đã chọn — dùng danh sách fitment thật của xe đó
+// (/vehicles/:id/fitments), KHÔNG phải badge ✓/✗ đoán mò như bản demo cũ.
+// Route /vehicles/:id/fitments trả HẾT 1 lần (không có page/limit ở backend),
+// nên fetch 1 lần rồi cất vào _baseItems — search/hãng/phân trang chỉ lọc ở
+// client từ đây trở đi (xem renderCatalogNow ở trên), KHÔNG fetch lại.
+async function filterCatalogByVehicle(vehicleId, label) {
+  const cnt = document.getElementById('catalog-count');
+  if (cnt) cnt.textContent = 'Đang tải phụ tùng phù hợp...';
+  try {
+    const res = await fetch(`${API}/vehicles/${vehicleId}/fitments`);
+    const rows = await res.json();
+    _baseItems = (rows || []).map(r => cacheAndAdapt({
+      id: r.id, name: r.name_vi || r.name, name_vi_cho: r.name_vi_cho,
+      internal_ref: r.internal_ref,
+      oem_code: r.oem_code, brand: r.brand, product_type: r.product_type,
+    }));
+    _baseLabel = `xe ${label}`;
+    _catalogMode = 'vehicle';
+    _catalogPage = 1;
+    renderCatalogNow();
+  } catch (e) {
+    const el = document.getElementById('catalog-products');
+    if (el) el.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><h3>Không kết nối được server</h3></div>';
+  }
+}
+
+// ═══════════════════════════════════════
+// DANH MỤC TRANG CHỦ — search song song nhiều tên phụ tùng thật (CATEGORY_TERMS),
+// gộp + bỏ trùng theo id, cất vào _baseItems (search/hãng/phân trang lọc ở
+// client từ renderCatalogNow, giống hệt cơ chế "lọc theo xe" ở trên).
+// ═══════════════════════════════════════
+async function filterByCategory(catKey) {
+  const terms = CATEGORY_TERMS[catKey];
+  const label = CATEGORY_LABELS[catKey] || catKey;
+  if (!terms) return;
+  showPage('catalog', true);
+  const cnt = document.getElementById('catalog-count');
+  if (cnt) cnt.textContent = `Đang tìm phụ tùng "${label}"...`;
+
+  try {
+    // limit=50/từ khoá — không giới hạn thấp nữa, muốn liệt kê gần hết phụ
+    // tùng khớp tên trong danh sách, không phải chỉ vài cái đại diện.
+    // Trình duyệt tự xếp hàng theo giới hạn kết nối (~6 cùng lúc), không lỗi,
+    // chỉ mất thêm vài giây với danh mục có nhiều tên (VD "Động cơ" 84 tên).
+    const results = await Promise.all(terms.map(t =>
+      fetch(`${API}/products?${new URLSearchParams({ q:t, limit:'50', is_for_sale:'true' })}`)
+        .then(r => r.json()).catch(() => ({ data: [] }))
+    ));
+    const seen = new Map();
+    for (const r of results) for (const raw of (r.data || [])) {
+      if (!seen.has(raw.id)) seen.set(raw.id, cacheAndAdapt(raw));
+    }
+    _baseItems = [...seen.values()];
+    _baseLabel = `danh mục "${label}" (gần đúng)`;
+    _catalogMode = 'category';
+    _catalogPage = 1;
+    renderCatalogNow();
+  } catch (e) {
+    const el = document.getElementById('catalog-products');
+    if (el) el.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><h3>Không kết nối được server</h3></div>';
+  }
+}
+
+function clearSyvFilter() {
+  selectedVehicle = { year:'', make:'', model:'', trim:'', vehicleId:'', modelCode:'' };
+  _syvRows = [];
+  // Thoát mode 'vehicle' → quay về browse toàn bộ (vẫn giữ nguyên search/hãng
+  // đang có, vì đó là lựa chọn riêng của người dùng, không liên quan đến xe).
+  _catalogMode = 'browse';
+  _baseItems = [];
+  _catalogPage = 1;
+  document.getElementById('syv-selects').style.display = 'flex';
+  document.getElementById('syv-active-display').style.display = 'none';
+  // reset selects (giữ nguyên danh sách hãng đã tải, chỉ bỏ chọn)
+  document.getElementById('syv-make').value = '';
+  resetSyvFrom('model');
+  renderCatalogNow();
+  showToast('Đã xóa bộ lọc xe');
+}
+
+// Dùng cho menu "Phụ Tùng" / các link "Xem tất cả" — quay về trạng thái
+// duyệt toàn bộ, xoá HẾT mọi bộ lọc (xe/danh mục/hãng/tìm kiếm), khác với
+// clearSyvFilter() (chỉ xoá riêng xe, vẫn giữ search/hãng).
+function goToCatalogHome() {
+  selectedVehicle = { year:'', make:'', model:'', trim:'', vehicleId:'', modelCode:'' };
+  _syvRows = [];
+  _catalogMode = 'browse';
+  _baseItems = [];
+  _catalogBrand = '';
+  _catalogPage = 1;
+  const searchEl = document.getElementById('catalog-search');
+  if (searchEl) searchEl.value = '';
+  const selectsEl = document.getElementById('syv-selects');
+  if (selectsEl) selectsEl.style.display = 'flex';
+  const badgeEl = document.getElementById('syv-active-display');
+  if (badgeEl) badgeEl.style.display = 'none';
+  const makeEl = document.getElementById('syv-make');
+  if (makeEl) makeEl.value = '';
+  resetSyvFrom('model');
+  showPage('catalog', true);
+  renderCatalogNow();
+}
+
+// So khớp CHÍNH XÁC theo model_code (không đoán mò kiểu includes() như bản demo
+// cũ) — product.fitment do groupFitment() dựng từ compatible_vehicles thật,
+// mỗi entry.sub chính là model_code.
+function checkProductFitsVehicle(product) {
+  if (!selectedVehicle.modelCode) return null;
+  if (!product.fitment) return null;
+  for (const group of product.fitment) {
+    for (const entry of group.entries) {
+      if (entry.sub === selectedVehicle.modelCode) return { fits: true, entry };
+    }
+  }
+  return { fits: false };
+}
+
+// ─── VALIDATE FITMENT in PD Modal ───
+function validateFitmentForProduct() {
+  const p = _currentPD;
+  if (!p) return;
+  const statusEl = document.getElementById('pd-fitment-status');
+  const btn = document.getElementById('pd-btn-validate');
+
+  if (!selectedVehicle.modelCode) {
+    statusEl.style.display = 'block';
+    statusEl.innerHTML = `<div class="fitment-status-banner info">
+      <span>ℹ️</span>
+      <span>Bạn chưa chọn xe. <strong style="cursor:pointer;text-decoration:underline" onclick="closePD();showPage('catalog')">Chọn xe ngay →</strong></span>
+    </div>`;
+    return;
+  }
+
+  const result = checkProductFitsVehicle(p);
+  const { year, make, model, trim } = selectedVehicle;
+  statusEl.style.display = 'block';
+
+  if (result && result.fits) {
+    btn.className = 'btn-validate-fitment matched';
+    btn.innerHTML = '✓ Khớp Xe Của Bạn';
+    statusEl.innerHTML = `<div class="fitment-status-banner matched">
+      <span>✅</span>
+      <div>
+        <strong>Sản phẩm này phù hợp với xe của bạn!</strong><br>
+        <span style="font-size:12px">${year} ${make} ${model} · ${trim}</span><br>
+        <span style="font-size:12px;opacity:0.8">${result.entry.sub} — ${result.entry.note}</span>
+      </div>
+    </div>`;
+    // Highlight matched fitment entry in tab
+    document.querySelectorAll('.fitment-entry').forEach(el => el.classList.remove('highlighted'));
+    // Switch to fitment tab to show
+  } else if (result && !result.fits) {
+    btn.className = 'btn-validate-fitment unmatched';
+    btn.innerHTML = '✗ Không Khớp Xe';
+    statusEl.innerHTML = `<div class="fitment-status-banner unmatched">
+      <span>❌</span>
+      <div>
+        <strong>Sản phẩm này không phù hợp với xe của bạn</strong><br>
+        <span style="font-size:12px">${year} ${make} ${model} không có trong danh sách xe tương thích.</span><br>
+        <span style="font-size:12px;opacity:0.8;cursor:pointer;text-decoration:underline" onclick="switchPDTab('alts',document.querySelectorAll('.pd-tab')[3])">Xem sản phẩm tương đương phù hợp →</span>
+      </div>
+    </div>`;
+  } else {
+    btn.className = 'btn-validate-fitment';
+    btn.innerHTML = '❓ Không rõ';
+    statusEl.innerHTML = `<div class="fitment-status-banner info">
+      <span>ℹ️</span>
+      <div>
+        <span>Không đủ dữ liệu fitment cho ${year} ${make} ${model}.<br></span>
+        <strong style="cursor:pointer;font-size:12px" onclick="showPage('chat');quickAsk('Sản phẩm ${p.name} có phù hợp với ${year} ${make} ${model} ${trim} không?');closePD()">Hỏi AI để xác nhận →</strong>
+      </div>
+    </div>`;
+  }
+}
+
+
+
+// ═══════════════════════════════════════
+// MOBILE MENU & RESPONSIVE HELPERS
+// ═══════════════════════════════════════
+function toggleMobileMenu() {
+  const menu = document.getElementById('mobile-menu');
+  const btn = document.getElementById('hamburger');
+  menu.classList.toggle('open');
+  btn.classList.toggle('open');
+}
+function closeMobileMenu() {
+  document.getElementById('mobile-menu').classList.remove('open');
+  document.getElementById('hamburger').classList.remove('open');
+}
+function navTo(page) {
+  closeMobileMenu();
+  showPage(page);
+}
+
+// Sync mobile cart badge
+const _origUpdateCart = updateCartBadge;
+function updateCartBadge() {
+  const total = cart.reduce((s,i) => s+i.qty, 0);
+  document.getElementById('cart-badge').textContent = total;
+  const mob = document.getElementById('cart-badge-mobile');
+  if (mob) mob.textContent = total;
+}
+
+// Show catalog filter toggle on mobile
+function initResponsive() {
+  const mq = window.matchMedia('(max-width: 768px)');
+  const toggle = document.getElementById('filter-toggle');
+  function applyMQ(e) {
+    if (toggle) toggle.style.display = e.matches ? 'flex' : 'none';
+  }
+  mq.addEventListener('change', applyMQ);
+  applyMQ(mq);
+}
+function toggleCatalogFilter() {
+  const sidebar = document.querySelector('.catalog-sidebar');
+  const icon = document.getElementById('filter-toggle-icon');
+  sidebar.classList.toggle('expanded');
+  if (icon) icon.textContent = sidebar.classList.contains('expanded') ? '▲' : '▼';
+}
+
+// Close mobile menu when clicking outside
+document.addEventListener('click', function(e) {
+  const menu = document.getElementById('mobile-menu');
+  const btn = document.getElementById('hamburger');
+  if (menu && menu.classList.contains('open')) {
+    if (!menu.contains(e.target) && !btn.contains(e.target)) closeMobileMenu();
+  }
+});
+
+
+renderHomeProducts();
+initSYV();
+initResponsive();
+</script>
+</body>
+</html>
