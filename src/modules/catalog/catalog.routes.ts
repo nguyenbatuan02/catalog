@@ -49,6 +49,24 @@ async function loadAlternatives(productId: string): Promise<any[]> {
   return res.rows;
 }
 
+// Load MÃ thay thế (product ↔ mã) cho 1 product — khác loadAlternatives ở trên
+// vốn là product ↔ product. Mã ở đây có thể CHƯA tồn tại như một sản phẩm trong
+// DB (mã của hãng khác, cào từ PartSouq), nên không nối được qua catalog_alternatives.
+// co_hang: mã đó có bán trong kho không → giao diện chỉ cho bấm khi có.
+async function loadOemCodes(productId: string): Promise<any[]> {
+  const res = await pool.query(`
+    SELECT o.oem_code, o.make, o.source,
+           sp.id AS product_id, sp.name AS product_name
+    FROM catalog_oem_codes o
+    LEFT JOIN catalog_products sp
+           ON sp.ref_norm = o.oem_norm AND sp.is_for_sale = TRUE
+    WHERE o.product_id = $1
+    ORDER BY (sp.id IS NULL), o.make NULLS LAST, o.oem_code
+    LIMIT 50
+  `, [productId]);
+  return res.rows;
+}
+
 // ============================================================
 // FITMENT MATRIX — ma tran phu song phu tung theo model xe (cho dashboard)
 // ============================================================
@@ -357,12 +375,13 @@ export async function catalogRoutes(fastify: FastifyInstance) {
       const res = await pool.query(`SELECT * FROM catalog_products WHERE id=$1`, [req.params.id]);
       if (!res.rows.length) return reply.status(404).send({ error: 'Không tìm thấy' });
       const product = res.rows[0];
-      // Load vehicles + alternatives song song
-      const [compatible_vehicles, alternatives] = await Promise.all([
+      // Load vehicles + alternatives + mã thay thế song song
+      const [compatible_vehicles, alternatives, oem_codes] = await Promise.all([
         loadCompatibleVehicles(product.id),
         loadAlternatives(product.id),
+        loadOemCodes(product.id),
       ]);
-      const full = { ...product, compatible_vehicles, alternatives };
+      const full = { ...product, compatible_vehicles, alternatives, oem_codes };
       const pricing = await getBravoPricing(getAllRefs([full]), req.query.customer_code);
       return reply.send(mergeWithPricing([full], pricing)[0]);
     }
@@ -1770,12 +1789,15 @@ export async function catalogRoutes(fastify: FastifyInstance) {
         // Chọn các mã:
         //  - status = 'pending'
         //  - HOẶC status = 'claimed' mà quá 15 phút chưa xong (worker chết/rớt mạng -> reclaim)
+        // Giữ mã 5 phút chứ không 15: worker chạy 4 tab cào xong lô 40 mã trong
+        // ~10 giây, nên 15 phút là quá thừa — mã bị giữ lâu làm hàng đợi cạn
+        // 'pending' trong khi hàng chục nghìn mã nằm im chờ hết hạn.
         const qRes = await client.query(`
           WITH ung_vien AS (
             SELECT ref_norm
             FROM crawl_substitutes_queue
             WHERE status = 'pending'
-               OR (status = 'claimed' AND claimed_at < NOW() - INTERVAL '15 minutes')
+               OR (status = 'claimed' AND claimed_at < NOW() - INTERVAL '5 minutes')
             ORDER BY claimed_at ASC NULLS FIRST
             LIMIT $1
             FOR UPDATE SKIP LOCKED

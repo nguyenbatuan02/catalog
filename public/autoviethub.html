@@ -1111,6 +1111,31 @@ nav {
 
 /* Alternatives tab */
 .alt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+
+/* Mã thay thế — bảng mã, không phải thẻ sản phẩm */
+.mc-row {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 11px 14px; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--surface); margin-bottom: 8px;
+}
+.mc-row.co-hang { border-color: var(--border2); background: var(--blue-light); }
+.mc-ma {
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: .3px;
+}
+.mc-hang {
+  font-size: 12px; padding: 2px 9px; border-radius: 20px;
+  background: var(--accent-dim); color: var(--accent); font-weight: 500;
+}
+.mc-ten { font-size: 13px; color: var(--text2); flex: 1; min-width: 140px; }
+.mc-nguon { font-size: 11px; color: var(--text3); }
+.mc-xem {
+  padding: 6px 13px; border-radius: 7px; border: none; cursor: pointer;
+  background: var(--accent); color: #fff; font-size: 13px; font-weight: 500;
+}
+.mc-xem:hover { background: var(--accent2); }
+.mc-khong { font-size: 12px; color: var(--text3); font-style: italic; }
+.mc-trong { padding: 28px; text-align: center; color: var(--text3); font-size: 14px; }
 .alt-card {
   background: var(--surface); border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.06);
   border-radius: var(--r2); overflow: hidden; cursor: pointer;
@@ -1926,6 +1951,7 @@ nav {
       <div class="pd-tab" onclick="switchPDTab('specs',this)">Thông Số Kỹ Thuật <span class="pd-tab-count" id="specs-cnt">8</span></div>
       <div class="pd-tab" onclick="switchPDTab('fitment',this)">Xe Tương Thích <span class="pd-tab-count" id="fitment-cnt">0</span></div>
       <div class="pd-tab" onclick="switchPDTab('alts',this)">Sản Phẩm Tương Đương <span class="pd-tab-count" id="alts-cnt">0</span></div>
+      <div class="pd-tab" onclick="switchPDTab('macode',this)">Mã Thay Thế <span class="pd-tab-count" id="macode-cnt">0</span></div>
     </div>
 
     <!-- Tab: Description -->
@@ -1973,6 +1999,15 @@ nav {
       <div class="alt-compare-row" id="alt-compare-table"></div>
       <h4 style="font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:1rem;">SẢN PHẨM THAY THẾ</h4>
       <div class="alt-grid" id="alt-grid"></div>
+    </div>
+
+    <!-- Tab: Mã thay thế (product ↔ MÃ, khác tab trên là product ↔ product) -->
+    <div class="pd-tab-content" id="pd-tab-macode">
+      <p style="font-size:13px;color:var(--text3);margin-bottom:14px;">
+        Các mã phụ tùng lắp thay được cho sản phẩm này. Mã có nút
+        <b style="color:var(--accent)">Xem hàng</b> là kho đang có bán.
+      </p>
+      <div id="macode-list"></div>
     </div>
   </div>
 </div>
@@ -2298,7 +2333,23 @@ function adaptProduct(p) {
       icon: '🔧', price: a.price ?? null, badge: null,
       compat: a.oem_code || a.internal_ref || '', note: a.reason || '',
     })),
+    // Mã thay thế (catalog_oem_codes) — giữ nguyên shape từ API, tab riêng tự render.
+    oem_codes: p.oem_codes || [],
   };
+}
+
+// Mở chi tiết theo id: fetch bản đầy đủ (có oem_codes/fitment) rồi mở popup.
+// Danh sách sản phẩm KHÔNG kèm các trường này nên phải gọi endpoint detail.
+async function openPDById(id) {
+  try {
+    const r = await fetch(`${API}/products/${id}`);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const sp = adaptProduct(await r.json());
+    _productCache.set(sp.id, sp);
+    openPD(sp);
+  } catch (e) {
+    alert('Không tải được sản phẩm: ' + e.message);
+  }
 }
 
 // compatible_vehicles là list PHẲNG [{make,model_code,model_name,year_from,year_to}]
@@ -2640,6 +2691,9 @@ function openPD(p) {
   yearSel.innerHTML = '<option value="">Tất cả năm</option>' + [...years].sort().reverse().map(y=>`<option>${y}</option>`).join('');
   filterFitment();
 
+  // Tab: Mã thay thế
+  renderMaThayThe(p.oem_codes || []);
+
   // Tab: Alternatives
   const alts = p.alternatives || [];
   document.getElementById('alts-cnt').textContent = alts.length;
@@ -2707,6 +2761,32 @@ function filterFitment() {
       </div>`).join('');
   }
   col.innerHTML = `<div>${renderGroups(left)}</div><div>${renderGroups(right)}</div>`;
+}
+
+// Mã thay thế: product ↔ MÃ (bảng catalog_oem_codes). Khác renderAlternatives
+// bên dưới vốn là product ↔ product. Mã ở đây có thể chưa tồn tại như sản phẩm
+// trong kho — API trả product_id khác null thì mới cho bấm "Xem hàng".
+function renderMaThayThe(dsMa) {
+  document.getElementById('macode-cnt').textContent = dsMa.length;
+  const el = document.getElementById('macode-list');
+  if (!dsMa.length) {
+    el.innerHTML = '<div class="mc-trong">Chưa có dữ liệu mã thay thế cho sản phẩm này.</div>';
+    return;
+  }
+  const esc = (s) => String(s ?? '').replace(/[<>&"]/g, (c) =>
+    ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
+
+  el.innerHTML = dsMa.map((m) => {
+    const coHang = !!m.product_id;
+    return `<div class="mc-row${coHang ? ' co-hang' : ''}">
+      <span class="mc-ma">${esc(m.oem_code)}</span>
+      ${m.make ? `<span class="mc-hang">${esc(m.make)}</span>` : ''}
+      <span class="mc-ten">${esc(m.product_name || '')}</span>
+      ${coHang
+        ? `<button class="mc-xem" onclick="openPDById('${esc(m.product_id)}')">Xem hàng</button>`
+        : '<span class="mc-khong">chưa có trong kho</span>'}
+    </div>`;
+  }).join('');
 }
 
 function renderAlternatives(current, alts) {
