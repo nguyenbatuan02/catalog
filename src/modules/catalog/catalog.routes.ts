@@ -1786,12 +1786,23 @@ export async function catalogRoutes(fastify: FastifyInstance) {
       const client = await pool.connect();
       try {
         await client.query('BEGIN');
+
+        // CHẶN worker ôm mã: worker lỗi mà không nộp kết quả thì mã treo ở
+        // 'claimed', trong khi nó vẫn xin lô mới liên tục. Đã gặp thật —
+        // 1 worker giữ 50,157 mã, hàng đợi gần như đứng. Nên trước khi giao
+        // lô mới, nhả hết mã cũ mà chính worker này đang giữ: nó đã sang lô
+        // khác rồi, mã cũ chắc chắn không được cào nữa.
+        await client.query(`
+          UPDATE crawl_substitutes_queue
+          SET status='pending', worker_id=NULL, claimed_at=NULL
+          WHERE status='claimed' AND worker_id=$1
+        `, [workerId]);
+
         // Chọn các mã:
         //  - status = 'pending'
-        //  - HOẶC status = 'claimed' mà quá 15 phút chưa xong (worker chết/rớt mạng -> reclaim)
-        // Giữ mã 5 phút chứ không 15: worker chạy 4 tab cào xong lô 40 mã trong
-        // ~10 giây, nên 15 phút là quá thừa — mã bị giữ lâu làm hàng đợi cạn
-        // 'pending' trong khi hàng chục nghìn mã nằm im chờ hết hạn.
+        //  - HOẶC 'claimed' của worker KHÁC mà quá 5 phút (worker đó chết/rớt mạng)
+        // Giữ 5 phút chứ không 15: worker chạy 4 tab cào xong lô 40 mã trong
+        // ~10 giây, nên 15 phút là quá thừa.
         const qRes = await client.query(`
           WITH ung_vien AS (
             SELECT ref_norm
@@ -1835,6 +1846,21 @@ export async function catalogRoutes(fastify: FastifyInstance) {
         await client.query('BEGIN');
 
         if (error) {
+          // Phân biệt lỗi PHÍA MÁY WORKER với lỗi thật từ PartSouq.
+          // Đóng Chrome giữa chừng / tab sập / mạng rớt thì mã CHƯA HỀ được cào
+          // — phải trả về hàng đợi, không phải đánh dấu hỏng. Đã mắc lỗi này:
+          // 324,966 mã bị ghi 'error' chỉ vì người dùng đóng trình duyệt, nằm
+          // chết ở đó không worker nào nhận lại.
+          const loiMayWorker = /has been closed|Page crashed|ERR_ABORTED|Timeout \d+ms exceeded|ERR_INSUFFICIENT_RESOURCES|ERR_NETWORK|ERR_CONNECTION|because the page is/i.test(error);
+          if (loiMayWorker) {
+            await client.query(`
+              UPDATE crawl_substitutes_queue
+              SET status='pending', worker_id=NULL, claimed_at=NULL, error_msg=$2
+              WHERE ref_norm = $1
+            `, [normGoc, error.slice(0, 200)]);
+            await client.query('COMMIT');
+            return reply.send({ ok: true, status: 'pending', ghi_chu: 'lỗi phía worker — trả về hàng đợi' });
+          }
           await client.query(`
             UPDATE crawl_substitutes_queue
             SET status = 'error', error_msg = $2, completed_at = NOW()

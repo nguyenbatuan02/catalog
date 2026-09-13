@@ -44,6 +44,13 @@ index.html.bak*
 /*.txt
 /*.bat
 
+# Trừ 4 file worker: KHÔNG phải script chạy một lần mà là mã sản xuất, chạy
+# trên nhiều máy và được /tai-ve/ phục vụ cho máy phụ tải về.
+!/worker_substitutes.mjs
+!/worker_xe.mjs
+!/CHAY_WORKER.bat
+!/chay_lien_tuc.sh
+
 # ─── File rác do gõ nhầm lệnh shell ─────────────────────────
 /{
 /(1
