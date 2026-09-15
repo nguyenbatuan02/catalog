@@ -53,10 +53,17 @@ async function loadAlternatives(productId: string): Promise<any[]> {
 // vốn là product ↔ product. Mã ở đây có thể CHƯA tồn tại như một sản phẩm trong
 // DB (mã của hãng khác, cào từ PartSouq), nên không nối được qua catalog_alternatives.
 // co_hang: mã đó có bán trong kho không → giao diện chỉ cho bấm khi có.
+// la_hang_xe: mã này của HÃNG XE (Toyota, Nissan...) hay HÃNG PHỤ TÙNG
+// (FEBEST, AISIN, NiBK...)? Không cần thêm cột — đối chiếu make với danh sách
+// hãng trong catalog_vehicles là đủ. Khách cần biết mã nào là chính hãng,
+// mã nào là hàng thay thế; chỉ in tên hãng ra thì người không trong ngành
+// không phân biệt được.
 async function loadOemCodes(productId: string): Promise<any[]> {
   const res = await pool.query(`
     SELECT o.oem_code, o.make, o.source,
-           sp.id AS product_id, sp.name AS product_name
+           sp.id AS product_id, sp.name AS product_name,
+           EXISTS (SELECT 1 FROM catalog_vehicles v
+                    WHERE lower(v.make) = lower(o.make)) AS la_hang_xe
     FROM catalog_oem_codes o
     LEFT JOIN catalog_products sp
            ON sp.ref_norm = o.oem_norm AND sp.is_for_sale = TRUE

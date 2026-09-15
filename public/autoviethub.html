@@ -1127,6 +1127,15 @@ nav {
   font-size: 12px; padding: 2px 9px; border-radius: 20px;
   background: var(--accent-dim); color: var(--accent); font-weight: 500;
 }
+/* Hãng xe (chính hãng) vs hãng phụ tùng (thay thế) — màu khác nhau để nhìn là biết */
+.mc-hang.hx  { background: var(--accent-dim); color: var(--accent); }
+.mc-hang.hpt { background: var(--teal-dim);   color: var(--teal); }
+.mc-nhom {
+  margin: 16px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border);
+  font-size: 13px; color: var(--text);
+}
+.mc-nhom:first-child { margin-top: 0; }
+.mc-nhom span { color: var(--text3); font-weight: 400; }
 .mc-ten { font-size: 13px; color: var(--text2); flex: 1; min-width: 140px; }
 .mc-nguon { font-size: 11px; color: var(--text3); }
 .mc-xem {
@@ -2776,17 +2785,36 @@ function renderMaThayThe(dsMa) {
   const esc = (s) => String(s ?? '').replace(/[<>&"]/g, (c) =>
     ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
 
-  el.innerHTML = dsMa.map((m) => {
+  // Tách 2 nhóm: mã của HÃNG XE (chính hãng) và mã HÃNG PHỤ TÙNG (thay thế).
+  // Chỉ in tên hãng thì khách không trong ngành không biết FEBEST/AISIN khác
+  // Toyota ở chỗ nào — phải nói thẳng ra.
+  // Mã KHÔNG có make (nguồn dmvthh/Product.xlsx không kèm cột hãng) phải để
+  // riêng — xếp bừa vào "hãng phụ tùng ngoài" là nói SAI với khách, vì phần
+  // lớn chúng thực ra là mã chính hãng.
+  const chinhHang = dsMa.filter((m) => m.make && m.la_hang_xe);
+  const thayThe   = dsMa.filter((m) => m.make && !m.la_hang_xe);
+  const chuaRo    = dsMa.filter((m) => !m.make);
+
+  const dong = (m) => {
     const coHang = !!m.product_id;
     return `<div class="mc-row${coHang ? ' co-hang' : ''}">
       <span class="mc-ma">${esc(m.oem_code)}</span>
-      ${m.make ? `<span class="mc-hang">${esc(m.make)}</span>` : ''}
+      ${m.make ? `<span class="mc-hang${m.la_hang_xe ? ' hx' : ' hpt'}">${esc(m.make)}</span>` : ''}
       <span class="mc-ten">${esc(m.product_name || '')}</span>
       ${coHang
         ? `<button class="mc-xem" onclick="openPDById('${esc(m.product_id)}')">Xem hàng</button>`
         : '<span class="mc-khong">chưa có trong kho</span>'}
     </div>`;
-  }).join('');
+  };
+
+  const khoi = (nhan, mo_ta, ds) => ds.length
+    ? `<div class="mc-nhom"><b>${nhan}</b> <span>${mo_ta} · ${ds.length} mã</span></div>${ds.map(dong).join('')}`
+    : '';
+
+  el.innerHTML =
+    khoi('Mã chính hãng', 'do hãng xe sản xuất', chinhHang) +
+    khoi('Mã thay thế', 'hãng phụ tùng ngoài, lắp thay được', thayThe) +
+    khoi('Mã tương đương', 'chưa rõ hãng sản xuất', chuaRo);
 }
 
 function renderAlternatives(current, alts) {
