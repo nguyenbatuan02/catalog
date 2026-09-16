@@ -103,6 +103,16 @@
   </div>
 
   <div class="thẻ">
+    <h2>Mã chéo — JNBK / NiBK (má phanh) <span class="tỉlệ" id="tl-jnbk"></span></h2>
+    <div class="thanh"><i id="bar-jnbk" style="width:0"></i></div>
+    <div class="số" id="so-jnbk"></div>
+    <table id="w-jnbk"></table>
+    <p class="hd">Nguồn riêng, hàng đợi riêng. Chỉ có má phanh/guốc phanh/đĩa phanh
+      nhưng mỗi mã trúng cho tới <b>53 mã chéo</b> (AKEBONO, BENDIX, FMSI, WVA…),
+      gấp 100 lần PartSouq.</p>
+  </div>
+
+  <div class="thẻ">
     <h2>Cào xe — Nhóm 2 Product.xlsx <span class="tỉlệ" id="tl-xe"></span></h2>
     <div class="thanh"><i id="bar-xe" style="width:0"></i></div>
     <div class="số" id="so-xe"></div>
@@ -115,6 +125,7 @@
     <div class="tải">
       <a href="/tai-ve/CHAY_WORKER.bat" download>⬇ CHAY_WORKER.bat</a>
       <a href="/tai-ve/worker_substitutes.mjs" download>⬇ worker_substitutes.mjs</a>
+      <a href="/tai-ve/worker_jnbk.mjs" download>⬇ worker_jnbk.mjs (má phanh)</a>
     </div>
     <ol class="hd">
       <li>File .bat tự cài <code>playwright</code>, tự mở Chrome và tự đặt tên worker theo tên máy.</li>
@@ -175,9 +186,10 @@ function veWorker(id, ws, cotCuoi) {
 
 async function tai() {
   try {
-    const [the, xe] = await Promise.all([
+    const [the, xe, jnbk] = await Promise.all([
       fetch(API + '/substitutes/stats').then((r) => r.json()),
       fetch(API + '/xe/stats').then((r) => r.json()),
+      fetch(API + '/jnbk/stats').then((r) => r.json()).catch(() => null),
     ]);
 
     // --- Mã thay thế ---
@@ -190,6 +202,18 @@ async function tai() {
       <div class="ô cam"><b>${n(gT.pending)}</b><span>còn chờ</span></div>
       <div class="ô"><b>${n(gT.claimed)}</b><span>đang cào</span></div>`;
     veWorker('w-the', the.workers, { khoá: 'total_found', nhãn: 'Mã thế' });
+
+    // --- JNBK ---
+    if (jnbk) {
+      const gJ = gomTrangThai(jnbk.summary);
+      veThanh('bar-jnbk', 'tl-jnbk', gJ);
+      document.getElementById('so-jnbk').innerHTML = `
+        <div class="ô luc"><b>${n(jnbk.ma_da_ghi)}</b><span>mã chéo vào DB</span></div>
+        <div class="ô"><b>${n(gJ.done)}</b><span>đã cào</span></div>
+        <div class="ô cam"><b>${n(gJ.pending)}</b><span>còn chờ</span></div>
+        <div class="ô"><b>${n(gJ.claimed)}</b><span>đang cào</span></div>`;
+      veWorker('w-jnbk', jnbk.workers, { khoá: 'total_found', nhãn: 'Mã chéo' });
+    }
 
     // --- Cào xe ---
     const gX = gomTrangThai(xe.summary);

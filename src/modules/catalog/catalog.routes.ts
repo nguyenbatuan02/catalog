@@ -2144,4 +2144,151 @@ export async function catalogRoutes(fastify: FastifyInstance) {
       return reply.status(500).send({ error: e.message });
     }
   });
+
+  // ============================================================
+  // CRAWL JNBK / NiBK — nguồn mã chéo má phanh (nibk-brakes.com)
+  // Hàng đợi RIÊNG, không dùng chung crawl_substitutes_queue: JNBK cho ra thứ
+  // khác (bảng cross-reference AKEBONO/BENDIX/FMSI/WVA), phạm vi hẹp (chỉ
+  // phanh) và nhịp khác — trộn chung thì không tách được số liệu để biết
+  // nguồn nào đáng cào.
+  // ============================================================
+
+  fastify.get<{ Querystring: { worker_id?: string; limit?: string } }>(
+    '/crawl/jnbk/claim', async (req, reply) => {
+      const workerId = (req.query.worker_id || 'unknown').trim();
+      const limit = Math.min(Math.max(parseInt(req.query.limit || '20') || 20, 1), 100);
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        // Nhả mã cũ worker này còn giữ trước khi giao lô mới — nó đã sang lô
+        // khác nên mã cũ chắc chắn không được cào nữa (xem sự cố ôm 50k mã).
+        await client.query(
+          `UPDATE crawl_jnbk_queue SET status='pending', worker_id=NULL, claimed_at=NULL
+           WHERE status='claimed' AND worker_id=$1`, [workerId]);
+
+        const r = await client.query(`
+          WITH ung_vien AS (
+            SELECT ref_norm FROM crawl_jnbk_queue
+            WHERE status='pending'
+               OR (status='claimed' AND claimed_at < NOW() - INTERVAL '5 minutes')
+            ORDER BY claimed_at ASC NULLS FIRST
+            LIMIT $1 FOR UPDATE SKIP LOCKED
+          )
+          UPDATE crawl_jnbk_queue q
+          SET status='claimed', worker_id=$2, claimed_at=NOW()
+          FROM ung_vien u WHERE q.ref_norm = u.ref_norm
+          RETURNING q.ref_norm, q.ma_goc
+        `, [limit, workerId]);
+        await client.query('COMMIT');
+        return reply.send({ ok: true, worker_id: workerId, count: r.rows.length, items: r.rows });
+      } catch (e: any) {
+        await client.query('ROLLBACK').catch(() => {});
+        fastify.log.error('[jnbk/claim] ' + e.message);
+        return reply.status(500).send({ error: e.message });
+      } finally { client.release(); }
+    }
+  );
+
+  fastify.post<{ Body: { worker_id?: string; ma_goc: string; ma_nibk?: string; cheo?: any[]; error?: string } }>(
+    '/crawl/jnbk/submit', async (req, reply) => {
+      const { worker_id = 'unknown', ma_goc, ma_nibk, cheo = [], error } = req.body || {};
+      if (!ma_goc) return reply.status(400).send({ error: 'Thiếu ma_goc' });
+      const normGoc = ma_goc.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+
+        if (error) {
+          // Lỗi phía máy worker (đóng Chrome, tab sập) → mã CHƯA được cào,
+          // trả về hàng đợi chứ không đánh dấu hỏng.
+          const loiMay = /has been closed|Page crashed|ERR_ABORTED|Timeout \d+ms|ERR_INSUFFICIENT|because the page is/i.test(error);
+          await client.query(
+            loiMay
+              ? `UPDATE crawl_jnbk_queue SET status='pending', worker_id=NULL, claimed_at=NULL, error_msg=$2 WHERE ref_norm=$1`
+              : `UPDATE crawl_jnbk_queue SET status='error', error_msg=$2, completed_at=NOW() WHERE ref_norm=$1`,
+            [normGoc, error.slice(0, 200)]);
+          await client.query('COMMIT');
+          return reply.send({ ok: true, status: loiMay ? 'pending' : 'error' });
+        }
+
+        let inserted = 0;
+        if (ma_nibk && cheo.length) {
+          const sp = await client.query(
+            'SELECT id FROM catalog_products WHERE ref_norm = $1 LIMIT 1', [normGoc]);
+          if (sp.rows.length) {
+            const productId = sp.rows[0].id;
+            // Mã NiBK cũng là một mã thay thế hợp lệ → lưu luôn
+            const tatCa = [{ hang: 'NiBK', ma: ma_nibk }, ...cheo];
+            for (const c of tatCa) {
+              const ma = (c.ma || '').trim();
+              const chuan = ma.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+              if (!ma || !chuan || chuan === normGoc) continue;
+              const r = await client.query(`
+                INSERT INTO catalog_oem_codes (product_id, oem_code, make, source)
+                VALUES ($1, $2, $3, 'jnbk:cross-reference')
+                ON CONFLICT (product_id, oem_code) DO NOTHING
+              `, [productId, ma, (c.hang || '').trim() || null]);
+              inserted += (r.rowCount || 0);
+            }
+          }
+        }
+
+        await client.query(`
+          UPDATE crawl_jnbk_queue
+          SET status='done', ma_nibk=$2, total_found=$3, completed_at=NOW(), error_msg=NULL
+          WHERE ref_norm=$1
+        `, [normGoc, ma_nibk || null, cheo.length]);
+
+        await client.query('COMMIT');
+        return reply.send({ ok: true, ma_goc, ma_nibk, cheo_nhan: cheo.length, oem_codes_inserted: inserted });
+      } catch (e: any) {
+        await client.query('ROLLBACK').catch(() => {});
+        fastify.log.error('[jnbk/submit] ' + e.message);
+        return reply.status(500).send({ error: e.message });
+      } finally { client.release(); }
+    }
+  );
+
+  // Nạp mã phanh vào hàng đợi JNBK (JNBK CHỈ có má phanh/guốc phanh/đĩa phanh)
+  fastify.post<{ Body: { so_luong?: number } }>('/crawl/jnbk/seed', async (req, reply) => {
+    const soLuong = Math.min(Math.max(Number(req.body?.so_luong) || 20000, 100), 100000);
+    try {
+      const t0 = Date.now();
+      const r = await pool.query(`
+        INSERT INTO crawl_jnbk_queue (ref_norm, ma_goc, status)
+        SELECT p.ref_norm, p.internal_ref, 'pending'
+        FROM catalog_products p
+        WHERE p.is_for_sale AND p.ref_norm IS NOT NULL
+          AND lower(coalesce(p.name,'') || ' ' || coalesce(p.name_vi,'')) ~
+              'brake pad|disc brake|brake shoe|má phanh|ma phanh|guốc phanh|bố thắng'
+          AND NOT EXISTS (SELECT 1 FROM crawl_jnbk_queue q WHERE q.ref_norm = p.ref_norm)
+        LIMIT $1
+        ON CONFLICT (ref_norm) DO NOTHING
+      `, [soLuong]);
+      return reply.send({ ok: true, da_nap: r.rowCount || 0, giay: Math.round((Date.now() - t0) / 100) / 10 });
+    } catch (e: any) {
+      fastify.log.error('[jnbk/seed] ' + e.message);
+      return reply.status(500).send({ error: e.message });
+    }
+  });
+
+  fastify.get('/crawl/jnbk/stats', async (_req, reply) => {
+    try {
+      const [q, w, o] = await Promise.all([
+        pool.query(`SELECT status, count(*)::int AS count, sum(total_found)::int AS total_found
+                    FROM crawl_jnbk_queue GROUP BY status`),
+        pool.query(`SELECT worker_id, count(*)::int AS done_count, sum(total_found)::int AS total_found,
+                           max(completed_at) AS last_seen
+                    FROM crawl_jnbk_queue WHERE status='done'
+                    GROUP BY worker_id ORDER BY done_count DESC`),
+        pool.query(`SELECT count(*)::int AS ma_da_ghi FROM catalog_oem_codes
+                    WHERE source='jnbk:cross-reference'`),
+      ]);
+      return reply.send({ summary: q.rows, workers: w.rows, ...o.rows[0] });
+    } catch (e: any) {
+      fastify.log.error('[jnbk/stats] ' + e.message);
+      return reply.status(500).send({ error: e.message });
+    }
+  });
 }

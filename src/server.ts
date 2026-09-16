@@ -107,6 +107,7 @@ server.get('/dashboard.html', serveDashboard);
 const FILE_WORKER: Record<string, string> = {
   'worker_substitutes.mjs': join(__dirname, '..', 'worker_substitutes.mjs'),
   'worker_xe.mjs'         : join(__dirname, '..', 'worker_xe.mjs'),
+  'worker_jnbk.mjs'       : join(__dirname, '..', 'worker_jnbk.mjs'),
   'CHAY_WORKER.bat'       : join(__dirname, '..', 'CHAY_WORKER.bat'),
 };
 server.get<{ Params: { ten: string } }>('/tai-ve/:ten', async (req, reply) => {

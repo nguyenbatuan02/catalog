@@ -48,6 +48,7 @@ index.html.bak*
 # trên nhiều máy và được /tai-ve/ phục vụ cho máy phụ tải về.
 !/worker_substitutes.mjs
 !/worker_xe.mjs
+!/worker_jnbk.mjs
 !/CHAY_WORKER.bat
 !/chay_lien_tuc.sh
 
