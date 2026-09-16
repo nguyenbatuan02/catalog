@@ -109,6 +109,8 @@ const FILE_WORKER: Record<string, string> = {
   'worker_xe.mjs'         : join(__dirname, '..', 'worker_xe.mjs'),
   'worker_jnbk.mjs'       : join(__dirname, '..', 'worker_jnbk.mjs'),
   'CHAY_WORKER.bat'       : join(__dirname, '..', 'CHAY_WORKER.bat'),
+  'chay_lien_tuc.sh'      : join(__dirname, '..', 'chay_lien_tuc.sh'),
+  'dung_cao.sh'           : join(__dirname, '..', 'dung_cao.sh'),
 };
 server.get<{ Params: { ten: string } }>('/tai-ve/:ten', async (req, reply) => {
   const duongDan = FILE_WORKER[req.params.ten];

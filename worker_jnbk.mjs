@@ -79,7 +79,10 @@ const br = await chromium.connectOverCDP(CDP).catch(() => {
 });
 const ctx = br.contexts()[0] || await br.newContext();
 // Dọn tab sót của lần trước — không dọn thì Chrome tích tụ tab đến cạn bộ nhớ.
-for (const t of ctx.pages().slice(1)) if (/jnbk-brakes/i.test(t.url())) await t.close().catch(() => {});
+// Gồm cả tab cloudflare/recaptcha: worker bị giết đột ngột thì mã đóng tab
+// không kịp chạy, mà tab challenge mới là loại tích tụ nhiều nhất.
+const TAB_RAC = /jnbk-brakes|challenges\.cloudflare\.com|recaptcha/i;
+for (const t of ctx.pages().slice(1)) if (TAB_RAC.test(t.url())) await t.close().catch(() => {});
 
 const tabs = [];
 for (let i = 0; i < TABS; i++) tabs.push(await ctx.newPage());

@@ -63,12 +63,16 @@ const br = await chromium.connectOverCDP(CDP_URL).catch(() => {
 
 const ctx = br.contexts()[0] || await br.newContext();
 
-// Dọn tab PartSouq còn sót của lần chạy trước. Worker chết đột ngột thì không
-// kịp đóng tab; chạy lại vài vòng là tích tụ hàng chục tab, Chrome cạn bộ nhớ
-// và ném ERR_INSUFFICIENT_RESOURCES. Giữ lại tab đầu (thường là trang người
-// dùng đang mở), chỉ đóng tab partsouq.
+// Dọn tab sót của lần chạy trước. Worker bị giết đột ngột (captcha -> vòng
+// chay_lien_tuc.sh bật lại) thì mã đóng tab KHÔNG kịp chạy, nên mỗi vòng lại
+// bỏ thêm tab. Vài vòng là hàng chục tab -> ERR_INSUFFICIENT_RESOURCES.
+//
+// PHẢI dọn cả tab challenges.cloudflare.com và recaptcha: đo thật lúc sự cố
+// thấy 36 tab thì 13 tab Cloudflare + 6 tab reCAPTCHA — chúng mới là loại
+// tích tụ nhiều nhất, mà bản trước chỉ dọn tab partsouq nên bỏ sót.
+const TAB_RAC = /partsouq\.com|challenges\.cloudflare\.com|recaptcha|gstatic\.com\/recaptcha/i;
 for (const t of ctx.pages().slice(1)) {
-  if (/partsouq\.com/i.test(t.url())) await t.close().catch(() => {});
+  if (TAB_RAC.test(t.url())) await t.close().catch(() => {});
 }
 
 const cacTab = [];

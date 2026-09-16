@@ -51,6 +51,7 @@ index.html.bak*
 !/worker_jnbk.mjs
 !/CHAY_WORKER.bat
 !/chay_lien_tuc.sh
+!/dung_cao.sh
 
 # ─── File rác do gõ nhầm lệnh shell ─────────────────────────
 /{
@@ -90,3 +91,8 @@ tmp_*
 
 # Bản biên dịch của scripts/*.ts — build ra, không commit
 scripts/*.js
+
+# Profile Chrome do script tao ra khi thu nghiem — khong phai ma nguon
+chrome-pw/
+chrome-pw2/
+.pw-profile/
