@@ -23,7 +23,7 @@ function getArg(key, def) {
 
 const SERVER_URL = getArg('server', 'http://localhost:3001').replace(/\/$/, '');
 const WORKER_ID  = getArg('worker-id', `worker-${Math.random().toString(36).substring(2, 7)}`);
-const CDP_URL    = getArg('cdp', 'http://localhost:9222');
+const CDP_URL    = getArg('cdp', 'http://127.0.0.1:9222');
 const BATCH_SIZE = parseInt(getArg('batch', '20'));
 const DELAY_MS   = parseInt(getArg('delay', '600'));
 // Nhiều tab cùng cào. Phần lớn thời gian mỗi mã là NGỒI CHỜ MẠNG, lúc đó máy

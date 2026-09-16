@@ -23,7 +23,7 @@ const doc = (k, m) => { const i = args.indexOf('--' + k); return i !== -1 && arg
 
 const SERVER = doc('server', 'http://localhost:3001').replace(/\/$/, '');
 const WORKER = doc('worker-id', `jnbk-${Math.random().toString(36).slice(2, 7)}`);
-const CDP    = doc('cdp', 'http://localhost:9222');
+const CDP    = doc('cdp', 'http://127.0.0.1:9222');
 const BATCH  = parseInt(doc('batch', '20'));
 const TABS   = Math.min(Math.max(parseInt(doc('tabs', '3')), 1), 6);
 const NGHI   = parseInt(doc('delay', '800'));

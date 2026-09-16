@@ -22,7 +22,7 @@ const getArg = (k, d) => {
 
 const SERVER   = getArg('server', 'http://localhost:3001').replace(/\/$/, '');
 const WORKER   = getArg('worker-id', `xe-${Math.random().toString(36).slice(2, 7)}`);
-const CDP      = getArg('cdp', 'http://localhost:9222');
+const CDP      = getArg('cdp', 'http://127.0.0.1:9222');
 const BATCH    = parseInt(getArg('batch', '20'));
 const DELAY    = parseInt(getArg('delay', '1800'));
 const API      = `${SERVER}/api/v1/catalog/crawl/xe`;

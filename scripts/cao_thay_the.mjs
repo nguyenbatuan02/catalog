@@ -31,7 +31,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const CHO = 1800;   // nghỉ giữa 2 mã, tránh bị chặn
-const CDP = process.env.CDP || 'http://localhost:9222';
+const CDP = process.env.CDP || 'http://127.0.0.1:9222';
 
 function docThamSo(argv) {
   const a = {};

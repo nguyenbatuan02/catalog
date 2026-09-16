@@ -13,7 +13,7 @@ import pg from 'pg';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const CDP = process.env.CDP || 'http://localhost:9222';
+const CDP = process.env.CDP || 'http://127.0.0.1:9222';
 const CHO = 1500;
 
 const pool = new pg.Pool({
