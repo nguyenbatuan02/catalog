@@ -41,11 +41,23 @@ console.log(` Lô claim  : ${BATCH_SIZE} mã/lần`);
 console.log(` Số tab    : ${SO_TAB} (chạy song song)`);
 console.log(` Nghỉ/mã   : ${DELAY_MS} ms\n`);
 
-// 1. Nối Chrome CDP
+// 1. Nối vào Chrome người dùng mở tay qua CDP.
+//
+// ĐÃ THỬ cho Playwright TỰ mở Chrome (launchPersistentContext + channel:'chrome'
+// + profile lưu đĩa) vào 2026-09-16: một mã đơn lẻ thì qua, nhưng 3 tab cào
+// liên tục là Cloudflare chặn NGAY (CAPTCHA_BLOCKED rồi Page crashed).
+// Chrome do Playwright mở mang cờ --enable-automation và navigator.webdriver,
+// Cloudflare đọc được. ĐỪNG đổi lại.
+//
+// Nếu CDP không nối được, kiểm theo thứ tự:
+//   1) netstat -ano | findstr :9222  — Chrome có khi nghe [::1] thay vì 127.0.0.1
+//   2) curl 127.0.0.1:9222/json/version có trả webSocketDebuggerUrl không
+//   3) "Opening in existing browser session" = đã có phiên Chrome cùng profile,
+//      cờ debug bị bỏ qua -> phải tắt hẳn tiến trình cũ rồi mở lại
 const br = await chromium.connectOverCDP(CDP_URL).catch(() => {
   console.error(`[LỖI] Không thể nối tới Chrome tại ${CDP_URL}.`);
   console.error(`Hãy mở Chrome bằng lệnh:`);
-  console.error(`  chrome.exe --remote-debugging-port=9222`);
+  console.error(`  chrome.exe --remote-debugging-port=9222 --user-data-dir=C:\\chrome-cao`);
   process.exit(1);
 });
 
