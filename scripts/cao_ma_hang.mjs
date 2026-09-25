@@ -22,6 +22,7 @@ const args = process.argv.slice(2);
 const doc = (k, m) => { const i = args.indexOf('--' + k); return i !== -1 && args[i + 1] ? args[i + 1] : m; };
 const CHI_HANG = doc('hang', null);
 const NAP = args.includes('--nap');
+const DUNG_CHROME = args.includes('--chrome');   // chỉ áp dụng MChanix
 const NGHI = parseInt(doc("delay", "800"));
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/153.0.0.0 Safari/537.36';
 
@@ -65,10 +66,29 @@ async function traJs(ma) {
 // ⚠ MChanix chặn IP sau ~30 lần gọi: chuyển sang /en/verification (captcha).
 // fetch tự theo redirect nên trang trả về KHÔNG có link part -> dễ tưởng nhầm
 // "không có mã" (lần chạy 2026-09-26: 496/525 "không có" thực ra là bị chặn).
+// --chrome: tải qua tab của Chrome cào (CDP, như worker PartSouq). Khi gặp trang
+// xác minh thì CHỜ người giải captcha trên cửa sổ Chrome đó rồi đi tiếp.
+let tabMc = null;
 async function layMc(url) {
-  const r = await fetch(url, { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(25000) });
-  if (r.url.includes('/verification')) throw new Error('BI_CHAN');
-  return r.text();
+  if (!DUNG_CHROME) {
+    const r = await fetch(url, { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(25000) });
+    if (r.url.includes('/verification')) throw new Error('BI_CHAN');
+    return r.text();
+  }
+  if (!tabMc) {
+    const { chromium } = await import('playwright');
+    const br = await chromium.connectOverCDP(doc('cdp', 'http://127.0.0.1:9222'));
+    tabMc = await br.contexts()[0].newPage();
+    process.on('exit', () => { tabMc.close().catch(() => {}); });
+  }
+  await tabMc.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  if (tabMc.url().includes('/verification')) {
+    console.log('\n  >>> MChanix hiện captcha. Giải trên cửa sổ Chrome cào — script tự đi tiếp (chờ tối đa 10 phút).');
+    await tabMc.bringToFront().catch(() => {});
+    await tabMc.waitForURL((u) => !u.href.includes('/verification'), { timeout: 600000 });
+    await tabMc.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  }
+  return tabMc.content();
 }
 async function traMchanix(ma) {
   const lay = layMc;
