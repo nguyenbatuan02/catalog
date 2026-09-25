@@ -26,6 +26,20 @@ const PRODUCT_COLS = `
 `.trim();
 
 // Load compatible_vehicles cho 1 product (chi dung trong detail)
+// Bộ nhớ đệm cho /crawl/*/stats. Trang tiến độ tự làm mới 10s/lần, mỗi lần
+// quét ~6tr dòng hàng chờ 2 lượt (song song) — trên máy 8GB đã làm Postgres
+// hết RAM và tắt hẳn (2026-09-25). Số liệu tiến độ cũ 60s không sao.
+const DEM_TTL_MS = 60_000;
+const boDem = new Map<string, { luc: number; data: any }>();
+function layDem(k: string) {
+  const x = boDem.get(k);
+  return x && Date.now() - x.luc < DEM_TTL_MS ? x.data : null;
+}
+function luuDem(k: string, data: any) {
+  boDem.set(k, { luc: Date.now(), data });
+  return data;
+}
+
 async function loadCompatibleVehicles(productId: string): Promise<any[]> {
   const res = await pool.query(`
     SELECT v.make, v.model_code, v.model_name, v.year_from, v.year_to
@@ -1972,6 +1986,8 @@ export async function catalogRoutes(fastify: FastifyInstance) {
 
   // 3) Queue stats: Xem tiến độ cào Substitutes
   fastify.get('/crawl/substitutes/stats', async (_req, reply) => {
+    const daLuu = layDem('substitutes');
+    if (daLuu) return reply.send(daLuu);
     try {
       const [stRes, wkRes] = await Promise.all([
         pool.query(`
@@ -1987,10 +2003,10 @@ export async function catalogRoutes(fastify: FastifyInstance) {
           ORDER BY done_count DESC
         `),
       ]);
-      return reply.send({
+      return reply.send(luuDem('substitutes', {
         summary: stRes.rows,
         workers: wkRes.rows,
-      });
+      }));
     } catch (e: any) {
       fastify.log.error('[substitutes/stats] ' + e.message);
       return reply.status(500).send({ error: e.message });
@@ -2141,6 +2157,8 @@ export async function catalogRoutes(fastify: FastifyInstance) {
 
   // 3) Tiến độ
   fastify.get('/crawl/xe/stats', async (_req, reply) => {
+    const daLuu = layDem('xe');
+    if (daLuu) return reply.send(daLuu);
     try {
       const [q, w, c] = await Promise.all([
         pool.query(`SELECT status, count(*)::int AS count, sum(so_xe)::int AS so_xe,
@@ -2154,7 +2172,7 @@ export async function catalogRoutes(fastify: FastifyInstance) {
                            count(*) FILTER (WHERE NOT da_nap)::int AS con_cho
                     FROM product_cho_nap`),
       ]);
-      return reply.send({ summary: q.rows, workers: w.rows, phong_cho: c.rows[0] });
+      return reply.send(luuDem('xe', { summary: q.rows, workers: w.rows, phong_cho: c.rows[0] }));
     } catch (e: any) {
       fastify.log.error('[xe/stats] ' + e.message);
       return reply.status(500).send({ error: e.message });
@@ -2290,6 +2308,8 @@ export async function catalogRoutes(fastify: FastifyInstance) {
   });
 
   fastify.get('/crawl/jnbk/stats', async (_req, reply) => {
+    const daLuu = layDem('jnbk');
+    if (daLuu) return reply.send(daLuu);
     try {
       const [q, w, o] = await Promise.all([
         pool.query(`SELECT status, count(*)::int AS count, sum(total_found)::int AS total_found
@@ -2301,7 +2321,7 @@ export async function catalogRoutes(fastify: FastifyInstance) {
         pool.query(`SELECT count(*)::int AS ma_da_ghi FROM catalog_oem_codes
                     WHERE source='jnbk:cross-reference'`),
       ]);
-      return reply.send({ summary: q.rows, workers: w.rows, ...o.rows[0] });
+      return reply.send(luuDem('jnbk', { summary: q.rows, workers: w.rows, ...o.rows[0] }));
     } catch (e: any) {
       fastify.log.error('[jnbk/stats] ' + e.message);
       return reply.status(500).send({ error: e.message });
