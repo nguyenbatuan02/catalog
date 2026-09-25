@@ -62,9 +62,12 @@ async function loadOemCodes(productId: string): Promise<any[]> {
   const res = await pool.query(`
     SELECT o.oem_code, o.make, o.source,
            sp.id AS product_id, sp.name AS product_name,
-           EXISTS (SELECT 1 FROM catalog_vehicles v
-                    WHERE lower(v.make) = lower(o.make)) AS la_hang_xe
+           (hx.make IS NOT NULL) AS la_hang_xe
     FROM catalog_oem_codes o
+    -- JOIN vào danh sách hãng distinct thay vì EXISTS tương quan: EXISTS bị
+    -- planner chạy seq scan cả catalog_vehicles cho TỪNG mã (1.2s / 50 mã).
+    LEFT JOIN (SELECT DISTINCT lower(make) AS make FROM catalog_vehicles) hx
+           ON hx.make = lower(o.make)
     LEFT JOIN catalog_products sp
            ON sp.ref_norm = o.oem_norm AND sp.is_for_sale = TRUE
     WHERE o.product_id = $1
@@ -368,9 +371,18 @@ export async function catalogRoutes(fastify: FastifyInstance) {
           ORDER BY p.name
           LIMIT $${i} OFFSET $${i+1}
         `;
+      // Duyệt thường (chỉ lọc is_for_sale): COUNT(*) chính xác trên ~6tr dòng mất
+      // ~2.8s MỖI lần mở trang. Dùng ước lượng của planner (reltuples, tức thì,
+      // lệch <1% sau ANALYZE) — con số chỉ để hiện tổng trang, không cần đúng tuyệt đối.
+      // ponytail: ước lượng cả bảng, gồm luôn SP is_for_sale=false (hiện gần như
+      // không có); nếu sau này nhiều SP ngừng bán thì chuyển sang bảng đếm có trigger.
+      const chiLocBan = !q && !product_type && !brand;
+      const cntSql = chiLocBan
+        ? `SELECT reltuples::bigint::int AS total FROM pg_class WHERE oid = 'catalog_products'::regclass`
+        : `SELECT COUNT(*)::int total FROM catalog_products p WHERE ${w}`;
       const [rows, cnt] = await Promise.all([
         pool.query(dataSql, [...vals, parseInt(limit), off]),
-        pool.query(`SELECT COUNT(*)::int total FROM catalog_products p WHERE ${w}`, vals),
+        pool.query(cntSql, chiLocBan ? [] : vals),
       ]);
       return reply.send({ data:rows.rows, total:cnt.rows[0].total, page:parseInt(page), limit:parseInt(limit), totalPages:Math.ceil(cnt.rows[0].total/parseInt(limit)) });
     }
