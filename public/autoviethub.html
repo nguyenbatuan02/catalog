@@ -2344,6 +2344,7 @@ function adaptProduct(p) {
     })),
     // Mã thay thế (catalog_oem_codes) — giữ nguyên shape từ API, tab riêng tự render.
     oem_codes: p.oem_codes || [],
+    chiTiet: Array.isArray(p.oem_codes),   // true = đến từ API chi tiết
   };
 }
 
@@ -2651,7 +2652,10 @@ function filterCatalog(brand) {
 
 async function viewProduct(id) {
   const cached = _productCache.get(id);
-  if (cached && cached.fitment) { openPD(cached); return; }   // đã có đủ dữ liệu chi tiết
+  // Chỉ API chi tiết mới trả oem_codes. Không kiểm cached.fitment: bản từ danh
+  // sách tìm kiếm cũng có fitment = [] (mảng rỗng vẫn truthy) → popup mở bằng
+  // bản thiếu chi tiết, tab Mã Thay Thế luôn 0.
+  if (cached && cached.chiTiet) { openPD(cached); return; }
   try {
     await moChiTiet(id);
   } catch (e) {
