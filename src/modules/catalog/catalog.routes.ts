@@ -377,7 +377,7 @@ export async function catalogRoutes(fastify: FastifyInstance) {
   );
 
   // GET /products/:id — DETAIL: load compatible_vehicles + alternatives rieng
-  fastify.get<{ Params:{id:string}; Querystring:{customer_code?:string} }>(
+  fastify.get<{ Params:{id:string}; Querystring:{customer_code?:string; no_price?:string} }>(
     '/products/:id', async (req, reply) => {
       const res = await pool.query(`SELECT * FROM catalog_products WHERE id=$1`, [req.params.id]);
       if (!res.rows.length) return reply.status(404).send({ error: 'Không tìm thấy' });
@@ -389,6 +389,10 @@ export async function catalogRoutes(fastify: FastifyInstance) {
         loadOemCodes(product.id),
       ]);
       const full = { ...product, compatible_vehicles, alternatives, oem_codes };
+      // no_price=1: bỏ qua Bravo. Mã không có giá bên Bravo làm SQL Server chờ
+      // đến hết requestTimeout (15s) → giao diện gọi bản này trước để mở ngay,
+      // rồi gọi bản đầy đủ để điền giá sau.
+      if (req.query.no_price === '1') return reply.send(full);
       const pricing = await getBravoPricing(getAllRefs([full]), req.query.customer_code);
       return reply.send(mergeWithPricing([full], pricing)[0]);
     }

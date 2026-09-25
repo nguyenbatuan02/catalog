@@ -2351,14 +2351,35 @@ function adaptProduct(p) {
 // Danh sách sản phẩm KHÔNG kèm các trường này nên phải gọi endpoint detail.
 async function openPDById(id) {
   try {
-    const r = await fetch(`${API}/products/${id}`);
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const sp = adaptProduct(await r.json());
-    _productCache.set(sp.id, sp);
-    openPD(sp);
+    await moChiTiet(id);
   } catch (e) {
     alert('Không tải được sản phẩm: ' + e.message);
   }
+}
+
+// Mở chi tiết 2 bước: bản KHÔNG giá (nhanh, chỉ DB) mở popup ngay; giá Bravo
+// điền sau. Mã không có giá bên Bravo khiến API chờ tới 15s — trước đây popup
+// treo hết khoảng đó, các tab hiện 0.
+async function moChiTiet(id) {
+  const r = await fetch(`${API}/products/${id}?no_price=1`);
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const sp = cacheAndAdapt(await r.json());
+  openPD(sp);
+  fetch(`${API}/products/${id}`)
+    .then((res) => res.ok ? res.json() : null)
+    .then((raw) => {
+      if (!raw) return;
+      const day = cacheAndAdapt(raw);
+      if (_currentPD?.id !== day.id) return;   // khách đã mở sản phẩm khác
+      _currentPD = day;
+      dienGia(day);
+    })
+    .catch(() => {});
+}
+
+function dienGia(p) {
+  document.getElementById('pd-price').textContent = p.price != null ? p.price.toLocaleString('vi-VN') + 'đ' : 'Liên hệ';
+  document.getElementById('pd-stock-text').textContent = p.stock || 'Còn hàng';
 }
 
 // compatible_vehicles là list PHẲNG [{make,model_code,model_name,year_from,year_to}]
@@ -2632,11 +2653,7 @@ async function viewProduct(id) {
   const cached = _productCache.get(id);
   if (cached && cached.fitment) { openPD(cached); return; }   // đã có đủ dữ liệu chi tiết
   try {
-    const res = await fetch(`${API}/products/${id}`);
-    if (!res.ok) { showToast('Không tìm thấy sản phẩm'); return; }
-    const raw = await res.json();
-    const p = cacheAndAdapt(raw);
-    openPD(p);
+    await moChiTiet(id);
   } catch (e) {
     showToast('⚠️ Không tải được chi tiết sản phẩm');
   }
