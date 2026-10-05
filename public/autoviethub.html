@@ -1625,7 +1625,7 @@ nav {
               <option value="">-- Năm sản xuất --</option>
             </select>
             <select class="syv-select" id="syv-trim" onchange="onSyvTrimChange()" disabled>
-              <option value="">-- Phiên bản / Động cơ --</option>
+              <option value="">-- Phiên bản --</option>
             </select>
             <button class="btn-syv-apply" id="syv-apply-btn" onclick="applySyvFilter()" disabled>
               Xem Phụ Tùng Phù Hợp →
@@ -3485,7 +3485,7 @@ async function initSYV() {
 function resetSyvFrom(step) {
   // step: 'model' | 'year' | 'trim' — xoá các dropdown TỪ bước này trở đi
   const order = ['model', 'year', 'trim'];
-  const labels = { model:'-- Dòng xe --', year:'-- Năm sản xuất --', trim:'-- Phiên bản / Động cơ --' };
+  const labels = { model:'-- Dòng xe --', year:'-- Năm sản xuất --', trim:'-- Phiên bản --' };
   for (const s of order.slice(order.indexOf(step))) {
     const sel = document.getElementById('syv-' + s);
     sel.innerHTML = `<option value="">${labels[s]}</option>`;
@@ -3546,8 +3546,15 @@ function onSyvYearChange() {
     : rows.filter(v => v.year_from === parseInt(yearVal));
 
   const trimSel = document.getElementById('syv-trim');
-  trimSel.innerHTML = '<option value="">-- Phiên bản / Động cơ --</option>' + rows.map(v => {
-    const label = [v.engine, v.transmission, v.drive_type].filter(Boolean).join(' / ') || v.model_code;
+  const specs = v => [['Động cơ', v.engine], ['Hộp số', v.gear_shift], ['Dẫn động', v.drive_type], ['Tay lái', v.steering]]
+    .filter(x => x[1]).map(([k, x]) => `${k}: ${x}`).join(' · ');
+  const count = {};
+  rows.forEach(v => { const k = specs(v); count[k] = (count[k] || 0) + 1; });
+  trimSel.innerHTML = '<option value="">-- Phiên bản --</option>' + rows.map(v => {
+    const s = specs(v);
+    // trùng thông số (hoặc không có) -> thêm mã model + mô tả (thị trường, kiểu thân...) để phân biệt
+    const extra = [v.model_code, v.description].filter(Boolean).join(' · ');
+    const label = !s ? extra : count[s] > 1 ? `${s} — ${extra}` : s;
     return `<option value="${v.id}">${label}</option>`;
   }).join('');
   trimSel.disabled = false;
