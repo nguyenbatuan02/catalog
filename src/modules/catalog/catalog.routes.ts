@@ -474,7 +474,7 @@ export async function catalogRoutes(fastify: FastifyInstance) {
       }
       const res = await pool.query(
         `SELECT id, make, model_code, model_name, year_from, year_to, vehicle_type,
-                engine, transmission, drive_type, steering, gear_shift, description, specs_fetched
+                engine, transmission, drive_type, steering, gear_shift, description, variant, specs_fetched
          FROM catalog_vehicles
          WHERE ${conds.join(' AND ')}
          ORDER BY (specs_fetched IS NOT NULL) DESC, (engine IS NOT NULL) DESC,

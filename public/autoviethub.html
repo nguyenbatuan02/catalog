@@ -1624,6 +1624,9 @@ nav {
             <select class="syv-select" id="syv-year" onchange="onSyvYearChange()" disabled>
               <option value="">-- Năm sản xuất --</option>
             </select>
+            <select class="syv-select" id="syv-market" onchange="onSyvMarketChange()" disabled>
+              <option value="">-- Thị trường --</option>
+            </select>
             <select class="syv-select" id="syv-trim" onchange="onSyvTrimChange()" disabled>
               <option value="">-- Phiên bản --</option>
             </select>
@@ -3463,7 +3466,7 @@ const VEHICLE_DB = {
 
 let selectedVehicle = { year:'', make:'', model:'', trim:'' };
 
-// Chọn xe thật — 4 bước: Hãng → Dòng xe → Năm → Phiên bản/động cơ.
+// Chọn xe thật — 5 bước: Hãng → Dòng xe → Năm → Thị trường → Phiên bản.
 // _syvRows giữ TOÀN BỘ dòng catalog_vehicles của hãng đang chọn (fetch 1 lần ở
 // bước 1, lọc dần ở client cho các bước sau — đỡ gọi API liên tục).
 let _syvRows = [];
@@ -3484,8 +3487,8 @@ async function initSYV() {
 
 function resetSyvFrom(step) {
   // step: 'model' | 'year' | 'trim' — xoá các dropdown TỪ bước này trở đi
-  const order = ['model', 'year', 'trim'];
-  const labels = { model:'-- Dòng xe --', year:'-- Năm sản xuất --', trim:'-- Phiên bản --' };
+  const order = ['model', 'year', 'market', 'trim'];
+  const labels = { model:'-- Dòng xe --', year:'-- Năm sản xuất --', market:'-- Thị trường --', trim:'-- Phiên bản --' };
   for (const s of order.slice(order.indexOf(step))) {
     const sel = document.getElementById('syv-' + s);
     sel.innerHTML = `<option value="">${labels[s]}</option>`;
@@ -3533,18 +3536,39 @@ function onSyvModelChange() {
   yearSel.disabled = false;
 }
 
+function syvYearRows() {
+  const yearVal = selectedVehicle.year;
+  const rows = _syvRows.filter(v => (v.model_name || v.model_code) === selectedVehicle.model);
+  return yearVal === '__any__' ? rows.filter(v => !v.year_from) : rows.filter(v => v.year_from === parseInt(yearVal));
+}
+
 function onSyvYearChange() {
   const yearVal = document.getElementById('syv-year').value;
-  selectedVehicle = { ...selectedVehicle, year: yearVal, trim:'', vehicleId:'', modelCode:'' };
-  resetSyvFrom('trim');
+  selectedVehicle = { ...selectedVehicle, year: yearVal, market:'', trim:'', vehicleId:'', modelCode:'' };
+  resetSyvFrom('market');
   if (!yearVal) return;
 
-  const model = selectedVehicle.model;
-  let rows = _syvRows.filter(v => (v.model_name || v.model_code) === model);
-  rows = yearVal === '__any__'
-    ? rows.filter(v => !v.year_from)
-    : rows.filter(v => v.year_from === parseInt(yearVal));
+  const rows = syvYearRows();
+  const markets = [...new Set(rows.map(v => v.description).filter(Boolean))].sort();
+  // không có thông tin thị trường -> bỏ qua bước này
+  if (!markets.length) return fillSyvTrim(rows);
+  const marketSel = document.getElementById('syv-market');
+  marketSel.innerHTML = '<option value="">-- Thị trường --</option>' +
+    markets.map(m => `<option value="${m}">${m}</option>`).join('') +
+    (rows.some(v => !v.description) ? '<option value="__any__">Không rõ thị trường</option>' : '');
+  marketSel.disabled = false;
+}
 
+function onSyvMarketChange() {
+  const market = document.getElementById('syv-market').value;
+  selectedVehicle = { ...selectedVehicle, market, trim:'', vehicleId:'', modelCode:'' };
+  resetSyvFrom('trim');
+  if (!market) return;
+  const rows = syvYearRows();
+  fillSyvTrim(market === '__any__' ? rows.filter(v => !v.description) : rows.filter(v => v.description === market));
+}
+
+function fillSyvTrim(rows) {
   const trimSel = document.getElementById('syv-trim');
   const specs = v => [['Động cơ', v.engine], ['Hộp số', v.gear_shift], ['Dẫn động', v.drive_type], ['Tay lái', v.steering]]
     .filter(x => x[1]).map(([k, x]) => `${k}: ${x}`).join(' · ');
@@ -3552,8 +3576,8 @@ function onSyvYearChange() {
   rows.forEach(v => { const k = specs(v); count[k] = (count[k] || 0) + 1; });
   trimSel.innerHTML = '<option value="">-- Phiên bản --</option>' + rows.map(v => {
     const s = specs(v);
-    // trùng thông số (hoặc không có) -> thêm mã model + mô tả (thị trường, kiểu thân...) để phân biệt
-    const extra = [v.model_code, v.description].filter(Boolean).join(' · ');
+    // trùng thông số (hoặc không có) -> thêm mã model + biến thể (kiểu thân, bản...) để phân biệt
+    const extra = [v.model_code, v.variant].filter(Boolean).join(' · ');
     const label = !s ? extra : count[s] > 1 ? `${s} — ${extra}` : s;
     return `<option value="${v.id}">${label}</option>`;
   }).join('');
@@ -3570,7 +3594,7 @@ function onSyvTrimChange() {
 }
 
 function applySyvFilter() {
-  const { year, make, model, trim, vehicleId } = selectedVehicle;
+  const { year, make, model, market, trim, vehicleId } = selectedVehicle;
   if (!make || !model || !vehicleId) return;
 
   // Show active badge, hide selects
@@ -3582,7 +3606,7 @@ function applySyvFilter() {
       <div>
         <div style="font-size:11px;color:var(--green);margin-bottom:2px;">✓ Xe đã chọn</div>
         <strong>${make} ${model}${year && year!=='__any__' ? ' ' + year : ''}</strong>
-        <div style="font-size:11px;color:var(--text2);margin-top:2px">${trim}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px">${market && market!=='__any__' ? market + ' · ' : ''}${trim}</div>
       </div>
       <button class="syv-clear-btn" onclick="clearSyvFilter()" title="Xóa lựa chọn">✕</button>
     </div>`;

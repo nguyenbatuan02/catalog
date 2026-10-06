@@ -682,6 +682,7 @@ function vehSpecs(v){
     [v.drive_type,   'ti-car-4wd',       'Dẫn động'],
     [v.steering,     'ti-steering-wheel','Tay lái'],
     [v.description,  'ti-world',         'Thị trường'],
+    [v.variant,      'ti-list-details',  'Biến thể'],
   ].filter(x=>x[0]);
   if(!it.length) return `<span style="color:var(--muted)">${v.odoo_ref||'—'}</span>`;
   return it.map(([val,ic,lb])=>
@@ -783,7 +784,7 @@ async function renderVDetail(id){
       <div class="info-field"><div class="info-label">Năm từ</div><div class="info-value">${v.year_from||'—'}</div></div>
       <div class="info-field"><div class="info-label">Năm đến</div><div class="info-value">${v.year_to||'Đang SX'}</div></div>
       ${[['Động cơ',v.engine],['Hộp số',v.gear_shift],['Truyền động',v.transmission],
-         ['Dẫn động',v.drive_type],['Tay lái',v.steering],['Thị trường',v.description],
+         ['Dẫn động',v.drive_type],['Tay lái',v.steering],['Thị trường',v.description],['Biến thể',v.variant],
          ['Odoo ref',v.odoo_ref]]
         .filter(x=>x[1])
         .map(([lb,val])=>`<div class="info-field"><div class="info-label">${lb}</div><div class="info-value">${esc(String(val))}</div></div>`)

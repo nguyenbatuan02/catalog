@@ -8,6 +8,9 @@
 //   vehicle_type loại xe
 // node scripts/normalize-specs.cjs          : chạy thử -> specs-preview.csv
 // node scripts/normalize-specs.cjs --apply  : backup catalog_vehicles_specs_bak rồi ghi (1 transaction)
+// ĐÃ CHẠY XONG 2026-10-05, viết cho cấu trúc cũ (description gồm cả biến thể). Sau split-market.cjs
+// phần biến thể nằm ở cột variant — chạy lại script này sẽ ghi sai. Giữ để tham khảo luật tách.
+if (!process.argv.includes('--legacy')) { console.error('Script cũ, đã chạy xong. Xem ghi chú đầu file.'); process.exit(1); }
 require('dotenv').config();
 const fs = require('fs');
 const { Pool } = require('pg');

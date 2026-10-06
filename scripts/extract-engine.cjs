@@ -2,6 +2,9 @@
 // node scripts/extract-engine.cjs          : chạy thử, in thống kê + mẫu, ghi engine-preview.csv
 // node scripts/extract-engine.cjs --apply  : backup cột engine vào catalog_vehicles_engine_bak rồi ghi đè
 // Không tìm thấy thông tin động cơ -> engine = NULL (bỏ qua, không đoán).
+// ĐÃ CHẠY XONG 2026-10-05, viết cho cấu trúc cũ (description gồm cả biến thể). Sau split-market.cjs
+// phần biến thể nằm ở cột variant — chạy lại script này sẽ ghi sai. Giữ để tham khảo luật tách.
+if (!process.argv.includes('--legacy')) { console.error('Script cũ, đã chạy xong. Xem ghi chú đầu file.'); process.exit(1); }
 require('dotenv').config();
 const fs = require('fs');
 const { Pool } = require('pg');
