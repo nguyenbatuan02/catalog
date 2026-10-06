@@ -273,7 +273,11 @@ export async function catalogRoutes(fastify: FastifyInstance) {
   // (migrations/016). Bat cau qua do theo HAI huong, join bang oem_norm/ref_norm
   // (cung cong thuc chuan hoa) nen khop ca khi dinh dang dau gach khac nhau:
   // "13201-39225-B0" = "1320139225B0".
-  //   1. Hai san pham cung tro toi mot ma OE  → la hang tuong duong cua nhau
+  //   1. Hai san pham cung tro toi mot ma OE  → la hang tuong duong cua nhau.
+  //      CHI bac cau qua ma CHINH HANG (catalog_car_makes). Ma hang phu tung
+  //      ngoai (FEBEST NAB277...) thuong la 1 bo/kit lap cho NHIEU mon khac nhau
+  //      → noi qua no ra "Thanh dam treo" tuong duong "Tam cach am" (do mau
+  //      300 SP: 63% ket qua sai ten mon; chi qua ma chinh hang: con 33%).
   //   2. Ma OE tro THANG toi internal_ref cua san pham khac → hang chinh hang
   //      ung voi ma do (huong gia tri nhat: ra dung mon hang co the ban)
   async function findAlternativesByOem(results: any[], limit = 5): Promise<any[]> {
@@ -285,11 +289,13 @@ export async function catalogRoutes(fastify: FastifyInstance) {
     // index rieng (idx_oem_codes_norm / uq_products_ref_norm) → vai ms.
     const res = await pool.query(`
       WITH ma AS (
-        SELECT DISTINCT oem_norm FROM catalog_oem_codes
-         WHERE product_id = ANY($1::uuid[]) AND oem_norm IS NOT NULL
+        SELECT DISTINCT o.oem_norm FROM catalog_oem_codes o
+          JOIN catalog_car_makes hx ON hx.make = lower(o.make)
+         WHERE o.product_id = ANY($1::uuid[]) AND o.oem_norm IS NOT NULL
       ), ung_vien AS (
         SELECT dst.product_id AS id FROM catalog_oem_codes dst
           JOIN ma ON ma.oem_norm = dst.oem_norm
+          JOIN catalog_car_makes hx ON hx.make = lower(dst.make)
         UNION
         SELECT p2.id FROM catalog_products p2
           JOIN ma ON ma.oem_norm = p2.ref_norm

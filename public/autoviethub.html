@@ -2888,7 +2888,7 @@ function renderAlternatives(current, alts) {
   // Alt grid
   const badgeLabels = { premium:'⭐ Cao cấp', cheaper:'💰 Tiết kiệm', oem:'🔩 OEM' };
   document.getElementById('alt-grid').innerHTML = alts.map(a=>`
-    <div class="alt-card" onclick="closePD(); addToCart('${a.id}'); showToast('✓ Đã thêm ${a.name}')">
+    <div class="alt-card" onclick="openPDById('${a.id}')" title="Xem chi tiết phụ tùng này">
       <div class="alt-card-img">
         ${a.icon}
         ${a.badge ? `<span class="alt-badge ${a.badge}">${badgeLabels[a.badge]||a.badge}</span>` : ''}
@@ -2899,7 +2899,7 @@ function renderAlternatives(current, alts) {
         <div style="font-size:11px;color:var(--text2);margin-bottom:8px">${a.note}</div>
         <div class="alt-card-foot">
           <span class="alt-card-price">${giaStr(a.price)}</span>
-          <button style="background:var(--accent-dim);border:1px solid rgba(59,130,246,0.25);color:var(--accent);padding:4px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif" onclick="event.stopPropagation();closePD();addToCart('${a.id}')">+ Giỏ</button>
+          <button style="background:var(--accent-dim);border:1px solid rgba(59,130,246,0.25);color:var(--accent);padding:4px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif" onclick="event.stopPropagation();addToCart('${a.id}');showToast('✓ Đã thêm vào giỏ')">+ Giỏ</button>
         </div>
       </div>
     </div>`).join('');
