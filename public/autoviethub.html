@@ -1106,7 +1106,8 @@ nav {
   font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px;
   font-family: 'Plus Jakarta Sans', sans-serif;
 }
-.fitment-entry-sub { font-size: 12px; color: var(--text2); line-height: 1.5; }
+.fitment-entry-sub { font-size: 12px; color: var(--text); line-height: 1.6; }
+.fitment-entry-sub .fe-k { color: var(--text3); display: inline-block; min-width: 72px; }
 .fitment-entry-note { font-size: 12px; color: var(--teal); font-weight: 600; margin-top: 2px; }
 .fitment-empty { text-align: center; padding: 2rem; color: var(--text3); font-size: 14px; }
 
@@ -2397,9 +2398,13 @@ function groupFitment(vehicles) {
     if (!groups.has(key)) groups.set(key, { make, model, entries: [] });
     const nam = v.year_from ? `${v.year_from}${v.year_to ? '-' + v.year_to : '+'}` : 'Không rõ năm';
     const specs = [v.engine, v.gear_shift, v.drive_type, v.steering].filter(Boolean).join(' · ');
+    // Có nhãn để khách biết từng giá trị là gì (MR20DE là động cơ, RHD là tay lái...)
+    const info = [['Năm', nam], ['Model', v.model_code], ['Động cơ', v.engine], ['Hộp số', v.gear_shift],
+      ['Dẫn động', v.drive_type], ['Tay lái', v.steering], ['Thị trường', v.description], ['Biến thể', v.variant]]
+      .filter(x => x[1]);
     groups.get(key).entries.push({
       id: v.id, make, model, year: nam, model_code: v.model_code,
-      specs, market: v.description || '', variant: v.variant || '',
+      specs, market: v.description || '', variant: v.variant || '', info,
     });
   }
   return [...groups.values()];
@@ -2794,9 +2799,7 @@ function filterFitment(keepShow) {
       <div class="fitment-group-title"><span class="brand-dot"></span>${esc(g.make)} ${esc(g.model)}</div>
       ${g.entries.map(e => `
         <div class="fitment-entry" data-vid="${esc(e.id)}" onclick="chonXeTuongThich('${esc(e.id)}')" title="Chọn xe này và xem mọi phụ tùng lắp được">
-          <div class="fitment-entry-title">${esc(e.year)} · <code>${esc(e.model_code)}</code></div>
-          ${e.specs ? `<div class="fitment-entry-sub">${esc(e.specs)}</div>` : ''}
-          ${e.market || e.variant ? `<div class="fitment-entry-note">${esc([e.market, e.variant].filter(Boolean).join(' · '))}</div>` : ''}
+          ${e.info.map(([k, x]) => `<div class="fitment-entry-sub"><span class="fe-k">${k}:</span> ${k === 'Model' ? `<code>${esc(x)}</code>` : esc(x)}</div>`).join('')}
         </div>`).join('')}
     </div>`).join('');
   col.innerHTML = `<div>${render(hien.slice(0, half))}</div><div>${render(hien.slice(half))}</div>` +
