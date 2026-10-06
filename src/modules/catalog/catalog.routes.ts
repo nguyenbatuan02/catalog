@@ -42,11 +42,12 @@ function luuDem(k: string, data: any) {
 
 async function loadCompatibleVehicles(productId: string): Promise<any[]> {
   const res = await pool.query(`
-    SELECT v.make, v.model_code, v.model_name, v.year_from, v.year_to
+    SELECT v.id, v.make, v.model_code, v.model_name, v.year_from, v.year_to,
+           v.engine, v.gear_shift, v.drive_type, v.steering, v.description, v.variant
     FROM catalog_fitments f
     JOIN catalog_vehicles v ON v.id = f.vehicle_id
     WHERE f.product_id = $1
-    ORDER BY v.make, v.model_code
+    ORDER BY v.make, v.model_name, v.year_from, v.model_code
   `, [productId]);
   return res.rows;
 }
@@ -67,9 +68,10 @@ async function loadAlternatives(productId: string): Promise<any[]> {
 // vốn là product ↔ product. Mã ở đây có thể CHƯA tồn tại như một sản phẩm trong
 // DB (mã của hãng khác, cào từ PartSouq), nên không nối được qua catalog_alternatives.
 // co_hang: mã đó có bán trong kho không → giao diện chỉ cho bấm khi có.
-// la_hang_xe: mã này của HÃNG XE (Toyota, Nissan...) hay HÃNG PHỤ TÙNG
-// (FEBEST, AISIN, NiBK...)? Không cần thêm cột — đối chiếu make với danh sách
-// hãng trong catalog_vehicles là đủ. Khách cần biết mã nào là chính hãng,
+// la_hang_xe: mã này của HÃNG XE (Toyota, Nissan, Mopar, VAG...) hay HÃNG PHỤ
+// TÙNG (FEBEST, AISIN, NiBK...)? Đối chiếu với bảng catalog_car_makes
+// (migrations/020) — không dùng catalog_vehicles vì DB chỉ có xe của 21 hãng,
+// mã BMW/Ford/Mopar sẽ bị xếp nhầm là hàng ngoài. Khách cần biết mã nào là chính hãng,
 // mã nào là hàng thay thế; chỉ in tên hãng ra thì người không trong ngành
 // không phân biệt được.
 async function loadOemCodes(productId: string): Promise<any[]> {
@@ -78,10 +80,7 @@ async function loadOemCodes(productId: string): Promise<any[]> {
            sp.id AS product_id, sp.name AS product_name,
            (hx.make IS NOT NULL) AS la_hang_xe
     FROM catalog_oem_codes o
-    -- JOIN vào danh sách hãng distinct thay vì EXISTS tương quan: EXISTS bị
-    -- planner chạy seq scan cả catalog_vehicles cho TỪNG mã (1.2s / 50 mã).
-    LEFT JOIN (SELECT DISTINCT lower(make) AS make FROM catalog_vehicles) hx
-           ON hx.make = lower(o.make)
+    LEFT JOIN catalog_car_makes hx ON hx.make = lower(o.make)
     LEFT JOIN catalog_products sp
            ON sp.ref_norm = o.oem_norm AND sp.is_for_sale = TRUE
     WHERE o.product_id = $1
@@ -277,7 +276,7 @@ export async function catalogRoutes(fastify: FastifyInstance) {
   //   1. Hai san pham cung tro toi mot ma OE  → la hang tuong duong cua nhau
   //   2. Ma OE tro THANG toi internal_ref cua san pham khac → hang chinh hang
   //      ung voi ma do (huong gia tri nhat: ra dung mon hang co the ban)
-  async function findAlternativesByOem(results: any[]): Promise<any[]> {
+  async function findAlternativesByOem(results: any[], limit = 5): Promise<any[]> {
     if (!results.length) return [];
     const ids = results.map((r:any) => r.id);
     // Hai nhanh phai tach bang UNION, KHONG duoc gop bang OR trong dieu kien
@@ -301,8 +300,8 @@ export async function catalogRoutes(fastify: FastifyInstance) {
       WHERE p.id != ALL($1::uuid[])
         AND p.is_for_sale = TRUE
       ORDER BY p.name, p.internal_ref
-      LIMIT 5
-    `, [ids]);
+      LIMIT $2
+    `, [ids, limit]);
     return res.rows;
   }
 
@@ -409,11 +408,16 @@ export async function catalogRoutes(fastify: FastifyInstance) {
       if (!res.rows.length) return reply.status(404).send({ error: 'Không tìm thấy' });
       const product = res.rows[0];
       // Load vehicles + alternatives + mã thay thế song song
-      const [compatible_vehicles, alternatives, oem_codes] = await Promise.all([
+      // Sản phẩm tương đương: cặp nhập tay (catalog_alternatives) + SP đang bán
+      // có chung mã OE (findAlternativesByOem) — bảng nhập tay hiện trống.
+      const [compatible_vehicles, alternatives, theoMa, oem_codes] = await Promise.all([
         loadCompatibleVehicles(product.id),
         loadAlternatives(product.id),
+        findAlternativesByOem([product], 20),
         loadOemCodes(product.id),
       ]);
+      for (const a of theoMa)
+        if (!alternatives.some((x: any) => x.id === a.id)) alternatives.push({ ...a, reason: 'Chung mã OE' });
       const full = { ...product, compatible_vehicles, alternatives, oem_codes };
       // no_price=1: bỏ qua Bravo. Mã không có giá bên Bravo làm SQL Server chờ
       // đến hết requestTimeout (15s) → giao diện gọi bản này trước để mở ngay,

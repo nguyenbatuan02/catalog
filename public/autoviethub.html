@@ -1097,8 +1097,9 @@ nav {
 .fitment-group-title .brand-dot {
   width: 8px; height: 8px; border-radius: 50%; background: var(--teal); flex-shrink: 0;
 }
+.fitment-entry:hover { background: var(--accent-dim); }
 .fitment-entry {
-  padding: 10px 0; border-bottom: 1px solid var(--border);
+  padding: 10px 8px; border-bottom: 1px solid var(--border); cursor: pointer; border-radius: 6px;
 }
 .fitment-entry:last-child { border-bottom: none; }
 .fitment-entry-title {
@@ -1995,9 +1996,6 @@ nav {
         <input type="text" id="fitment-search" placeholder="🔍  Lọc theo tên xe, năm sản xuất..." oninput="filterFitment()">
         <select id="fitment-make" onchange="filterFitment()">
           <option value="">Tất cả hãng</option>
-          <option>Toyota</option><option>Honda</option><option>Hyundai</option>
-          <option>Kia</option><option>Mazda</option><option>Ford</option>
-          <option>Mitsubishi</option><option>Suzuki</option><option>Nissan</option>
         </select>
         <select id="fitment-year" onchange="filterFitment()">
           <option value="">Tất cả năm</option>
@@ -2341,9 +2339,10 @@ function adaptProduct(p) {
     specs: [],
     fitment: groupFitment(p.compatible_vehicles || []),
     alternatives: (p.alternatives || []).map(a => ({
-      id: a.id, name: a.name, brand: a.product_type === 'genuine' ? 'Chính hãng' : 'Tương đương',
+      id: a.id, name: (a.name_vi && a.name_vi.trim()) || a.name, brand: a.brand || (a.product_type === 'genuine' ? 'Chính hãng' : 'Tương đương'),
       icon: '🔧', price: a.price ?? null, badge: null,
-      compat: a.oem_code || a.internal_ref || '', note: a.reason || '',
+      compat: a.oem_code || a.internal_ref || '',
+      note: [a.internal_ref && `Mã ${a.internal_ref}`, a.reason].filter(Boolean).join(' · '),
     })),
     // Mã thay thế (catalog_oem_codes) — giữ nguyên shape từ API, tab riêng tự render.
     oem_codes: p.oem_codes || [],
@@ -2388,20 +2387,22 @@ function dienGia(p) {
 
 // compatible_vehicles là list PHẲNG [{make,model_code,model_name,year_from,year_to}]
 // → gom theo make để khớp cấu trúc p.fitment[{make, entries:[...]}] mà UI đang cần
+// Xe tương thích: nhóm theo hãng + dòng xe. Mỗi xe giữ đủ thông số (động cơ,
+// hộp số...) để phân biệt các bản cùng dòng, và id để bấm vào chọn xe.
 function groupFitment(vehicles) {
-  const byMake = new Map();
+  const groups = new Map();
   for (const v of vehicles) {
-    const key = v.make || 'Khác';
-    if (!byMake.has(key)) byMake.set(key, []);
+    const make = v.make || 'Khác', model = v.model_name || v.model_code;
+    const key = make + '|' + model;
+    if (!groups.has(key)) groups.set(key, { make, model, entries: [] });
     const nam = v.year_from ? `${v.year_from}${v.year_to ? '-' + v.year_to : '+'}` : 'Không rõ năm';
-    byMake.get(key).push({
-      year: nam,
-      title: v.model_name || v.model_code,
-      sub: v.model_code,
-      note: '',
+    const specs = [v.engine, v.gear_shift, v.drive_type, v.steering].filter(Boolean).join(' · ');
+    groups.get(key).entries.push({
+      id: v.id, make, model, year: nam, model_code: v.model_code,
+      specs, market: v.description || '', variant: v.variant || '',
     });
   }
-  return [...byMake.entries()].map(([make, entries]) => ({ make, entries }));
+  return [...groups.values()];
 }
 
 // ═══════════════════════════════════════
@@ -2717,11 +2718,13 @@ function openPD(p) {
   // Tab: Fitment
   _allFitment = p.fitment || [];
   document.getElementById('fitment-cnt').textContent = _allFitment.reduce((s,g)=>s+g.entries.length,0);
-  // Populate year filter
+  // Ô lọc hãng / năm lấy từ chính danh sách xe của sản phẩm này
+  const makes = [...new Set(_allFitment.map(g => g.make))].sort();
+  document.getElementById('fitment-make').innerHTML = '<option value="">Tất cả hãng</option>' + makes.map(m=>`<option>${m}</option>`).join('');
   const years = new Set();
-  _allFitment.forEach(g => g.entries.forEach(e => years.add(e.year)));
-  const yearSel = document.getElementById('fitment-year');
-  yearSel.innerHTML = '<option value="">Tất cả năm</option>' + [...years].sort().reverse().map(y=>`<option>${y}</option>`).join('');
+  _allFitment.forEach(g => g.entries.forEach(e => { const y = parseInt(e.year); if (y) years.add(y); }));
+  document.getElementById('fitment-year').innerHTML = '<option value="">Tất cả năm</option>' + [...years].sort((a,b)=>b-a).map(y=>`<option>${y}</option>`).join('');
+  document.getElementById('fitment-search').value = '';
   filterFitment();
 
   // Tab: Mã thay thế
@@ -2759,41 +2762,60 @@ function switchPDTab(name, el) {
   document.getElementById('pd-tab-'+name).classList.add('active');
 }
 
-function filterFitment() {
+let _fitmentShow = 50;   // số xe hiện, bấm "Xem thêm" tăng dần — có SP khớp 9.000+ xe
+
+function filterFitment(keepShow) {
+  if (!keepShow) _fitmentShow = 50;
   const search = (document.getElementById('fitment-search')?.value||'').toLowerCase();
   const make = document.getElementById('fitment-make')?.value||'';
   const year = document.getElementById('fitment-year')?.value||'';
-  let groups = _allFitment;
-  if (make) groups = groups.filter(g => g.make.toLowerCase().includes(make.toLowerCase()));
-  groups = groups.map(g => ({
-    ...g,
-    entries: g.entries.filter(e =>
-      (!search || e.title.toLowerCase().includes(search) || e.sub.toLowerCase().includes(search)) &&
-      (!year || e.year.includes(year))
-    )
-  })).filter(g => g.entries.length > 0);
+  const groups = _allFitment
+    .filter(g => !make || g.make === make)
+    .map(g => ({ ...g, entries: g.entries.filter(e =>
+      (!year || e.year.startsWith(year)) &&
+      (!search || [g.make, g.model, e.model_code, e.year, e.specs, e.market, e.variant].join(' ').toLowerCase().includes(search))
+    ) }))
+    .filter(g => g.entries.length);
 
   const col = document.getElementById('fitment-columns');
   if (!groups.length) { col.innerHTML = '<div class="fitment-empty" style="grid-column:1/-1">Không tìm thấy xe phù hợp</div>'; return; }
 
-  // Split into 2 columns
-  const half = Math.ceil(groups.length/2);
-  const left = groups.slice(0, half);
-  const right = groups.slice(half);
-
-  function renderGroups(gs) {
-    return gs.map(g => `
-      <div class="fitment-group">
-        <div class="fitment-group-title"><span class="brand-dot"></span>${g.make} ${g.model}</div>
-        ${g.entries.map(e=>`
-          <div class="fitment-entry">
-            <div class="fitment-entry-title">${e.title}</div>
-            <div class="fitment-entry-sub">${e.sub}</div>
-            <div class="fitment-entry-note">Ghi chú: ${e.note}</div>
-          </div>`).join('')}
-      </div>`).join('');
+  // Cắt theo tổng số XE (không phải số nhóm) để trang không bị treo
+  let con = _fitmentShow, tong = 0;
+  const hien = [];
+  for (const g of groups) {
+    tong += g.entries.length;
+    if (con > 0) { hien.push({ ...g, entries: g.entries.slice(0, con) }); con -= g.entries.length; }
   }
-  col.innerHTML = `<div>${renderGroups(left)}</div><div>${renderGroups(right)}</div>`;
+  const esc = x => String(x ?? '').replace(/[<>&"]/g, c => ({ '<':'&lt;', '>':'&gt;', '&':'&amp;', '"':'&quot;' }[c]));
+  const half = Math.ceil(hien.length / 2);
+  const render = gs => gs.map(g => `
+    <div class="fitment-group">
+      <div class="fitment-group-title"><span class="brand-dot"></span>${esc(g.make)} ${esc(g.model)}</div>
+      ${g.entries.map(e => `
+        <div class="fitment-entry" data-vid="${esc(e.id)}" onclick="chonXeTuongThich('${esc(e.id)}')" title="Chọn xe này và xem mọi phụ tùng lắp được">
+          <div class="fitment-entry-title">${esc(e.year)} · <code>${esc(e.model_code)}</code></div>
+          ${e.specs ? `<div class="fitment-entry-sub">${esc(e.specs)}</div>` : ''}
+          ${e.market || e.variant ? `<div class="fitment-entry-note">${esc([e.market, e.variant].filter(Boolean).join(' · '))}</div>` : ''}
+        </div>`).join('')}
+    </div>`).join('');
+  col.innerHTML = `<div>${render(hien.slice(0, half))}</div><div>${render(hien.slice(half))}</div>` +
+    (tong > _fitmentShow ? `<div style="grid-column:1/-1;text-align:center"><button class="btn-validate-fitment" onclick="_fitmentShow+=100;filterFitment(true)">Xem thêm (${tong - _fitmentShow} xe nữa)</button></div>` : '');
+}
+
+// Bấm 1 xe trong tab Xe Tương Thích → chọn đúng xe đó ở bộ lọc bên trái và
+// hiện mọi phụ tùng lắp được (giống chọn xong 5 bước và bấm "Xem Phụ Tùng").
+function chonXeTuongThich(vehicleId) {
+  let e = null;
+  for (const g of _allFitment) { e = g.entries.find(x => x.id === vehicleId); if (e) break; }
+  if (!e) return;
+  selectedVehicle = {
+    make: e.make, model: e.model, year: e.year, market: e.market, vehicleId,
+    modelCode: e.model_code, trim: [e.model_code, e.specs].filter(Boolean).join(' · '),
+  };
+  closePD();
+  showPage('catalog', true);
+  applySyvFilter();
 }
 
 // Mã thay thế: product ↔ MÃ (bảng catalog_oem_codes). Khác renderAlternatives
@@ -2866,7 +2888,7 @@ function renderAlternatives(current, alts) {
     <div class="alt-card" onclick="closePD(); addToCart('${a.id}'); showToast('✓ Đã thêm ${a.name}')">
       <div class="alt-card-img">
         ${a.icon}
-        <span class="alt-badge ${a.badge}">${badgeLabels[a.badge]||a.badge}</span>
+        ${a.badge ? `<span class="alt-badge ${a.badge}">${badgeLabels[a.badge]||a.badge}</span>` : ''}
       </div>
       <div class="alt-card-body">
         <div class="alt-card-brand">${a.brand}</div>
@@ -3726,7 +3748,7 @@ function checkProductFitsVehicle(product) {
   if (!product.fitment) return null;
   for (const group of product.fitment) {
     for (const entry of group.entries) {
-      if (entry.sub === selectedVehicle.modelCode) return { fits: true, entry };
+      if (entry.id === selectedVehicle.vehicleId) return { fits: true, entry };
     }
   }
   return { fits: false };
@@ -3760,11 +3782,11 @@ function validateFitmentForProduct() {
       <div>
         <strong>Sản phẩm này phù hợp với xe của bạn!</strong><br>
         <span style="font-size:12px">${year} ${make} ${model} · ${trim}</span><br>
-        <span style="font-size:12px;opacity:0.8">${result.entry.sub} — ${result.entry.note}</span>
+        <span style="font-size:12px;opacity:0.8">${result.entry.model_code}${result.entry.specs ? ' — ' + result.entry.specs : ''}</span>
       </div>
     </div>`;
     // Highlight matched fitment entry in tab
-    document.querySelectorAll('.fitment-entry').forEach(el => el.classList.remove('highlighted'));
+    document.querySelectorAll('.fitment-entry').forEach(el => el.classList.toggle('highlighted', el.dataset.vid === selectedVehicle.vehicleId));
     // Switch to fitment tab to show
   } else if (result && !result.fits) {
     btn.className = 'btn-validate-fitment unmatched';
