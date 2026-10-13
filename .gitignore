@@ -96,3 +96,6 @@ scripts/*.js
 chrome-pw/
 chrome-pw2/
 .pw-profile/
+
+# Log/screenshot cua Playwright MCP
+.playwright-mcp/

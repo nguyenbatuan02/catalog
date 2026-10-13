@@ -145,9 +145,26 @@ interface VinScrapeResult {
 
 const VIN_PY_PATH = 'C:/Users/Administrator/Desktop/data/vin.py';
 const PYTHON_BIN   = 'python';
+// IP server nay bi PartSouq chan → cao qua worker chay o IP khac.
+// VIN_WORKER_URL=http://103.154.244.98:3388  (rong = cao local nhu cu)
+const VIN_WORKER_URL   = process.env.VIN_WORKER_URL   || '';
+const VIN_WORKER_TOKEN = process.env.VIN_WORKER_TOKEN || '';
 let vinScrapeQueue: Promise<any> = Promise.resolve();
 
+async function scrapeVinViaWorker(vin: string, timeoutMs: number): Promise<VinScrapeResult> {
+  const url = `${VIN_WORKER_URL.replace(/\/$/, '')}/vin?vin=${encodeURIComponent(vin)}`
+            + (VIN_WORKER_TOKEN ? `&token=${encodeURIComponent(VIN_WORKER_TOKEN)}` : '');
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
+    if (!res.ok) return { ok: false, error: `Worker VIN loi HTTP ${res.status}` };
+    return await res.json() as VinScrapeResult;
+  } catch (e: any) {
+    return { ok: false, error: `Khong goi duoc worker VIN: ${e.message}` };
+  }
+}
+
 function scrapeVinLiveRaw(vin: string, timeoutMs = 75000): Promise<VinScrapeResult> {
+  if (VIN_WORKER_URL) return scrapeVinViaWorker(vin, timeoutMs);
   return new Promise((resolve) => {
     const proc = spawn(PYTHON_BIN, [VIN_PY_PATH, vin]);
     let stdout = '';
