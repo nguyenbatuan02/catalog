@@ -143,7 +143,7 @@ interface VinScrapeResult {
   error?: string;
 }
 
-const VIN_PY_PATH = process.env.VIN_PY_PATH || 'C:/Users/Administrator/Desktop/data/vin.py';
+const VIN_PY_PATH = process.env.VIN_PY_PATH || 'scripts/vin.py'; // tương đối với thư mục chạy npm start
 const PYTHON_BIN   = process.env.PYTHON_BIN  || 'python';
 // IP server nay bi PartSouq chan → cao qua worker chay o IP khac.
 // VIN_WORKER_URL=http://103.154.244.98:3388  (rong = cao local nhu cu)
