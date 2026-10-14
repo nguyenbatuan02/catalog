@@ -15,7 +15,7 @@ INSERT INTO catalog_car_makes (make) SELECT lower(m) FROM unnest(ARRAY[
   'Jetour','JMC','Kia','Lada','Lamborghini','Lancia','Land Rover','Lexus','Lifan','Livan','Lixiang',
   'Lotus','MAN','Maruti','Maxus','Mazda','Mazda (Changan)','Mazda (FAW)','Mercedes','MG','Mini',
   'Mitsubishi','Mobis','Mopar','Nissan','Nissan UD','Opel','Perodua','Peugeot','Peugeot / Citroen',
-  'Plymouth','Pontiac','Porsche','Proton','Renault','Renault Samsung','Rover','Saab','Saab Scania',
+  'Plymouth','Pontiac','Ram','Porsche','Proton','Renault','Renault Samsung','Rover','Saab','Saab Scania',
   'SAIC','SAIC Volkswagen','Santana','Scania','Seat','Skoda','Smart','Ssangyong','Subaru','Suzuki',
   'Talbot','Tata','Tesla','Toyota','UAZ','VAG','Vauxhall','Volkswagen','Volvo','Voyah','Wuling (SGMW)',
   'Yue Loong'

@@ -1639,8 +1639,13 @@ nav {
         </div>
       </div>
 
-      <h3>Lọc Theo Hãng</h3>
+      <h3>Hãng Xe</h3>
       <div class="filter-group" id="sidebar-cats"></div>
+
+      <h3>Hãng Phụ Tùng</h3>
+      <input type="text" id="sidebar-hpt-search" placeholder="Tìm hãng (555, NIBK, KYB...)" oninput="renderHangPhuTung()"
+        style="width:100%;margin-bottom:6px;padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-size:12px;background:var(--surface);color:var(--text)">
+      <div class="filter-group" id="sidebar-hpt" style="max-height:260px;overflow-y:auto"></div>
 
       <h3>Khoảng Giá</h3>
       <div style="padding: 0 4px;">
@@ -1650,14 +1655,6 @@ nav {
         <div style="font-size:13px; color:var(--text2);">Tối đa: <strong id="price-val" style="color:var(--teal)">5,000,000đ</strong></div>
       </div>
 
-      <h3>Hãng Phụ Tùng</h3>
-      <div class="filter-group">
-        <label class="filter-item"><input type="checkbox"> OEM Chính hãng</label>
-        <label class="filter-item"><input type="checkbox"> Bosch</label>
-        <label class="filter-item"><input type="checkbox"> Denso</label>
-        <label class="filter-item"><input type="checkbox"> NGK</label>
-        <label class="filter-item"><input type="checkbox"> Gates</label>
-      </div>
     </aside>
 
     <main class="catalog-main">
@@ -2618,29 +2615,38 @@ function renderPaginationHtml(page, totalPages, fnName = 'goToCatalogPage') {
   return parts.join('');
 }
 
+// Hai danh sách dùng chung 1 radio "brand-filter" (chỉ lọc 1 hãng 1 lúc).
+// Hãng phụ tùng có ~170 hãng nên có ô tìm và khung cuộn.
+let _hangPhuTung = [];
+const dongHang = b => `<label class="filter-item" data-brand="${b.brand}"><input type="radio" name="brand-filter" onchange="filterCatalog('${b.brand}')"><span>${b.brand}</span><span class="filter-count">${b.count.toLocaleString('vi-VN')}</span></label>`;
+
 async function renderSidebarBrands() {
   const catEl = document.getElementById('sidebar-cats');
   if (!catEl) return;
   if (catEl.dataset.loaded) { highlightActiveBrand(); return; }   // danh sách chỉ cần nạp 1 lần
   try {
-    const res = await fetch(`${API}/stats`);
-    const data = await res.json();
-    const brands = data.top_brands || [];
-    // radio (tròn) chứ không phải checkbox (vuông) — chỉ chọn được 1 hãng 1 lúc,
-    // dùng chung "name" để trình duyệt tự lo việc bỏ chọn hãng cũ khi chọn hãng mới.
+    const data = await (await fetch(`${API}/brands`)).json();
     catEl.innerHTML =
       `<label class="filter-item" data-brand=""><input type="radio" name="brand-filter" onchange="filterCatalog('')"><span>Tất cả</span></label>` +
-      brands.map(b =>
-        `<label class="filter-item" data-brand="${b.brand}"><input type="radio" name="brand-filter" onchange="filterCatalog('${b.brand}')"><span>📦 ${b.brand}</span><span class="filter-count">${b.count.toLocaleString('vi-VN')}</span></label>`
-      ).join('');
+      (data.hang_xe || []).map(dongHang).join('');
+    _hangPhuTung = data.hang_phu_tung || [];
+    renderHangPhuTung();
     catEl.dataset.loaded = '1';
-    highlightActiveBrand();
   } catch (e) { /* im lặng — sidebar không phải phần bắt buộc */ }
+}
+
+function renderHangPhuTung() {
+  const el = document.getElementById('sidebar-hpt');
+  if (!el) return;
+  const q = (document.getElementById('sidebar-hpt-search')?.value || '').toLowerCase();
+  el.innerHTML = _hangPhuTung.filter(b => b.brand.toLowerCase().includes(q)).map(dongHang).join('')
+    || '<div style="font-size:12px;color:var(--text3);padding:4px">Không có hãng này</div>';
+  highlightActiveBrand();
 }
 
 // Tô sáng đúng hãng đang lọc + chọn radio tương ứng, không re-fetch danh sách.
 function highlightActiveBrand() {
-  document.querySelectorAll('#sidebar-cats .filter-item').forEach(el => {
+  document.querySelectorAll('#sidebar-cats .filter-item, #sidebar-hpt .filter-item').forEach(el => {
     const active = el.dataset.brand === _catalogBrand;
     el.classList.toggle('active', active);
     const rd = el.querySelector('input[type=radio]');

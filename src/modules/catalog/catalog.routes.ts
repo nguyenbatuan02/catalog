@@ -332,6 +332,21 @@ export async function catalogRoutes(fastify: FastifyInstance) {
   // ============================================================
   // STATS
   // ============================================================
+  // Danh sách hãng cho bộ lọc: tách HÃNG XE (catalog_car_makes) và HÃNG PHỤ TÙNG
+  // (555, NIBK, KYB...). GROUP BY trên 6tr dòng mất vài giây → nhớ 1 giờ.
+  let hangCache: { luc: number; data: any } | null = null;
+  fastify.get('/brands', async (_, reply) => {
+    if (hangCache && Date.now() - hangCache.luc < 3_600_000) return reply.send(hangCache.data);
+    const r = await pool.query(`
+      SELECT p.brand, COUNT(*)::int AS count, (hx.make IS NOT NULL) AS la_hang_xe
+      FROM catalog_products p LEFT JOIN catalog_car_makes hx ON hx.make = lower(p.brand)
+      WHERE p.brand IS NOT NULL AND p.is_for_sale
+      GROUP BY p.brand, hx.make ORDER BY count DESC`);
+    const data = { hang_xe: r.rows.filter((x: any) => x.la_hang_xe), hang_phu_tung: r.rows.filter((x: any) => !x.la_hang_xe) };
+    hangCache = { luc: Date.now(), data };
+    return reply.send(data);
+  });
+
   fastify.get('/stats', async (_, reply) => {
     const [p, v, f, b] = await Promise.all([
       pool.query(`SELECT COUNT(*)::int total, COUNT(*) FILTER (WHERE is_for_sale)::int for_sale, COUNT(*) FILTER (WHERE product_type='oem')::int oem, COUNT(*) FILTER (WHERE product_type='aftermarket')::int aftermarket FROM catalog_products`),
@@ -353,7 +368,20 @@ export async function catalogRoutes(fastify: FastifyInstance) {
       // Tìm cả 3 cột tên: name (gốc, thường tiếng Anh), name_vi (kỹ thuật) và
       // name_vi_cho (tên chợ). Khách gõ kiểu nào — "brake pad", "má phanh" hay
       // "bố thắng" — đều phải ra cùng một món.
-      if (q) { conds.push(`(unaccent_immutable(p.name) ILIKE unaccent_immutable($${i}) OR unaccent_immutable(p.name_vi) ILIKE unaccent_immutable($${i}) OR unaccent_immutable(p.name_vi_cho) ILIKE unaccent_immutable($${i}) OR p.internal_ref ILIKE $${i} OR p.oem_code ILIKE $${i})`); vals.push(`%${q}%`); i+=1; }
+      // + mã thay thế (catalog_oem_codes): gõ mã hãng phụ tùng ngoài (NiBK PN0834,
+      // 555 SR1570...) ra món chính hãng lắp được. Tra RIÊNG trước bằng index
+      // idx_oem_codes_norm (khớp chính xác mã đã chuẩn hoá) rồi đưa danh sách id
+      // vào — viết thẳng "OR p.id IN (SELECT ...)" làm planner quét cả 6tr dòng (>25s).
+      if (q) {
+        const qNorm = q.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+        const theoMa = qNorm.length >= 4
+          ? (await pool.query(`SELECT DISTINCT product_id FROM catalog_oem_codes WHERE oem_norm = $1 LIMIT 500`, [qNorm])).rows.map((r: any) => r.product_id)
+          : [];
+        conds.push(`(unaccent_immutable(p.name) ILIKE unaccent_immutable($${i}) OR unaccent_immutable(p.name_vi) ILIKE unaccent_immutable($${i}) OR unaccent_immutable(p.name_vi_cho) ILIKE unaccent_immutable($${i}) OR p.internal_ref ILIKE $${i} OR p.oem_code ILIKE $${i}`
+          + (theoMa.length ? ` OR p.id = ANY($${i+1}::uuid[]))` : `)`));
+        vals.push(`%${q}%`); i+=1;
+        if (theoMa.length) { vals.push(theoMa); i+=1; }
+      }
       if (product_type) { conds.push(`p.product_type=$${i++}`); vals.push(product_type); }
       // So khớp CHÍNH XÁC bằng "=" — brand luôn gửi đúng tên hãng lấy từ /stats
       // (VD "Hyundai"), không cần dò gần đúng. idx_products_brand là btree thường,
